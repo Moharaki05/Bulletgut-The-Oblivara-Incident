@@ -1,22 +1,23 @@
 import math
 import pygame as pg
-from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED
+from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV
 
 class Player:
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.angle = 0 # Facing right
-        self.fov = math.pi / 3 # 60 degrees
+        self.fov = FOV
 
         self.move_speed = PLAYER_SPEED
         self.rotate_speed = ROTATE_SPEED
 
     def handle_inputs(self, keys, dt, mouse_dx=0, level=None):
         # Direction vector
-        dx = math.cos(self.angle)
-        dy = math.sin(self.angle)
         speed = self.move_speed * dt
+        dx = math.cos(self.angle) * speed
+        dy = math.sin(self.angle) * speed
+
 
         def try_move(nx, ny):
             if level and not level.is_blocked(nx, ny):

@@ -1,5 +1,6 @@
 import pygame as pg
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE
+from engine.raycaster import Raycaster
 from entities.player import Player
 from engine.level import Level
 
@@ -16,11 +17,11 @@ class Game:
         pg.event.set_grab(True)
         pg.mouse.set_visible(False)
 
-        self.level = Level("assets/maps/test_level.tmx")
-        spawn_x, spawn_y = self.level.spawn_point
-
         #TODO : Add player, levels, HUD, etc.
-        self.player = Player(5 * TILE_SIZE, 5 * TILE_SIZE)
+        self.level = Level("assets/maps/test_level.tmx")
+        self.raycaster = Raycaster(self.level)
+        spawn_x, spawn_y = self.level.spawn_point
+        self.player = Player(spawn_x, spawn_y)
         self.mouse_dx = 0
 
 
@@ -36,13 +37,13 @@ class Game:
     def update(self):
         #later: update player, enemies, projectiles, etc.
         dt = self.clock.tick(FPS) / 1000 # Delta time in seconds
+        print(f"FPS: {self.clock.get_fps():.2f}")
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level)
 
     def draw(self):
         self.screen.fill((0, 0, 0))
-        self.level.draw_minimap(self.screen)
-        self.player.draw_debug(self.screen)
+        self.raycaster.cast_rays(self.screen, self.player)
         pg.display.flip()
 
     def run(self):

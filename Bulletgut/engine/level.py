@@ -30,15 +30,14 @@ class Level:
 
         if 0 <= tx < self.map_width and 0 <= ty < self.map_height:
             blocked = self.collision_map[ty][tx] == 1
-            print(f"[COLLISION] ({tx}, {ty}) → {'BLOCKED' if blocked else 'OPEN'}")
             return blocked
         else:
-            print(f"[COLLISION] ({tx}, {ty}) → OUT OF BOUNDS → BLOCKED")
             return True
 
     def get_player_spawn(self):
         for obj in self.tmx_data.objects:
-            if obj.type == 'playerStart':
+            if obj.name == 'playerStart':
+                print(obj.x, obj.y)
                 return obj.x, obj.y
         return TILE_SIZE * 2, TILE_SIZE * 2
 
