@@ -6,14 +6,57 @@ from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FOV, WALL_HEIGHT_SCALE, TIL
 class Raycaster:
     def __init__(self, level):
         self.level = level
-        self.num_rays = SCREEN_WIDTH // 2  # adjust resolution here
+        self.num_rays = SCREEN_WIDTH // 2
         self.fov = FOV
         self.max_depth = 800
-
 
     def cast_rays(self, screen, player, color):
         self.render_floor(screen, color)
         self.render_walls(screen, player)
+
+    def render_floor(self, screen, color):
+        pg.draw.rect(screen, color, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
+
+    def handle_door_intersection(self, ox, oy, angle):
+        closest_door = None
+        closest_depth = float("inf")
+        tex_x = 0
+        side = None
+
+        for door in self.level.doors:
+            if not door.is_visible():
+                continue
+
+            bounds = door.get_door_bounds()
+
+            if door.axis == "x":
+                if abs(math.cos(angle)) < 1e-6:
+                    continue
+                t = (bounds["min_x"] - ox) / math.cos(angle)
+                if t <= 0:
+                    continue
+                hit_y = oy + t * math.sin(angle)
+                if bounds["min_y"] <= hit_y <= bounds["max_y"] and t < closest_depth:
+                    closest_door = door
+                    closest_depth = t
+                    rel_y = (hit_y - bounds["min_y"]) / (bounds["max_y"] - bounds["min_y"])
+                    tex_x = int(rel_y * TILE_SIZE)
+                    side = "x"
+            else:
+                if abs(math.sin(angle)) < 1e-6:
+                    continue
+                t = (bounds["min_y"] - oy) / math.sin(angle)
+                if t <= 0:
+                    continue
+                hit_x = ox + t * math.cos(angle)
+                if bounds["min_x"] <= hit_x <= bounds["max_x"] and t < closest_depth:
+                    closest_door = door
+                    closest_depth = t
+                    rel_x = (hit_x - bounds["min_x"]) / (bounds["max_x"] - bounds["min_x"])
+                    tex_x = int(rel_x * TILE_SIZE)
+                    side = "y"
+
+        return closest_door, closest_depth, tex_x, side
 
     def render_walls(self, screen, player):
         ox, oy = player.get_position()
@@ -28,16 +71,12 @@ class Raycaster:
         for ray in range(self.num_rays):
             sin_a = math.sin(angle)
             cos_a = math.cos(angle)
-
-            # Which direction the ray steps
             dx = 1 if cos_a >= 0 else -1
             dy = 1 if sin_a >= 0 else -1
 
-            # Distance to meet next vertical and horizontal gridlines
             delta_dist_x = abs(TILE_SIZE / (cos_a + 1e-6))
             delta_dist_y = abs(TILE_SIZE / (sin_a + 1e-6))
 
-            # Initial step to grid boundary
             if dx > 0:
                 next_x = (map_x + 1) * TILE_SIZE
                 side_dist_x = (next_x - ox) / (cos_a + 1e-6)
@@ -52,11 +91,13 @@ class Raycaster:
                 next_y = map_y * TILE_SIZE
                 side_dist_y = (oy - next_y) / (-sin_a + 1e-6)
 
-            # DDA loop
             tile_x, tile_y = map_x, map_y
             side = None
 
-            while True:
+            door_obj, door_depth, door_tex_x, door_side = self.handle_door_intersection(ox, oy, angle)
+
+            wall_hit = False
+            while not wall_hit:
                 if side_dist_x < side_dist_y:
                     side_dist_x += delta_dist_x
                     tile_x += dx
@@ -70,54 +111,64 @@ class Raycaster:
                 wy = tile_y * TILE_SIZE + TILE_SIZE / 2
 
                 if self.level.is_blocked(wx, wy):
-                    break
+                    wall_hit = True
 
-            # Calculate distance
             if side == 'x':
-                depth = abs((tile_x * TILE_SIZE - ox + (1 - dx) * TILE_SIZE / 2) / (cos_a + 1e-6))
-                hit_x = oy + depth * sin_a
+                wall_depth = abs((tile_x * TILE_SIZE - ox + (1 - dx) * TILE_SIZE / 2) / (cos_a + 1e-6))
+                hit_x = oy + wall_depth * sin_a
+                tex_x = int(hit_x % TILE_SIZE)
             else:
-                depth = abs((tile_y * TILE_SIZE - oy + (1 - dy) * TILE_SIZE / 2) / (sin_a + 1e-6))
-                hit_x = ox + depth * cos_a
+                wall_depth = abs((tile_y * TILE_SIZE - oy + (1 - dy) * TILE_SIZE / 2) / (sin_a + 1e-6))
+                hit_x = ox + wall_depth * cos_a
+                tex_x = int(hit_x % TILE_SIZE)
 
-            # Fish-eye fix
+            if door_obj and door_depth < wall_depth:
+                depth = door_depth
+                tex_x = door_tex_x
+                side = door_side
+                wx, wy = door_obj.get_world_position()
+                gid = self.level.get_door_gid(door_obj, closed=not door_obj.is_visible())
+
+                # Flip door texture if player is behind the door
+                vec_to_player_x = ox - wx
+                vec_to_player_y = oy - wy
+                dot = vec_to_player_x * math.cos(angle) + vec_to_player_y * math.sin(angle)
+                print(dot)
+
+                if dot < 0:
+                    tex_x = TILE_SIZE - tex_x - 1  # Flip texture X
+
+            else:
+                depth = wall_depth
+                wx = tile_x * TILE_SIZE + TILE_SIZE / 2
+                wy = tile_y * TILE_SIZE + TILE_SIZE / 2
+                gid = self.level.get_gid(wx, wy)
+
+                if (side == 'x' and dx < 0) or (side == 'y' and dy > 0):
+                    tex_x = TILE_SIZE - tex_x - 1
+
             depth *= math.cos(player.get_angle() - angle)
-
-            # Calculate wall height - use your original formula
             wall_height = (40000 / (depth + 0.0001)) * WALL_HEIGHT_SCALE
 
-            # Calculate texture x-coordinate
-            hit_x = hit_x % TILE_SIZE
-            tex_x = int(hit_x)
-
-            # Flip texture for correct sides
-            if (side == 'x' and dx < 0) or (side == 'y' and dy > 0):
-                tex_x = TILE_SIZE - tex_x - 1
-
-            # Get the tile and draw the column
-            gid = self.level.get_gid(wx, wy)
             tile_img = self.level.tmx_data.get_tile_image_by_gid(gid)
             if gid and not tile_img:
                 print(f"Missing tile image for gid: {gid}")
 
             if tile_img:
-                # Prepare texture
                 texture = pg.transform.scale(tile_img, (TILE_SIZE, TILE_SIZE))
                 texture_column = texture.subsurface(tex_x, 0, 1, TILE_SIZE)
-
-                # Make sure height is reasonable
                 safe_height = max(1, min(int(wall_height), SCREEN_HEIGHT * 2))
-                column = pg.transform.scale(texture_column, (1, safe_height))
 
-                # Calculate vertical position
+                # Adjust door thickness if it's a door
+                if door_obj and door_depth < wall_depth:
+                    door_width_px = max(1, int(door_obj.get_door_thickness_px()))
+                    column = pg.transform.scale(texture_column, (door_width_px, safe_height))
+                else:
+                    column = pg.transform.scale(texture_column, (ray_width, safe_height))
+
                 column_y = (SCREEN_HEIGHT - safe_height) // 2
-
-                # Draw the column
                 x = ray * ray_width
-                for i in range(ray_width):
-                    screen.blit(column, (x + i, column_y))
+                screen.blit(column, (x, column_y))
 
             angle += delta_angle
 
-    def render_floor(self, screen, color):
-        pg.draw.rect(screen, color, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
