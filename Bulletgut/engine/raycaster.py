@@ -24,8 +24,8 @@ class Raycaster:
         side = None
 
         for door in self.level.doors:
-            if not door.is_visible():
-                continue
+            # Check both visible and invisible doors
+            # This is critical - closed doors should still be checked for intersection
 
             bounds = door.get_door_bounds()
 
@@ -94,6 +94,7 @@ class Raycaster:
             tile_x, tile_y = map_x, map_y
             side = None
 
+            # Handle door intersection before wall intersection
             door_obj, door_depth, door_tex_x, door_side = self.handle_door_intersection(ox, oy, angle)
 
             wall_hit = False
@@ -122,47 +123,72 @@ class Raycaster:
                 hit_x = ox + wall_depth * cos_a
                 tex_x = int(hit_x % TILE_SIZE)
 
+            # Check if door is closer than the wall
             if door_obj and door_depth < wall_depth:
                 depth = door_depth
                 tex_x = door_tex_x
                 side = door_side
+
+                # Get door position
                 wx, wy = door_obj.get_world_position()
-                gid = self.level.get_door_gid(door_obj, closed=not door_obj.is_visible())
 
-                # Flip door texture if player is behind the door
-                vec_to_player_x = ox - wx
-                vec_to_player_y = oy - wy
-                dot = vec_to_player_x * math.cos(angle) + vec_to_player_y * math.sin(angle)
-                print(dot)
+                # Get the appropriate texture GID - either door or wall
+                # For closed doors, we should show a wall texture
+                if door_obj.is_visible():
+                    # Door is visible/partially visible - use door texture
+                    gid = self.level.get_door_gid(door_obj, closed=False)
 
-                if dot < 0:
-                    tex_x = TILE_SIZE - tex_x - 1  # Flip texture X
+                    # Calculate direction from door to player for texture orientation
+                    door_to_player_x = ox - wx
+                    door_to_player_y = oy - wy
 
+                    # Calculate the dot product to determine which side of the door the player is on
+                    if door_obj.axis == "x":
+                        # For horizontal doors, check if player is to the left or right
+                        if (door_to_player_x < 0 and cos_a > 0) or (door_to_player_x > 0 and cos_a < 0):
+                            tex_x = TILE_SIZE - tex_x - 1  # Flip texture if viewing from "back"
+                    else:
+                        # For vertical doors, check if player is above or below
+                        if (door_to_player_y < 0 and sin_a > 0) or (door_to_player_y > 0 and sin_a < 0):
+                            tex_x = TILE_SIZE - tex_x - 1  # Flip texture if viewing from "back"
+                else:
+                    # Door is fully closed - use wall texture
+                    gid = self.level.get_door_gid(door_obj, closed=True)
             else:
                 depth = wall_depth
                 wx = tile_x * TILE_SIZE + TILE_SIZE / 2
                 wy = tile_y * TILE_SIZE + TILE_SIZE / 2
                 gid = self.level.get_gid(wx, wy)
 
+                # Standard wall texture flipping based on view angle
                 if (side == 'x' and dx < 0) or (side == 'y' and dy > 0):
                     tex_x = TILE_SIZE - tex_x - 1
 
+            # Adjust for fish-eye effect
             depth *= math.cos(player.get_angle() - angle)
             wall_height = (40000 / (depth + 0.0001)) * WALL_HEIGHT_SCALE
 
+            # Get and render the texture
             tile_img = self.level.tmx_data.get_tile_image_by_gid(gid)
             if gid and not tile_img:
-                print(f"Missing tile image for gid: {gid}")
+                # Fallback for missing textures - use a default GID
+                default_gid = 1  # Usually the first texture
+                tile_img = self.level.tmx_data.get_tile_image_by_gid(default_gid)
 
             if tile_img:
                 texture = pg.transform.scale(tile_img, (TILE_SIZE, TILE_SIZE))
                 texture_column = texture.subsurface(tex_x, 0, 1, TILE_SIZE)
                 safe_height = max(1, min(int(wall_height), SCREEN_HEIGHT * 2))
 
-                # Adjust door thickness if it's a door
+                # Adjust width for doors based on their thickness
                 if door_obj and door_depth < wall_depth:
-                    door_width_px = max(1, int(door_obj.get_door_thickness_px()))
-                    column = pg.transform.scale(texture_column, (door_width_px, safe_height))
+                    # If the door is visible, adjust width based on thickness
+                    if door_obj.is_visible():
+                        door_width_px = max(1, int(door_obj.get_door_thickness_px()))
+                        column = pg.transform.scale(texture_column, (door_width_px, safe_height))
+                    else:
+                        # For closed doors, use standard ray width
+                        column = pg.transform.scale(texture_column, (ray_width, safe_height))
                 else:
                     column = pg.transform.scale(texture_column, (ray_width, safe_height))
 
@@ -171,4 +197,3 @@ class Raycaster:
                 screen.blit(column, (x, column_y))
 
             angle += delta_angle
-

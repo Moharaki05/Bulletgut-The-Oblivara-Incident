@@ -134,37 +134,72 @@ class Level:
         grid_x, grid_y = door.grid_x, door.grid_y
 
         if closed:
-            # Try using cached wall GIDs
-            if door.axis == "x":
-                left = (grid_x, grid_y, "left")
-                right = (grid_x, grid_y, "right")
-                if left in self.closed_door_gids:
-                    return self.closed_door_gids[left]
-                elif right in self.closed_door_gids:
-                    return self.closed_door_gids[right]
-            else:
-                top = (grid_x, grid_y, "top")
-                bottom = (grid_x, grid_y, "bottom")
-                if top in self.closed_door_gids:
-                    return self.closed_door_gids[top]
-                elif bottom in self.closed_door_gids:
-                    return self.closed_door_gids[bottom]
+            # For closed doors, we need a wall texture
+            # First check the cached door GIDs
+            if door.axis == "x":  # Horizontal door
+                left_key = (grid_x, grid_y, "left")
+                right_key = (grid_x, grid_y, "right")
 
-            # Fallback to any non-zero wall GID
+                if left_key in self.closed_door_gids:
+                    return self.closed_door_gids[left_key]
+                elif right_key in self.closed_door_gids:
+                    return self.closed_door_gids[right_key]
+
+                # If we don't have cached GIDs, check adjacent wall tiles
+                if 0 <= grid_x - 1 < self.map_width:
+                    left_tile = self.walls_layer.data[grid_y][grid_x - 1]
+                    left_gid = left_tile.gid if hasattr(left_tile, 'gid') else left_tile
+                    if left_gid != 0:
+                        return left_gid
+
+                if 0 <= grid_x + 1 < self.map_width:
+                    right_tile = self.walls_layer.data[grid_y][grid_x + 1]
+                    right_gid = right_tile.gid if hasattr(right_tile, 'gid') else right_tile
+                    if right_gid != 0:
+                        return right_gid
+            else:  # Vertical door
+                top_key = (grid_x, grid_y, "top")
+                bottom_key = (grid_x, grid_y, "bottom")
+
+                if top_key in self.closed_door_gids:
+                    return self.closed_door_gids[top_key]
+                elif bottom_key in self.closed_door_gids:
+                    return self.closed_door_gids[bottom_key]
+
+                # Check adjacent wall tiles
+                if 0 <= grid_y - 1 < self.map_height:
+                    top_tile = self.walls_layer.data[grid_y - 1][grid_x]
+                    top_gid = top_tile.gid if hasattr(top_tile, 'gid') else top_tile
+                    if top_gid != 0:
+                        return top_gid
+
+                if 0 <= grid_y + 1 < self.map_height:
+                    bottom_tile = self.walls_layer.data[grid_y + 1][grid_x]
+                    bottom_gid = bottom_tile.gid if hasattr(bottom_tile, 'gid') else bottom_tile
+                    if bottom_gid != 0:
+                        return bottom_gid
+
+            # Fallback - find any valid wall texture
             for y in range(self.map_height):
                 for x in range(self.map_width):
                     tile = self.walls_layer.data[y][x]
                     gid = tile.gid if hasattr(tile, 'gid') else tile
                     if gid != 0:
                         return gid
-            return 1  # Default fallback
 
-        # Door tile GID
-        if 0 <= grid_x < self.map_width and 0 <= grid_y < self.map_height:
-            tile = self.doors_layer.data[grid_y][grid_x]
-            return tile.gid if hasattr(tile, 'gid') else tile
+            # Last resort - just return 1 (usually the first wall texture)
+            return 1
 
-        return 0
+        # For open/opening/closing doors, use the door texture
+        tile = self.doors_layer.data[grid_y][grid_x]
+        door_gid = tile.gid if hasattr(tile, 'gid') else tile
+
+        # Make sure we have a valid door GID
+        if door_gid == 0:
+            # If no door texture found, fall back to a wall texture (better than nothing)
+            return self.get_door_gid(door, closed=True)
+
+        return door_gid
 
     def load_doors(self):
         doors = []
