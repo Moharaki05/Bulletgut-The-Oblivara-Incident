@@ -32,18 +32,38 @@ class Game:
                 self.running = False
             elif event.type == pg.MOUSEMOTION:
                 self.mouse_dx = event.rel[0]
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_e:
+                    for door in self.level.doors:
+                        if self.is_near_door(door):
+                            door.toggle()
+
+    def is_near_door(self, door):
+        px, py = self.player.get_position()
+        player_tx = int(px // TILE_SIZE)
+        player_ty = int(py // TILE_SIZE)
+
+        dist_x = abs(player_tx - door.grid_x)
+        dist_y = abs(player_ty - door.grid_y)
+
+        return dist_x + dist_y <= 1  # Adjacent in grid
 
 
     def update(self):
         #later: update player, enemies, projectiles, etc.
         dt = self.clock.tick(FPS) / 1000 # Delta time in seconds
         print(f"FPS: {self.clock.get_fps():.2f}")
+
+        # Handle input
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level)
 
+        for door in self.level.doors:
+            door.update(dt)
+
     def draw(self):
         self.screen.fill((0, 0, 0))
-        self.raycaster.cast_rays(self.screen, self.player)
+        self.raycaster.cast_rays(self.screen, self.player, self.level.floor_color)
         pg.display.flip()
 
     def run(self):
