@@ -24,34 +24,51 @@ class Raycaster:
         side = None
 
         for door in self.level.doors:
-            # Check both visible and invisible doors
-            # This is critical - closed doors should still be checked for intersection
-
+            # Wolf3D-style door bounds
             bounds = door.get_door_bounds()
 
+            # Skip doors that are fully open
+            if door.progress >= 0.95:
+                continue
+
+            # Adjust hit detection based on door progress
             if door.axis == "x":
                 if abs(math.cos(angle)) < 1e-6:
                     continue
-                t = (bounds["min_x"] - ox) / math.cos(angle)
+
+                # Use precise door position for accurate hit detection
+                door_x_pos = bounds["min_x"] + (bounds["max_x"] - bounds["min_x"]) / 2
+                t = (door_x_pos - ox) / math.cos(angle)
+
                 if t <= 0:
                     continue
+
                 hit_y = oy + t * math.sin(angle)
                 if bounds["min_y"] <= hit_y <= bounds["max_y"] and t < closest_depth:
                     closest_door = door
                     closest_depth = t
+
+                    # Calculate texture coordinate for door
                     rel_y = (hit_y - bounds["min_y"]) / (bounds["max_y"] - bounds["min_y"])
                     tex_x = int(rel_y * TILE_SIZE)
                     side = "x"
             else:
                 if abs(math.sin(angle)) < 1e-6:
                     continue
-                t = (bounds["min_y"] - oy) / math.sin(angle)
+
+                # Use precise door position for accurate hit detection
+                door_y_pos = bounds["min_y"] + (bounds["max_y"] - bounds["min_y"]) / 2
+                t = (door_y_pos - oy) / math.sin(angle)
+
                 if t <= 0:
                     continue
+
                 hit_x = ox + t * math.cos(angle)
                 if bounds["min_x"] <= hit_x <= bounds["max_x"] and t < closest_depth:
                     closest_door = door
                     closest_depth = t
+
+                    # Calculate texture coordinate for door
                     rel_x = (hit_x - bounds["min_x"]) / (bounds["max_x"] - bounds["min_x"])
                     tex_x = int(rel_x * TILE_SIZE)
                     side = "y"
@@ -132,27 +149,23 @@ class Raycaster:
                 # Get door position
                 wx, wy = door_obj.get_world_position()
 
-                # Get the appropriate texture GID - either door or wall
-                # For closed doors, we should show a wall texture
                 if door_obj.is_visible():
-                    # Door is visible/partially visible - use door texture
+                    # Get the appropriate texture GID
                     gid = self.level.get_door_gid(door_obj, closed=False)
 
-                    # Calculate direction from door to player for texture orientation
-                    door_to_player_x = ox - wx
-                    door_to_player_y = oy - wy
-
-                    # Calculate the dot product to determine which side of the door the player is on
+                    # Wolf3D style: Offset the texture based on door opening progress
                     if door_obj.axis == "x":
-                        # For horizontal doors, check if player is to the left or right
-                        if (door_to_player_x < 0 and cos_a > 0) or (door_to_player_x > 0 and cos_a < 0):
-                            tex_x = TILE_SIZE - tex_x - 1  # Flip texture if viewing from "back"
+                        # For horizontal sliding doors
+                        tex_offset = int(door_obj.texture_offset)
+                        # Only modify tex_x for the horizontal sliding case to match Wolf3D
+                        tex_x = (tex_x + tex_offset) % TILE_SIZE
                     else:
-                        # For vertical doors, check if player is above or below
-                        if (door_to_player_y < 0 and sin_a > 0) or (door_to_player_y > 0 and sin_a < 0):
-                            tex_x = TILE_SIZE - tex_x - 1  # Flip texture if viewing from "back"
+                        # For vertical sliding doors
+                        tex_offset = int(door_obj.texture_offset)
+                        # Only modify tex_x for the vertical sliding case
+                        tex_x = (tex_x + tex_offset) % TILE_SIZE
                 else:
-                    # Door is fully closed - use wall texture
+                    # Fully closed door - use wall texture
                     gid = self.level.get_door_gid(door_obj, closed=True)
             else:
                 depth = wall_depth
