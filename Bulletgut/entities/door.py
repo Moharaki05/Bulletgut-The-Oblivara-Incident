@@ -9,7 +9,7 @@ class Door:
         self.timer = 0
         self.auto_close_time = auto_close_time
         self.progress = 0  # 0 = fully closed, 1 = fully open
-        self.speed = 2.0  # seconds to fully open/close (faster like Wolf3D)
+        self.speed = 0.5  # seconds to fully open/close (faster like Wolf3D)
 
         # Properties for sliding door
         self.thickness = thickness  # Door thickness as a fraction of tile size
@@ -19,7 +19,6 @@ class Door:
         self.texture_offset = 0
 
     def update(self, dt):
-        """Update door state based on time passed"""
         if self.state == "opening":
             self.progress += dt / self.speed
             if self.progress >= 1:
@@ -45,29 +44,24 @@ class Door:
             self.texture_offset = self.progress * TILE_SIZE
 
     def toggle(self):
-        """Toggle door state between opening/closing"""
         if self.state in ("closed", "closing"):
             self.state = "opening"
         elif self.state in ("open", "opening"):
             self.state = "closing"
 
     def is_blocking(self):
-        """Determine if door blocks movement"""
         # Door blocks movement if it's not fully open
         # Using 0.95 to add some leeway so player doesn't get stuck
         return self.progress < 0.95
 
     def is_visible(self):
-        """Determine if door should be rendered"""
         # Door is visible unless it's fully open
         return self.progress < 0.95
 
     def get_door_thickness_px(self):
-        """Returns the actual thickness of the door in pixels"""
         return TILE_SIZE * self.thickness * (1.0 - self.progress)
 
     def get_world_position(self):
-        """Returns the world pixel position with Wolf3D-style sliding offset"""
         # Base position at center of tile
         base_x = self.grid_x * TILE_SIZE + TILE_SIZE / 2
         base_y = self.grid_y * TILE_SIZE + TILE_SIZE / 2
@@ -84,7 +78,6 @@ class Door:
             return (base_x, base_y)
 
     def get_door_bounds(self):
-        """Returns the physical bounds of the door in world space"""
         x, y = self.get_world_position()
 
         # The visible part of the door gets smaller as it opens
@@ -111,11 +104,9 @@ class Door:
             }
 
     def is_open(self):
-        """Check if door is fully open"""
         return self.state == "open"
 
     def get_texture_coordinates(self):
-        """Get the texture coordinates for Wolf3D-style door rendering"""
         if self.axis == "x":
             # For horizontal sliding doors, we need to offset the texture horizontally
             return self.texture_offset, 0

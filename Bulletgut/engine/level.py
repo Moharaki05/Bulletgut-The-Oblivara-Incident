@@ -2,7 +2,7 @@ import pygame as pg
 from pytmx.util_pygame import load_pygame
 from data.config import TILE_SIZE
 from entities.door import Door
-
+from entities.enemy_base import Enemy
 
 class Level:
     def __init__(self, filename):
@@ -12,6 +12,7 @@ class Level:
         self.walls_layer = self.tmx_data.get_layer_by_name("Walls")
         self.floor_layer = self.tmx_data.get_layer_by_name("Floor")
         self.doors_layer = self.tmx_data.get_layer_by_name("Doors")
+        self.enemies_layer = self.tmx_data.get_layer_by_name("EnemyVisuals")
 
         if "floor_color" in self.tmx_data.properties:
             hex_color = self.tmx_data.properties["floor_color"].lstrip("#")
@@ -22,19 +23,14 @@ class Level:
         else:
             self.floor_color = (30, 30, 30)
 
+        self.enemies = self.load_enemies()
         self.collision_map = self.build_collision_map()
         self.spawn_point = self.get_player_spawn()
         self.doors = self.load_doors()
 
+
         # Store closed door GIDs for rendering
         self.closed_door_gids = self.find_closed_door_gids()
-
-        print("Door tile GIDs at positions:")
-        for door in self.doors:
-            gx, gy = door.grid_x, door.grid_y
-            tile = self.doors_layer.data[gy][gx]
-            gid = tile.gid if hasattr(tile, 'gid') else tile
-            print(f"  Tile at ({gx}, {gy}) = GID {gid}")
 
     def build_collision_map(self):
         grid = []
@@ -67,7 +63,6 @@ class Level:
     def get_player_spawn(self):
         for obj in self.tmx_data.objects:
             if obj.name == 'playerStart':
-                print(obj.x, obj.y)
                 return obj.x, obj.y
         return TILE_SIZE * 2, TILE_SIZE * 2
 
@@ -82,7 +77,6 @@ class Level:
                     # Get the door tile GID from the doors layer
                     door_tile = self.doors_layer.data[grid_y][grid_x]
                     door_gid = door_tile.gid if hasattr(door_tile, 'gid') else door_tile
-                    print(f"Door at {grid_x},{grid_y} using GID {door_gid}")
                     return door_gid
 
             # If no blocking door, check walls
@@ -92,7 +86,6 @@ class Level:
         return 0
 
     def find_closed_door_gids(self):
-        """Find GIDs for closed door textures (walls adjacent to doors)"""
         door_gids = {}
 
         # Scan through all doors to find adjacent wall tiles
@@ -130,7 +123,6 @@ class Level:
         return door_gids
 
     def get_door_gid(self, door, closed=False):
-        """Gets the GID for a specific door"""
         grid_x, grid_y = door.grid_x, door.grid_y
 
         if closed:
@@ -217,3 +209,22 @@ class Level:
             doors.append(door)
 
         return doors
+
+    def load_enemies(self):
+        enemies = []
+        for obj in self.tmx_data.objects:
+            if obj.type == "enemy":
+                enemy_type = obj.properties.get("enemy_type", "gunner")
+                x = obj.x
+                y = obj.y
+
+                enemy_texture = pg.image.load("./assets/sprites/Enemy/Soldier/Movement/Walk1_Front.png").convert_alpha()
+                frame_width = 41
+                frame_height = 57
+                first_frame = enemy_texture.subsurface(pg.Rect(0, 0, frame_width, frame_height))
+
+                # enemy_texture.fill((255, 0, 0))  # bright red block
+
+                enemy = Enemy(x, y, first_frame)
+                enemies.append(enemy)
+        return enemies

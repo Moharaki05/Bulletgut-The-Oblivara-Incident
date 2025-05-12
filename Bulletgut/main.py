@@ -6,12 +6,6 @@ def main():
         game = Game()
 
         tmx = load_pygame("assets/maps/test_level.tmx")
-        print("Checking door objects...")
-        for obj in tmx.objects:
-            if obj.type == "door":
-                gx = int(obj.x // tmx.tilewidth)
-                gy = int(obj.y // tmx.tileheight)
-                print(f"Door at ({gx}, {gy}), properties: {obj.properties}")
 
         game.run()
     except KeyboardInterrupt:

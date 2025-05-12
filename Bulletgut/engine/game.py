@@ -36,7 +36,6 @@ class Game:
                 if event.key == pg.K_e:
                     for door in self.level.doors:
                         if self.is_near_door(door):
-                            print(f"Near door at {door.grid_x},{door.grid_y}")
                             door.toggle()
 
     def is_near_door(self, door):
@@ -44,7 +43,7 @@ class Game:
         dx = px - (door.grid_x + 0.5) * TILE_SIZE
         dy = py - (door.grid_y + 0.5) * TILE_SIZE
         dist_squared = dx * dx + dy * dy
-        return dist_squared <= (TILE_SIZE * 1.1) ** 2  # Adjust 1.1 as needed
+        return dist_squared <= (TILE_SIZE * 2.1) ** 2  # Adjust 1.1 as needed
 
 
     def update(self):
@@ -58,11 +57,14 @@ class Game:
 
         for door in self.level.doors:
             door.update(dt)
-            print(f"[UPDATE] Door at {door.grid_x},{door.grid_y} - State: {door.state}, Progress: {door.progress:.2f}")
+
+        for enemy in self.level.enemies:
+            enemy.update(self.player, dt)
 
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.raycaster.cast_rays(self.screen, self.player, self.level.floor_color)
+        self.raycaster.render_enemies(self.screen, self.player, self.level.enemies)
         pg.display.flip()
 
     def run(self):

@@ -2,7 +2,6 @@ import pygame as pg
 import math
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FOV, WALL_HEIGHT_SCALE, TILE_SIZE
 
-
 class Raycaster:
     def __init__(self, level):
         self.level = level
@@ -24,51 +23,34 @@ class Raycaster:
         side = None
 
         for door in self.level.doors:
-            # Wolf3D-style door bounds
-            bounds = door.get_door_bounds()
-
-            # Skip doors that are fully open
-            if door.progress >= 0.95:
+            if not door.is_visible():
                 continue
 
-            # Adjust hit detection based on door progress
+            bounds = door.get_door_bounds()
+
             if door.axis == "x":
                 if abs(math.cos(angle)) < 1e-6:
                     continue
-
-                # Use precise door position for accurate hit detection
-                door_x_pos = bounds["min_x"] + (bounds["max_x"] - bounds["min_x"]) / 2
-                t = (door_x_pos - ox) / math.cos(angle)
-
+                t = (bounds["min_x"] - ox) / math.cos(angle)
                 if t <= 0:
                     continue
-
                 hit_y = oy + t * math.sin(angle)
                 if bounds["min_y"] <= hit_y <= bounds["max_y"] and t < closest_depth:
                     closest_door = door
                     closest_depth = t
-
-                    # Calculate texture coordinate for door
                     rel_y = (hit_y - bounds["min_y"]) / (bounds["max_y"] - bounds["min_y"])
                     tex_x = int(rel_y * TILE_SIZE)
                     side = "x"
             else:
                 if abs(math.sin(angle)) < 1e-6:
                     continue
-
-                # Use precise door position for accurate hit detection
-                door_y_pos = bounds["min_y"] + (bounds["max_y"] - bounds["min_y"]) / 2
-                t = (door_y_pos - oy) / math.sin(angle)
-
+                t = (bounds["min_y"] - oy) / math.sin(angle)
                 if t <= 0:
                     continue
-
                 hit_x = ox + t * math.cos(angle)
                 if bounds["min_x"] <= hit_x <= bounds["max_x"] and t < closest_depth:
                     closest_door = door
                     closest_depth = t
-
-                    # Calculate texture coordinate for door
                     rel_x = (hit_x - bounds["min_x"]) / (bounds["max_x"] - bounds["min_x"])
                     tex_x = int(rel_x * TILE_SIZE)
                     side = "y"
@@ -111,7 +93,6 @@ class Raycaster:
             tile_x, tile_y = map_x, map_y
             side = None
 
-            # Handle door intersection before wall intersection
             door_obj, door_depth, door_tex_x, door_side = self.handle_door_intersection(ox, oy, angle)
 
             wall_hit = False
@@ -140,68 +121,47 @@ class Raycaster:
                 hit_x = ox + wall_depth * cos_a
                 tex_x = int(hit_x % TILE_SIZE)
 
-            # Check if door is closer than the wall
             if door_obj and door_depth < wall_depth:
                 depth = door_depth
                 tex_x = door_tex_x
                 side = door_side
-
-                # Get door position
                 wx, wy = door_obj.get_world_position()
+                gid = self.level.get_door_gid(door_obj, closed=not door_obj.is_visible())
 
-                if door_obj.is_visible():
-                    # Get the appropriate texture GID
-                    gid = self.level.get_door_gid(door_obj, closed=False)
+                # Flip door texture if player is behind the door
+                vec_to_player_x = ox - wx
+                vec_to_player_y = oy - wy
+                dot = vec_to_player_x * math.cos(angle) + vec_to_player_y * math.sin(angle)
+                print(dot)
 
-                    # Wolf3D style: Offset the texture based on door opening progress
-                    if door_obj.axis == "x":
-                        # For horizontal sliding doors
-                        tex_offset = int(door_obj.texture_offset)
-                        # Only modify tex_x for the horizontal sliding case to match Wolf3D
-                        tex_x = (tex_x + tex_offset) % TILE_SIZE
-                    else:
-                        # For vertical sliding doors
-                        tex_offset = int(door_obj.texture_offset)
-                        # Only modify tex_x for the vertical sliding case
-                        tex_x = (tex_x + tex_offset) % TILE_SIZE
-                else:
-                    # Fully closed door - use wall texture
-                    gid = self.level.get_door_gid(door_obj, closed=True)
+                if dot < 0:
+                    tex_x = TILE_SIZE - tex_x - 1  # Flip texture X
+
             else:
                 depth = wall_depth
                 wx = tile_x * TILE_SIZE + TILE_SIZE / 2
                 wy = tile_y * TILE_SIZE + TILE_SIZE / 2
                 gid = self.level.get_gid(wx, wy)
 
-                # Standard wall texture flipping based on view angle
                 if (side == 'x' and dx < 0) or (side == 'y' and dy > 0):
                     tex_x = TILE_SIZE - tex_x - 1
 
-            # Adjust for fish-eye effect
             depth *= math.cos(player.get_angle() - angle)
             wall_height = (40000 / (depth + 0.0001)) * WALL_HEIGHT_SCALE
 
-            # Get and render the texture
             tile_img = self.level.tmx_data.get_tile_image_by_gid(gid)
             if gid and not tile_img:
-                # Fallback for missing textures - use a default GID
-                default_gid = 1  # Usually the first texture
-                tile_img = self.level.tmx_data.get_tile_image_by_gid(default_gid)
+                print(f"Missing tile image for gid: {gid}")
 
             if tile_img:
                 texture = pg.transform.scale(tile_img, (TILE_SIZE, TILE_SIZE))
                 texture_column = texture.subsurface(tex_x, 0, 1, TILE_SIZE)
                 safe_height = max(1, min(int(wall_height), SCREEN_HEIGHT * 2))
 
-                # Adjust width for doors based on their thickness
+                # Adjust door thickness if it's a door
                 if door_obj and door_depth < wall_depth:
-                    # If the door is visible, adjust width based on thickness
-                    if door_obj.is_visible():
-                        door_width_px = max(1, int(door_obj.get_door_thickness_px()))
-                        column = pg.transform.scale(texture_column, (door_width_px, safe_height))
-                    else:
-                        # For closed doors, use standard ray width
-                        column = pg.transform.scale(texture_column, (ray_width, safe_height))
+                    door_width_px = max(1, int(door_obj.get_door_thickness_px()))
+                    column = pg.transform.scale(texture_column, (door_width_px, safe_height))
                 else:
                     column = pg.transform.scale(texture_column, (ray_width, safe_height))
 
@@ -210,3 +170,27 @@ class Raycaster:
                 screen.blit(column, (x, column_y))
 
             angle += delta_angle
+
+    def render_enemies(self, screen, player, enemies):
+        ox, oy = player.get_position()
+        angle = player.get_angle()
+
+        for enemy in enemies:
+            ex, ey = enemy.x, enemy.y
+            dx, dy = ex - ox, ey - oy
+            dist = math.hypot(dx, dy)
+
+            # Skip if behind the player
+            dir_angle = math.atan2(dy, dx)
+            delta = (dir_angle - angle + math.pi) % (2 * math.pi) - math.pi
+            if abs(delta) > self.fov / 2:
+                continue
+
+            # Project enemy position onto screen
+            screen_x = (0.5 + delta / self.fov) * SCREEN_WIDTH
+            size = int((4000 / (dist + 0.01)) * WALL_HEIGHT_SCALE)
+
+            enemy_img = enemy.get_sprite()
+            if enemy_img:
+                sprite = pg.transform.scale(enemy_img, (size, size))
+                screen.blit(sprite, (screen_x - size // 2, SCREEN_HEIGHT // 2 - size // 2))
