@@ -3,7 +3,6 @@ from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE
 from engine.raycaster import Raycaster
 from entities.player import Player
 from engine.level import Level
-from weapons.fists import Fists
 
 
 class Game:
@@ -23,18 +22,14 @@ class Game:
         self.raycaster = Raycaster(self.level)
         spawn_x, spawn_y = self.level.spawn_point
         self.player = Player(spawn_x, spawn_y)
+        self.enemies = []
         self.mouse_dx = 0
 
         # Système d'armes
-        # self.weapons = []
-        # self.current_weapon_index = 0
         self.projectiles = []
 
         # Initialiser les armes
         self.player.initialize_weapons(self)
-
-        # Équiper la première arme
-        # self.weapons[self.current_weapon_index].is_equipped = True
 
     def handle_events(self):
         self.mouse_dx = 0
@@ -73,7 +68,7 @@ class Game:
     def update(self):
         #later: update player, enemies, projectiles, etc.
         dt = self.clock.tick(FPS) / 1000 # Delta time in seconds
-        print(f"FPS: {self.clock.get_fps():.2f}")
+        print(f"FPS: {self.clock.get_fps()}")
 
         # Handle input
         keys = pg.key.get_pressed()
@@ -85,11 +80,9 @@ class Game:
         for enemy in self.level.enemies:
             enemy.update(self.player, dt)
 
-        # Mise à jour de l'arme équipée
         if self.player.weapon:
             self.player.weapon.update(dt)
 
-        # Mise à jour des projectiles
         updated_projectiles = []
         for projectile in self.projectiles:
             if projectile.update(dt):

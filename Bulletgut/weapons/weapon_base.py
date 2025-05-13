@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 class WeaponBase(ABC):
     def __init__(self, game):
         self.game = game
-        self.name = "Arme de base"
+        self.name = "Base weapon"
         self.damage = 10
         self.fire_rate = 1.0  # Tirs par seconde
         self.ammo_type = "default"
@@ -20,9 +20,12 @@ class WeaponBase(ABC):
 
         # Animation
         self.sprites = []
+        self.sprite_offsets = [] if not hasattr(self, 'sprite_offsets') \
+            else self.sprite_offsets
         self.current_sprite_index = 0
         self.current_sprite = None
         self.animation_speed = 0.1
+        self.animation_elapsed = 0
         self.last_animation_time = 0
         self.is_firing = False
         self.bobbing_x = 0
@@ -30,13 +33,16 @@ class WeaponBase(ABC):
         self.bobbing_amount = 10
         self.bobbing_speed = 0.2
         self.bobbing_counter = 0
-        self.position_offset = [0, 0]
+        self.position_offset = [0, 0] if not hasattr(self, 'position_offset') \
+            else self.position_offset
         self.scale_factor = 1.0
 
         # Son
-        self.fire_sound = pg.mixer.Sound("assets/sounds/fists/punch.wav")
+        self.fire_sound = None
         self.reload_sound = None
-        self.empty_sound = pg.mixer.Sound("assets/sounds/fists/fist_swing.wav")
+        self.empty_sound = None
+        self.swing_sound = None
+        self.punch_sound = None
 
         # État
         self.is_equipped = False
@@ -63,10 +69,52 @@ class WeaponBase(ABC):
         # Mettre à jour le bobbing
         self._update_weapon_bobbing(dt, self.game.player)
 
-    def _update_animation(self, dt):
+    def _update_animation(self, dt=None):
         """Met à jour l'animation de l'arme avec plusieurs frames"""
         if not self.sprites:
             return
+
+        if not hasattr(self, 'animation_elapsed'):
+            self.animation_elapsed = 0
+
+        if self.is_firing:
+            # Utiliser dt si fourni, sinon calculer le temps écoulé
+            if dt is not None:
+                # Accumuler delta time au lieu d'utiliser time.time()
+                self.animation_elapsed += dt
+            else:
+                current_time = time.time()
+                self.animation_elapsed = current_time - self.last_fire_time
+
+            animation_duration = 0.5  # Durée totale de l'animation
+
+            # Calculer l'index du sprite en fonction du temps écoulé
+            if len(self.sprites) > 1:
+                animation_frames = len(self.sprites) - 1
+
+                animation_progress = self.animation_elapsed / animation_duration
+                if animation_progress >= 1.0:
+                    self.current_sprite_index = 0
+                    self.is_firing = False
+                    self.animation_elapsed = 0  # Réinitialiser le compteur
+                else:
+                    # Déterminer quelle frame afficher (pré-calculer ceci une fois)
+                    frame_index = int(animation_progress * animation_frames)
+                    self.current_sprite_index = min(frame_index + 1, animation_frames)
+
+                # Utiliser directement l'offset sans vérifier hasattr à chaque frame
+                if self.sprite_offsets and self.current_sprite_index < len(self.sprite_offsets):
+                    # Éviter .copy() si possible en assignant directement les valeurs
+                    self.position_offset[0] = self.sprite_offsets[self.current_sprite_index][0]
+                    self.position_offset[1] = self.sprite_offsets[self.current_sprite_index][1]
+        else:
+            # En état de repos, utiliser la première image
+            self.current_sprite_index = 0
+
+            # Rétablir l'offset de l'image de repos (sans hasattr et sans copy)
+            if self.sprite_offsets:
+                self.position_offset[0] = self.sprite_offsets[0][0]
+                self.position_offset[1] = self.sprite_offsets[0][1]
 
         if self.is_firing:
             current_time = time.time()
@@ -183,4 +231,8 @@ class WeaponBase(ABC):
     @abstractmethod
     def _fire_effect(self):
         """Effet spécifique lors du tir (hitscan, projectile, etc.)"""
+        pass
+
+    @abstractmethod
+    def _handle_fire(self):
         pass

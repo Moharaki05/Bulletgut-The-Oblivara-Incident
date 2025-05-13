@@ -1,4 +1,6 @@
 from weapons.hitscan_weapon import HitscanWeapon
+import random
+import math
 import pygame as pg
 
 class Pistol(HitscanWeapon):
@@ -11,11 +13,11 @@ class Pistol(HitscanWeapon):
         self.spread = 0.02
         self.pellets = 1
         self.ammo_type = "bullets"
-        self.max_ammo = 50
+        self.max_ammo = 400
         self.current_ammo = self.max_ammo
         self.scale_factor = 1.5
 
-        # Charger les sprites
+
         self.load_sprites([
             "assets/weapons/pistol/pistol1.png",
             "assets/weapons/pistol/pistol2.png",
@@ -26,7 +28,7 @@ class Pistol(HitscanWeapon):
 
         # Sons
         self.fire_sound = pg.mixer.Sound("assets/sounds/pistol/pistol.wav")
-        self.empty_sound = pg.mixer.Sound("assets/sounds/pistol/empty_pistol.wav")
+        self.empty_sound = pg.mixer.Sound("assets/sounds/pistol/empty_pistol_click.wav")
 
         self.position_offset = [0, 50]
 
@@ -36,20 +38,31 @@ class Pistol(HitscanWeapon):
         self.is_firing = False
 
     def _handle_fire(self):
-        """Gère le tir du pistolet."""
         # Vérifier si on a des munitions
         if self.current_ammo <= 0:
-            # Jouer le son "vide"
-            if hasattr(self, 'empty_sound') and self.empty_sound:
-                self.empty_sound.play()
+            # Arrêter tout son en cours
+            if hasattr(self, 'fire_sound'):
+                self.fire_sound.stop()
+
+            # Jouer le son "vide" avec un volume adéquat
+            self.empty_sound.set_volume(1.0)
+            self.empty_sound.play()
+            print("Son pistolet vide joué - munitions épuisées")
+
+            self.is_firing = False
+
+            # Conserver le sprite de base (non-tir)
+            self.current_sprite_index = 0
+            if self.sprites and len(self.sprites) > 0:
+                self.current_sprite = self.sprites[0]
+
             return
 
         # Décrémenter les munitions
         self.current_ammo -= 1
 
         # Jouer le son de tir
-        if hasattr(self, 'fire_sound') and self.fire_sound:
-            self.fire_sound.play()
+        self.fire_sound.play()
 
         # Animation de tir (passer aux sprites suivants)
         self.is_firing = True
@@ -60,9 +73,6 @@ class Pistol(HitscanWeapon):
         start_x, start_y = player.x, player.y
         direction = player.get_direction_vector()
 
-        # Appliquer un léger spread (dispersion) au tir
-        import random
-        import math
 
         # Calculer un angle aléatoire dans la limite du spread
         if hasattr(self, 'spread'):

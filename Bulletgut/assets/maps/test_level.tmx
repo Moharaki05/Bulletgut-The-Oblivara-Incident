@@ -94,7 +94,7 @@
 </data>
  </layer>
  <objectgroup id="3" name="PlayerSpawn">
-  <object id="3" name="playerStart" x="258.121" y="574.242">
+  <object id="3" name="playerStart" x="282.121" y="562.242">
    <point/>
   </object>
  </objectgroup>
