@@ -12,6 +12,10 @@ class Player:
         self.move_speed = PLAYER_SPEED
         self.rotate_speed = ROTATE_SPEED
         self.collision_radius = PLAYER_COLLISION_RADIUS
+        self.moving = False
+
+        self.weapons = []
+        self.current_weapon_index = 0
 
     def handle_inputs(self, keys, dt, mouse_dx=0, level=None):
         # Direction vector
@@ -22,6 +26,8 @@ class Player:
         # Save original position for collision detection
         original_x, original_y = self.x, self.y
         new_x, new_y = original_x, original_y
+
+        self.moving = False
 
         if keys[pg.K_w]:
             new_x += dx * speed
@@ -35,6 +41,10 @@ class Player:
         if keys[pg.K_d]:
             new_x -= dy * speed
             new_y += dx * speed
+
+        if keys[pg.K_w] or keys[pg.K_s] or keys[pg.K_a] or keys[pg.K_d]:
+            # Une touche de mouvement est enfoncée
+            self.moving = True
 
             # Apply movement with improved collision detection
         if level:
@@ -103,3 +113,45 @@ class Player:
 
     def get_direction_vector(self):
         return (math.cos(self.angle), math.sin(self.angle))
+
+    def is_moving(self):
+        print(self.moving)
+        return self.moving
+
+    def initialize_weapons(self, game):
+        """Crée toutes les armes disponibles pour le joueur"""
+        from weapons.fists import Fists
+        from weapons.pistol import Pistol
+
+        # Ajouter les armes au joueur
+        self.weapons.append(Fists(game))
+        self.weapons.append(Pistol(game))
+
+        # Définir l'arme active initiale
+        if self.weapons:
+            self.current_weapon_index = 0
+            self.weapons[self.current_weapon_index].is_equipped = True
+            self.weapon = self.weapons[self.current_weapon_index]  # Référence à l'arme actuelle
+
+    def switch_weapon(self, direction):
+        if not self.weapons:
+            return
+
+        # Désactiver l'arme actuelle
+        self.weapons[self.current_weapon_index].is_equipped = False
+
+        # Calculer le nouvel index
+        self.current_weapon_index = (self.current_weapon_index + direction) % len(self.weapons)
+
+        # Activer la nouvelle arme
+        self.weapons[self.current_weapon_index].is_equipped = True
+
+        # Mettre à jour la référence à l'arme actuelle
+        self.weapon = self.weapons[self.current_weapon_index]
+
+
+
+
+
+
+

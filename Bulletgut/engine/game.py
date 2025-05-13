@@ -3,6 +3,7 @@ from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE
 from engine.raycaster import Raycaster
 from entities.player import Player
 from engine.level import Level
+from weapons.fists import Fists
 
 
 class Game:
@@ -24,6 +25,16 @@ class Game:
         self.player = Player(spawn_x, spawn_y)
         self.mouse_dx = 0
 
+        # Système d'armes
+        # self.weapons = []
+        # self.current_weapon_index = 0
+        self.projectiles = []
+
+        # Initialiser les armes
+        self.player.initialize_weapons(self)
+
+        # Équiper la première arme
+        # self.weapons[self.current_weapon_index].is_equipped = True
 
     def handle_events(self):
         self.mouse_dx = 0
@@ -32,11 +43,24 @@ class Game:
                 self.running = False
             elif event.type == pg.MOUSEMOTION:
                 self.mouse_dx = event.rel[0]
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if event.button == 1:
+                        # Utiliser l'arme actuelle du joueur
+                        if self.player.weapon:
+                            self.player.weapon.fire()
+                if event.button == 4:  # Molette vers le haut
+                    self.player.switch_weapon(-1)
+                elif event.button == 5:  # Molette vers le bas
+                    self.player.switch_weapon(1)
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_e:
                     for door in self.level.doors:
                         if self.is_near_door(door):
                             door.toggle()
+                # Debug quit
+                if event.key == pg.K_ESCAPE:
+                    self.running = False
 
     def is_near_door(self, door):
         px, py = self.player.get_position()
@@ -61,10 +85,26 @@ class Game:
         for enemy in self.level.enemies:
             enemy.update(self.player, dt)
 
+        # Mise à jour de l'arme équipée
+        if self.player.weapon:
+            self.player.weapon.update(dt)
+
+        # Mise à jour des projectiles
+        updated_projectiles = []
+        for projectile in self.projectiles:
+            if projectile.update(dt):
+                updated_projectiles.append(projectile)
+        self.projectiles = updated_projectiles
+
+
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.raycaster.cast_rays(self.screen, self.player, self.level.floor_color)
         self.raycaster.render_enemies(self.screen, self.player, self.level.enemies)
+
+        if self.player.weapon:
+            self.player.weapon.render(self.screen)
+
         pg.display.flip()
 
     def run(self):
