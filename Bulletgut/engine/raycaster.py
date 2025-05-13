@@ -184,7 +184,8 @@ class Raycaster:
         ox, oy = player.get_position()
         angle = player.get_angle()
 
-        # Sort enemies by distance (furthest first for correct rendering order)
+        size_reduction_factor = 0.55
+
         sorted_enemies = []
         for enemy in enemies:
             ex, ey = enemy.x, enemy.y
@@ -198,61 +199,62 @@ class Raycaster:
             ex, ey = enemy.x, enemy.y
             dx, dy = ex - ox, ey - oy
 
-            # Skip if behind the player or too far
             dir_angle = math.atan2(dy, dx)
             delta = (dir_angle - angle + math.pi) % (2 * math.pi) - math.pi
             if abs(delta) > self.fov / 2:
                 continue
 
-            # Project enemy position onto screen
             screen_x = int((0.5 + delta / self.fov) * SCREEN_WIDTH)
-            size = int((4000 / (dist + 0.01)) * WALL_HEIGHT_SCALE)
+            corrected_dist = dist * math.cos(delta)
 
-            # Enemy dimensions
             enemy_img = enemy.get_sprite()
             if not enemy_img:
                 continue
 
-            img_width = size
-            img_height = size
+            wall_height = (40000 / (corrected_dist + 0.0001)) * WALL_HEIGHT_SCALE
 
-            # Check if the enemy is behind a wall using z-buffer
-            # Only render if the enemy's distance is less than the wall's distance at this column
+            wall_height *= size_reduction_factor
+
+            original_width, original_height = enemy_img.get_size()
+            aspect_ratio = original_width / original_height
+
+            img_height = int(wall_height)
+            img_width = int(img_height * aspect_ratio)
+
+            max_size = SCREEN_WIDTH // 3
+            if img_width > max_size or img_height > max_size:
+                scale_factor = max_size / max(img_width, img_height)
+                img_width = int(img_width * scale_factor)
+                img_height = int(img_height * scale_factor)
+
             left_x = max(0, screen_x - img_width // 2)
             right_x = min(SCREEN_WIDTH - 1, screen_x + img_width // 2)
 
-            # Check visibility against z-buffer
             visible = False
             for x in range(left_x, right_x + 1):
-                if 0 <= x < SCREEN_WIDTH and dist < self.z_buffer[x]:
+                if 0 <= x < SCREEN_WIDTH and corrected_dist < self.z_buffer[x]:
                     visible = True
                     break
 
             if not visible:
                 continue
 
-            # Scale sprite and position at eye level
             sprite = pg.transform.scale(enemy_img, (img_width, img_height))
+            center_y = SCREEN_HEIGHT // 2
+            floor_offset = img_height * 0.3
+            screen_y = center_y - (img_height // 2) + floor_offset
 
-            # Position at eye level (center vertically)
-            screen_y = SCREEN_HEIGHT // 2 - img_height // 2
-
-            # Draw the sprite (with proper occlusion)
             for x in range(left_x, right_x + 1):
                 if x < 0 or x >= SCREEN_WIDTH:
                     continue
 
-                # Only draw pixels that are in front of walls
-                if dist < self.z_buffer[x]:
-                    # Calculate which column of the sprite to draw
+                if corrected_dist < self.z_buffer[x]:
                     if right_x != left_x:
                         col_ratio = (x - left_x) / (right_x - left_x)
-                        # Ensure sprite_x is within bounds of the sprite's width
                         sprite_x = min(img_width - 1, max(0, int(col_ratio * img_width)))
                     else:
                         sprite_x = 0
 
-                    # Ensure we don't go out of bounds
                     if sprite_x < img_width:
                         column = sprite.subsurface(sprite_x, 0, 1, img_height)
                         screen.blit(column, (x, screen_y))
