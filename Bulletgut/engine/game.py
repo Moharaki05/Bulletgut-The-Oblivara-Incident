@@ -48,6 +48,11 @@ class Game:
                     self.player.switch_weapon(-1)
                 elif event.button == 5:  # Molette vers le bas
                     self.player.switch_weapon(1)
+            elif event.type == pg.MOUSEBUTTONUP:  # Ajout de cette condition
+                if event.button == 1:
+                    # Arrêter le tir quand le bouton est relâché
+                    if self.player.weapon:
+                        self.player.weapon.release_trigger()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_e:
                     for door in self.level.doors:
@@ -68,7 +73,7 @@ class Game:
     def update(self):
         #later: update player, enemies, projectiles, etc.
         dt = self.clock.tick(FPS) / 1000 # Delta time in seconds
-        print(f"FPS: {self.clock.get_fps()}")
+        # print(f"FPS: {self.clock.get_fps()}")
 
         # Handle input
         keys = pg.key.get_pressed()

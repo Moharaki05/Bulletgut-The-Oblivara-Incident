@@ -2,8 +2,9 @@ import math
 import pygame as pg
 from weapons.fists import Fists
 from weapons.pistol import Pistol
-from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, MOUSE_SENSITIVITY_MULTIPLIER, PLAYER_COLLISION_RADIUS
 from weapons.shotgun import Shotgun
+from weapons.chaingun import Chaingun
+from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, MOUSE_SENSITIVITY_MULTIPLIER, PLAYER_COLLISION_RADIUS
 
 
 class Player:
@@ -123,6 +124,7 @@ class Player:
         self.weapons.append(Fists(game))
         self.weapons.append(Pistol(game))
         self.weapons.append(Shotgun(game))
+        self.weapons.append(Chaingun(game))
 
         if self.weapons:
             self.current_weapon_index = 0

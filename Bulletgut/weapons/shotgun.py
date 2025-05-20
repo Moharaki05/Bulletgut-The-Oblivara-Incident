@@ -8,7 +8,6 @@ class Shotgun(HitscanWeapon):
     def __init__(self, game):
         super().__init__(game)
         self.name = "Shotgun"
-        self.damage = 8
         self.fire_rate = 1.0
         self.shot_cooldown = 1.0 / self.fire_rate
         self.spread = 0.12
@@ -59,7 +58,6 @@ class Shotgun(HitscanWeapon):
                 self.current_ammo = self.max_ammo
 
         # Mise à jour du bobbing de l'arme
-        # (réimplémentation de _update_weapon_bobbing sans appeler super())
         if hasattr(self.game, 'player'):
             player = self.game.player
             if hasattr(player, 'is_moving') and player.is_moving:
@@ -88,7 +86,6 @@ class Shotgun(HitscanWeapon):
             self.current_sprite_index = frame_index
             self.current_sprite = self.sprites[frame_index]
 
-
             # Jouer le son de rechargement au milieu de l'animation
             if not self.reload_played and progress > 0.5:
                 self.reload_sound.play()
@@ -102,10 +99,23 @@ class Shotgun(HitscanWeapon):
                 self.current_sprite = self.sprites[0]
                 self.reload_played = False
 
+                # Si l'animation est terminée
+                if self.animation_timer >= self.animation_duration:
+                    # Réinitialiser l'état d'animation
+                    self.animation_active = False
+                    self.animation_timer = 0
+
+                    # Si le shotgun était en train de se recharger, marquer comme rechargé
+                    if self.is_reloading:
+                        self.is_reloading = False
+                        # S'assurer que l'arme est prête à tirer à nouveau
+                        self.is_firing = False
+
     def fire(self):
-        # Si on est déjà en train d'animer, ne pas tirer à nouveau
-        if self.animation_active:
-            return False
+        # Si l'arme est en train de se recharger ou si l'animation est active, ne pas tirer
+        if self.is_reloading or self.animation_active:
+            print("Le shotgun est en cours de rechargement, impossible de tirer")
+            return
 
         # Vérifier si on peut tirer (cooldown)
         current_time = pg.time.get_ticks() / 1000.0
@@ -126,6 +136,9 @@ class Shotgun(HitscanWeapon):
         return True
 
     def _handle_fire(self):
+        if self.is_reloading or self.animation_active:
+            return None  # Ne pas tirer pendant le rechargement ou l'animation
+
         # Décrémenter les munitions
         self.current_ammo -= 1
 
@@ -159,9 +172,8 @@ class Shotgun(HitscanWeapon):
                 dx * sin_offset + dy * cos_offset
             )
 
-            # TODO: Implémenter le raycast pour détecter les impacts
-            print(f"Plomb de fusil tiré depuis ({start_x}, {start_y}) dans la direction {pellet_direction}")
-
+        # TODO: Implémenter le raycast pour détecter les impacts
+        print(f"Plomb de fusil tiré depuis ({start_x}, {start_y}) dans la direction {pellet_direction}")
         print(f"Munitions restantes: {self.current_ammo}")
 
         # Recul du joueur

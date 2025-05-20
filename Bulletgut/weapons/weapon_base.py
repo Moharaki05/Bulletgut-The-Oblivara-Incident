@@ -215,6 +215,9 @@ class WeaponBase(ABC):
             return True
         return False
 
+    def release_trigger(self):
+        pass
+
     def reload(self):
         """Recharge l'arme"""
         if self.is_reloading or self.current_ammo == self.max_ammo:

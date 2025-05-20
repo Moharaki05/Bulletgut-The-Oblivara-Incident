@@ -13,7 +13,7 @@ class Pistol(HitscanWeapon):
         self.spread = 0.02
         self.pellets = 1
         self.ammo_type = "bullets"
-        self.max_ammo = 400
+        self.max_ammo = 200
         self.current_ammo = self.max_ammo
         self.scale_factor = 1.5
 
@@ -36,6 +36,7 @@ class Pistol(HitscanWeapon):
         self.current_sprite_index = 0
         self.current_sprite = self.sprites[0] if self.sprites else None
         self.is_firing = False
+
 
     def _handle_fire(self):
         # Vérifier si on a des munitions

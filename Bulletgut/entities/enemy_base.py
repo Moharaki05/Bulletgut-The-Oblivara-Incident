@@ -1,14 +1,13 @@
 import math
 import pygame as pg
 
-
 class Enemy:
     def __init__(self, x, y, texture):
         self.x = x
         self.y = y
         self.texture = texture
         self.health = 100
-        self.speed = 30
+        self.speed = 60
         self.state = "idle"
         # Set eye height to be the same as player's eye level
         self.eye_height = 0  # At same level as player (center of screen)
