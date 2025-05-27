@@ -228,3 +228,13 @@ class Level:
                 enemy = Enemy(x, y, first_frame)
                 enemies.append(enemy)
         return enemies
+
+    def check_collision(self, position):
+        """
+        Vérifie si une position donnée est en collision avec les murs ou autres obstacles
+
+        :param position: Un tuple ou liste (x, y) représentant la position à vérifier
+        :return: True s'il y a collision, False sinon
+        """
+        x, y = int(position[0]), int(position[1])
+        return self.is_blocked(x, y)

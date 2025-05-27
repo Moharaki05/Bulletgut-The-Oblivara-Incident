@@ -2,13 +2,15 @@ import math
 import pygame as pg
 from weapons.fists import Fists
 from weapons.pistol import Pistol
+from weapons.plasma_gun import PlasmaGun
+from weapons.rocket_launcher import RocketLauncher
 from weapons.shotgun import Shotgun
 from weapons.chaingun import Chaingun
-from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, MOUSE_SENSITIVITY_MULTIPLIER, PLAYER_COLLISION_RADIUS
-
+from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Player:
     def __init__(self, x, y):
+        self.weapon = None
         self.x = x
         self.y = y
         self.angle = 0 # Facing right
@@ -56,8 +58,22 @@ class Player:
             self.x, self.y = new_x, new_y
 
         # Mouse rotation
-        self.angle += mouse_dx * self.rotate_speed * dt * MOUSE_SENSITIVITY_MULTIPLIER
+        self.handle_mouse_movement(mouse_dx)
         self.angle %= 2 * math.pi # Keep an angle between 0 and 2pi
+
+
+    def handle_mouse_movement(self, dx):
+        # Style Doom/Wolf3D : sensibilité constante
+        sensitivity = 0.025
+
+        # Ignorer les micro-mouvements
+        deadzone = 0.05
+        if abs(dx) < deadzone:
+            dx = 0
+
+        # Appliquer la rotation
+        self.angle += dx * sensitivity
+        self.angle %= 2 * math.pi  # Garde l'angle entre 0 et 2pi
 
     def check_collision(self, level, x, y):
         # Check surrounding tiles
@@ -125,6 +141,8 @@ class Player:
         self.weapons.append(Pistol(game))
         self.weapons.append(Shotgun(game))
         self.weapons.append(Chaingun(game))
+        self.weapons.append(RocketLauncher(game))
+        self.weapons.append(PlasmaGun(game))
 
         if self.weapons:
             self.current_weapon_index = 0
@@ -139,6 +157,55 @@ class Player:
         self.current_weapon_index = (self.current_weapon_index + direction) % len(self.weapons)
         self.weapons[self.current_weapon_index].is_equipped = True
         self.weapon = self.weapons[self.current_weapon_index]
+
+    def get_screen_position(self, world_position):
+        # Calculer la position relative par rapport au joueur
+        # Si world_position est un Vector2
+        if hasattr(world_position, 'x') and hasattr(world_position, 'y'):
+            dx = world_position.x - self.x
+            dy = world_position.y - self.y
+        # Si world_position est un tuple ou une liste
+        elif isinstance(world_position, (tuple, list)) and len(world_position) >= 2:
+            dx = world_position[0] - self.x
+            dy = world_position[1] - self.y
+        else:
+            raise ValueError("world_position doit être un Vector2 ou un tuple/liste (x, y)")
+
+        # Calculer l'angle relatif à la direction du joueur
+        angle = math.atan2(dy, dx) - self.angle
+
+        # Calculer la distance
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+
+        # Direction du regard du joueur
+        forward_x = math.cos(self.angle)
+        forward_y = math.sin(self.angle)
+
+        # Direction perpendiculaire (droite du joueur)
+        right_x = math.sin(self.angle)
+        right_y = -math.cos(self.angle)
+
+        # Vecteur de la position du joueur à l'objet
+        dir_x = dx
+        dir_y = dy
+
+        # Projection sur les axes forward et right
+        proj_forward = dir_x * forward_x + dir_y * forward_y
+        proj_right = dir_x * right_x + dir_y * right_y
+
+        # Calcul des coordonnées à l'écran
+        if proj_forward > 0:  # L'objet est devant le joueur
+            screen_x = SCREEN_WIDTH / 2 + (proj_right / proj_forward) * (SCREEN_WIDTH / 2)
+            # Plus l'objet est loin, plus il est petit/proche du centre
+            scale_factor = 1 / proj_forward
+            screen_y = SCREEN_HEIGHT / 2
+        else:
+            # L'objet est derrière le joueur, ne pas l'afficher
+            return (-100, -100)  # Hors écran
+
+        return int(screen_x), int(screen_y)
+
+
 
 
 

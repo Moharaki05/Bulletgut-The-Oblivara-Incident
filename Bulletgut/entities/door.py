@@ -113,3 +113,20 @@ class Door:
         else:
             # For vertical sliding doors, we need to offset the texture vertically
             return 0, self.texture_offset
+
+    def _check_collision(self):
+        # Vérifier collision avec les murs/obstacles
+        x, y = int(self.x), int(self.y)
+
+        # Utiliser la méthode is_blocked du niveau
+        if self.game.level.is_blocked(x, y):
+            return True
+
+        # Vérifier collision avec les portes
+        for door in self.game.level.doors:
+            if hasattr(door, 'is_blocking') and callable(getattr(door, 'is_blocking')):
+                if door.is_blocking(self.x, self.y):
+                    return True
+
+        return False
+

@@ -1,8 +1,9 @@
 from weapons.weapon_base import WeaponBase
+from abc import ABC
 import pygame as pg
 import math
 
-class MeleeWeapon(WeaponBase):
+class MeleeWeapon(WeaponBase, ABC):
     def __init__(self, game):
         super().__init__(game)
         # Propriétés spécifiques aux armes de mêlée

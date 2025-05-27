@@ -17,6 +17,12 @@ class Chaingun(HitscanWeapon):
         self.current_ammo = self.max_ammo
         self.scale_factor = 1.6
 
+        self.bobbing_amount = 15  # Amplitude du bobbing
+        self.bobbing_speed = 0.3  # Vitesse du bobbing
+        self.bobbing_x = 0
+        self.bobbing_y = 0
+        self.bobbing_counter = 0
+
         # Charger les sprites (seulement 3 images)
         self.load_sprites([
             "assets/weapons/chaingun/chaingun1.png",  # Image 1: repos
@@ -50,10 +56,22 @@ class Chaingun(HitscanWeapon):
         self.stopping_fire = False
         self.sound_fadeout_time = 100  # Temps de fadeout en millisecondes (0.1s)
 
-    def update(self, delta_time):
+    def update(self, dt):
+        if not self.is_firing:
+            # Appel à la méthode de bobbing de la classe de base
+            self._update_weapon_bobbing(dt, self.game.player)
+        else:
+            # Réinitialiser progressivement les valeurs de bobbing pendant le tir
+            self.bobbing_x *= 0.8
+            self.bobbing_y *= 0.8
+
+            # Si les valeurs sont très petites, les mettre à zéro
+            if abs(self.bobbing_x) < 0.1: self.bobbing_x = 0
+            if abs(self.bobbing_y) < 0.1: self.bobbing_y = 0
+
         # Mettre à jour le cooldown de tir si nécessaire
         if self.fire_cooldown > 0:
-            self.fire_cooldown -= delta_time
+            self.fire_cooldown -= dt
 
         # Vérifier si on est à court de munitions pendant le tir
         if self.is_firing and self.trigger_held and self.current_ammo <= 0:
@@ -80,7 +98,7 @@ class Chaingun(HitscanWeapon):
         if self.is_firing and self.trigger_held and self.current_ammo > 0:
             # Mettre à jour le cooldown du son
             if self.sound_cooldown > 0:
-                self.sound_cooldown -= delta_time
+                self.sound_cooldown -= dt
             else:
                 # Ne jouer le son que s'il n'est pas déjà en cours de lecture
                 if not self.current_sound_channel or not self.current_sound_channel.get_busy():
@@ -88,7 +106,7 @@ class Chaingun(HitscanWeapon):
                     self.sound_cooldown = self.sound_repeat_time
 
             # Animation de tir
-            self.animation_timer += delta_time
+            self.animation_timer += dt
             if self.animation_timer >= self.animation_speed:
                 self.animation_timer = 0
                 # Alterner entre les images de tir
@@ -112,6 +130,7 @@ class Chaingun(HitscanWeapon):
             if self.current_sound_channel and self.current_sound_channel.get_busy():
                 self.current_sound_channel.stop()
                 self.current_sound_channel = None
+
 
     def fire(self):
         self.pull_trigger()
@@ -223,3 +242,61 @@ class Chaingun(HitscanWeapon):
 
         # Si on a des munitions, tirer normalement
         self._fire_bullet()
+
+def _update_weapon_bobbing(self, dt):
+    # Si on tire et que le bobbing doit être désactivé pendant le tir
+    if self.is_firing and self.disable_bobbing_when_firing:
+        # Réinitialiser les valeurs de bobbing (pas de mouvement)
+        self.bobbing_x = 0
+        self.bobbing_y = 0
+        return
+
+    # Si le joueur se déplace (vérifiez les mouvements)
+    player_moving = abs(self.game.player.rel.x) > 0 or abs(self.game.player.rel.y) > 0
+
+    if player_moving:
+        # Mettre à jour le compteur de bobbing
+        self.bobbing_counter += self.bobbing_speed * dt
+
+        # Calculer les valeurs de bobbing pour le mouvement
+        self.bobbing_x = math.sin(self.bobbing_counter) * self.bobbing_amount * 0.5
+        self.bobbing_y = math.sin(self.bobbing_counter * 2) * self.bobbing_amount
+    else:
+        # Si le joueur ne bouge pas, réinitialiser progressivement le bobbing
+        self.bobbing_x *= 0.9  # Réduction progressive
+        self.bobbing_y *= 0.9  # Réduction progressive
+
+        # Si les valeurs sont très petites, les mettre à zéro
+        if abs(self.bobbing_x) < 0.1:
+            self.bobbing_x = 0
+        if abs(self.bobbing_y) < 0.1:
+            self.bobbing_y = 0
+
+    def _update_weapon_bobbing(self, dt):
+        # Si on tire et que le bobbing doit être désactivé pendant le tir
+        if self.is_firing and self.disable_bobbing_when_firing:
+            # Réinitialiser les valeurs de bobbing (pas de mouvement)
+            self.bobbing_x = 0
+            self.bobbing_y = 0
+            return
+
+        # Si le joueur se déplace (vérifiez les mouvements)
+        player_moving = abs(self.game.player.rel.x) > 0 or abs(self.game.player.rel.y) > 0
+
+        if player_moving:
+            # Mettre à jour le compteur de bobbing
+            self.bobbing_counter += self.bobbing_speed * dt
+
+            # Calculer les valeurs de bobbing pour le mouvement
+            self.bobbing_x = pg.math.sin(self.bobbing_counter) * self.bobbing_amount * 0.5
+            self.bobbing_y = abs(pg.math.sin(self.bobbing_counter * 2)) * self.bobbing_amount
+        else:
+            # Si le joueur ne bouge pas, réinitialiser progressivement le bobbing
+            self.bobbing_x *= 0.9  # Réduction progressive
+            self.bobbing_y *= 0.9  # Réduction progressive
+
+            # Si les valeurs sont très petites, les mettre à zéro
+            if abs(self.bobbing_x) < 0.1:
+                self.bobbing_x = 0
+            if abs(self.bobbing_y) < 0.1:
+                self.bobbing_y = 0

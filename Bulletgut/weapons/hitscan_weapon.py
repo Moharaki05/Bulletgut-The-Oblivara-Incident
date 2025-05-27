@@ -1,11 +1,11 @@
 # hitscan_weapon.py
+from abc import ABC
 import pygame as pg
 import math
 import random
 from weapons.weapon_base import WeaponBase
 
-
-class HitscanWeapon(WeaponBase):
+class HitscanWeapon(WeaponBase, ABC):
     def __init__(self, game):
         super().__init__(game)
         self.spread = 0.05  # Dispersion des tirs en radians

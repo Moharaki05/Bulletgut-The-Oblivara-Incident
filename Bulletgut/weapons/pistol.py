@@ -37,7 +37,6 @@ class Pistol(HitscanWeapon):
         self.current_sprite = self.sprites[0] if self.sprites else None
         self.is_firing = False
 
-
     def _handle_fire(self):
         # Vérifier si on a des munitions
         if self.current_ammo <= 0:
@@ -63,6 +62,7 @@ class Pistol(HitscanWeapon):
         self.current_ammo -= 1
 
         # Jouer le son de tir
+        self.fire_sound.set_volume(0.65)
         self.fire_sound.play()
 
         # Animation de tir (passer aux sprites suivants)

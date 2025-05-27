@@ -2,11 +2,12 @@ import pygame as pg
 import math
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FOV, WALL_HEIGHT_SCALE, TILE_SIZE
 
-
 class Raycaster:
-    def __init__(self, level):
+    def __init__(self, level, player):
         self.level = level
+        self.player = player
         self.num_rays = SCREEN_WIDTH // 2
+        self.wall_height_scale = 1.0
         self.fov = FOV
         self.max_depth = 800
         self.z_buffer = [float('inf')] * SCREEN_WIDTH  # Store depth for each screen column
@@ -258,3 +259,6 @@ class Raycaster:
                     if sprite_x < img_width:
                         column = sprite.subsurface(sprite_x, 0, 1, img_height)
                         screen.blit(column, (x, screen_y))
+
+    def get_center_ray_angle(self):
+        return self.player.angle

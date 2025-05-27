@@ -70,7 +70,6 @@ class WeaponBase(ABC):
         self._update_weapon_bobbing(dt, self.game.player)
 
     def _update_animation(self, dt=None):
-        """Met à jour l'animation de l'arme avec plusieurs frames"""
         if not self.sprites:
             return
 
@@ -87,6 +86,7 @@ class WeaponBase(ABC):
                 self.animation_elapsed = current_time - self.last_fire_time
 
             animation_duration = 0.5  # Durée totale de l'animation
+
 
             # Calculer l'index du sprite en fonction du temps écoulé
             if len(self.sprites) > 1:
@@ -137,6 +137,8 @@ class WeaponBase(ABC):
                 # Mettre à jour l'offset selon l'image actuelle
                 if hasattr(self, 'sprite_offsets') and len(self.sprite_offsets) > self.current_sprite_index:
                     self.position_offset = self.sprite_offsets[self.current_sprite_index].copy()
+
+            self.current_sprite = self.sprites[self.current_sprite_index]
         else:
             # En état de repos, utiliser la première image
             self.current_sprite_index = 0
@@ -144,6 +146,9 @@ class WeaponBase(ABC):
             # Rétablir l'offset de l'image de repos
             if hasattr(self, 'sprite_offsets') and len(self.sprite_offsets) > 0:
                 self.position_offset = self.sprite_offsets[0].copy()
+
+        if self.sprites:
+            self.current_sprite = self.sprites[self.current_sprite_index]
 
     def _update_weapon_bobbing(self, dt, player):
         """Met à jour l'effet de balancement de l'arme en fonction du mouvement du joueur"""
@@ -170,7 +175,7 @@ class WeaponBase(ABC):
             return
 
         # Obtenir l'image actuelle
-        current_sprite = self.sprites[self.current_sprite_index]
+        current_sprite = self.current_sprite
 
         # Appliquer l'échelle si nécessaire
         if hasattr(self, 'scale_factor') and self.scale_factor != 1.0:
