@@ -6,6 +6,7 @@ from weapons.plasma_gun import PlasmaGun
 from weapons.rocket_launcher import RocketLauncher
 from weapons.shotgun import Shotgun
 from weapons.chaingun import Chaingun
+from weapons.chainsaw import Chainsaw
 from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Player:
@@ -138,11 +139,19 @@ class Player:
 
     def initialize_weapons(self, game):
         self.weapons.append(Fists(game))
+        self.weapons.append(Chainsaw(game))
         self.weapons.append(Pistol(game))
         self.weapons.append(Shotgun(game))
         self.weapons.append(Chaingun(game))
         self.weapons.append(RocketLauncher(game))
         self.weapons.append(PlasmaGun(game))
+
+        if hasattr(self.weapon, 'on_selected'):
+            self.weapon.on_selected()
+
+        # 🔧 Forcer un update visuel/sound immédiat à 0s (utile pour chainsaw)
+        if hasattr(self.weapon, 'update'):
+            self.weapon.update(0)
 
         if self.weapons:
             self.current_weapon_index = 0
@@ -153,10 +162,23 @@ class Player:
         if not self.weapons:
             return
 
+        # Stopper l'arme actuelle
+        if hasattr(self.weapon, 'on_deselected'):
+            self.weapon.on_deselected()
+
+        # Passer à la nouvelle arme
         self.weapons[self.current_weapon_index].is_equipped = False
         self.current_weapon_index = (self.current_weapon_index + direction) % len(self.weapons)
-        self.weapons[self.current_weapon_index].is_equipped = True
         self.weapon = self.weapons[self.current_weapon_index]
+        self.weapons[self.current_weapon_index].is_equipped = True
+
+        # Activer la nouvelle arme
+        if hasattr(self.weapon, 'on_selected'):
+            self.weapon.on_selected()
+
+        # Appliquer un update visuel immédiat (utile pour idle chainsaw)
+        if hasattr(self.weapon, 'update'):
+            self.weapon.update(0)
 
     def get_screen_position(self, world_position):
         # Calculer la position relative par rapport au joueur
