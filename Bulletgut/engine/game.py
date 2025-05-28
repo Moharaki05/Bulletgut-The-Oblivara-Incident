@@ -50,9 +50,9 @@ class Game:
                         if self.player.weapon:
                             self.player.weapon.fire()
                 if event.button == 4:  # Molette vers le haut
-                    self.player.switch_weapon(1)
-                elif event.button == 5:  # Molette vers le bas
                     self.player.switch_weapon(-1)
+                elif event.button == 5:  # Molette vers le bas
+                    self.player.switch_weapon(1)
             elif event.type == pg.MOUSEBUTTONUP:  # Ajout de cette condition
                 if event.button == 1:
                     # Arrêter le tir quand le bouton est relâché

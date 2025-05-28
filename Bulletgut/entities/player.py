@@ -7,6 +7,7 @@ from weapons.rocket_launcher import RocketLauncher
 from weapons.shotgun import Shotgun
 from weapons.chaingun import Chaingun
 from weapons.chainsaw import Chainsaw
+from weapons.bfg import BFG
 from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Player:
@@ -145,6 +146,7 @@ class Player:
         self.weapons.append(Chaingun(game))
         self.weapons.append(RocketLauncher(game))
         self.weapons.append(PlasmaGun(game))
+        self.weapons.append(BFG(game))
 
         if hasattr(self.weapon, 'on_selected'):
             self.weapon.on_selected()

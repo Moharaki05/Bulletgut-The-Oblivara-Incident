@@ -1,196 +1,108 @@
-from weapons.weapon_base import WeaponBase
 import pygame as pg
-import math
+from data.config import SCREEN_HEIGHT
+from weapons.projectile_weapon import ProjectileWeapon
+from weapons.projectiles.bfg_projectile import BFGProjectile
 
-
-class BFG(WeaponBase):
+class BFG(ProjectileWeapon):
     def __init__(self, game):
         super().__init__(game)
         self.name = "BFG 9000"
-        self.damage = 200  # Dégâts massifs
-        self.fire_rate = 0.2  # Très lente
-        self.shot_cooldown = 1.0 / self.fire_rate
+        self.damage = 500
+        self.fire_rate = 0.1
+        self.shot_cooldown = 1 / self.fire_rate
         self.ammo_type = "cells"
-        self.ammo_per_shot = 40  # Consomme beaucoup de munitions
+        self.ammo_per_shot = 40
         self.max_ammo = 200
         self.current_ammo = self.max_ammo
 
-        # Propriétés spécifiques au BFG
-        self.charge_time = 2.5  # Temps de charge en secondes
-        self.charge_level = 0  # Niveau de charge actuel
-        self.is_charging = False
-        self.projectile = None
-        self.secondary_damage_radius = 400  # Rayon des arcs secondaires
+        self.projectile_speed = 75
+        self.projectile_lifetime = 10.0
+        self.splash_damage = True
+        self.splash_radius = 200
 
-        # Charger les sprites
+        # Chargement des sprites d'animation (idle -> charge -> tir)
         self.load_sprites([
-            "assets/weapons/bfg/idle.png",
-            "assets/weapons/bfg/charge1.png",
-            "assets/weapons/bfg/charge2.png",
-            "assets/weapons/bfg/charge3.png",
-            "assets/weapons/bfg/fire.png"
+            "assets/weapons/bfg/BFG1.png",  # idle
+            "assets/weapons/bfg/BFG2.png",  # charge 1
+            "assets/weapons/bfg/BFG3.png",  # charge 2
+            "assets/weapons/bfg/BFG4.png",  # charge 3
+            "assets/weapons/bfg/BFG5.png",  # tir
         ])
+        self.sprite_index = 0
+        self.current_sprite = self.sprites[0]
 
-        # Sprite du projectile
-        self.projectile_sprite = pg.image.load("assets/weapons/bfg/bfg_ball.png").convert_alpha()
+        # Affichage HUD
+        self.scale_factor = 2.5
+        self.position_offset = [0, SCREEN_HEIGHT * 0.05]
+
+        # Animation
+        self.is_animating = False
+        self.animation_timer = 0.0
+        self.animation_frame_duration = 0.2  # 80 ms par frame
+        self.has_fired_projectile = False
+
+        # Cooldown
+        self.shot_timer = 0.0
 
         # Sons
-        self.charge_sound = pg.mixer.Sound("assets/sounds/bfg_charge.wav")
-        self.fire_sound = pg.mixer.Sound("assets/sounds/bfg_fire.wav")
-        self.empty_sound = pg.mixer.Sound("assets/sounds/empty_click.wav")
+        self.fire_sound = pg.mixer.Sound("assets/sounds/bfg/bfg_fire.wav")
+        self.empty_sound = pg.mixer.Sound("assets/sounds/bfg/empty_bfg_click.wav")
+        # self.charge_sound = pg.mixer.Sound("assets/sounds/bfg_charge.wav")  # si tu veux réactiver la charge plus tard
 
-    def start_firing(self):
-        """Commence le processus de charge au lieu de tirer immédiatement"""
-        if self.current_ammo >= self.ammo_per_shot and not self.is_cooling_down:
-            self.is_charging = True
-            self.charge_level = 0
-            # Démarrer le son de charge en boucle
-            self.charge_sound.play(-1)  # -1 pour boucle infinie
-        else:
+    def fire(self):
+        if not self.is_animating and self.current_ammo >= self.ammo_per_shot:
+            self.current_ammo -= self.ammo_per_shot
+            self.is_animating = True
+            self.animation_timer = 0.0
+            self.sprite_index = 0
+            self.has_fired_projectile = False
+            self.fire_sound.play()
+        elif self.current_ammo < self.ammo_per_shot:
             self.empty_sound.play()
-
-    def stop_firing(self):
-        """Relâcher le tir après la charge"""
-        if self.is_charging:
-            # Arrêter le son de charge
-            self.charge_sound.stop()
-
-            # Tirer si suffisamment chargé
-            if self.charge_level > 0.5:  # Au moins 50% chargé
-                self._fire_effect()
-                self.current_ammo -= self.ammo_per_shot
-                self.last_shot_time = pg.time.get_ticks() / 1000.0
-
-            self.is_charging = False
-            self.charge_level = 0
-
-    def _fire_effect(self):
-        """Effet de tir du BFG - création d'un projectile massif"""
-        # Jouer le son de tir
-        self.fire_sound.play()
-
-        # Créer le projectile du BFG
-        self.create_bfg_projectile()
+            print("Munitions épuisées")
 
     def update(self, dt):
-        """Mettre à jour l'arme, incluant la gestion de la charge"""
         super().update(dt)
 
-        # Mettre à jour la charge
-        if self.is_charging:
-            self.charge_level += dt / self.charge_time
-            self.charge_level = min(self.charge_level, 1.0)
+        if self.is_animating:
+            self.animation_timer += dt
+            frame = int(self.animation_timer / self.animation_frame_duration)
 
-            # Mettre à jour le sprite en fonction du niveau de charge
-            if self.charge_level < 0.33:
-                self.current_sprite_index = 1  # charge1
-            elif self.charge_level < 0.66:
-                self.current_sprite_index = 2  # charge2
+            if frame < len(self.sprites):
+                self.sprite_index = frame
+                if frame == 4 and not self.has_fired_projectile:
+                    self._fire_effect()
+                    self.has_fired_projectile = True
             else:
-                self.current_sprite_index = 3  # charge3
+                self.sprite_index = 0
+                self.is_animating = False
+                self.has_fired_projectile = False
+                self.shot_timer = self.shot_cooldown  # ✅ cooldown démarre ici
 
-        # Mettre à jour le projectile du BFG s'il existe
-        if self.projectile:
-            self.update_bfg_projectile(dt)
+        else:
+            self.shot_timer = max(0, self.shot_timer - dt)
 
-    def create_bfg_projectile(self):
-        """Crée le projectile principal du BFG"""
-        # Position de départ (devant du joueur)
-        player = self.game.player
-        angle = player.angle
-        dist = 30  # Distance devant le joueur
+        self.current_sprite = self.sprites[self.sprite_index]
 
-        start_x = player.x + math.cos(angle) * dist
-        start_y = player.y + math.sin(angle) * dist
+    def _fire_effect(self, player=None):
+        if player is None:
+            player = self.game.player
 
-        # Créer le projectile
-        self.projectile = {
-            'x': start_x,
-            'y': start_y,
-            'dx': math.cos(angle) * 200,  # Vitesse plus lente que les autres projectiles
-            'dy': math.sin(angle) * 200,
-            'lifetime': 5.0,  # Durée de vie plus longue
-            'damage': self.damage,
-            'size': 40,  # Taille large
-            'sprite': self.projectile_sprite
-        }
+        px, py = player.get_position()
+        angle = self.game.raycaster.get_center_ray_angle()
 
-    def update_bfg_projectile(self, dt):
-        """Met à jour le projectile du BFG et génère les effets secondaires"""
-        if not self.projectile:
-            return
+        projectile = BFGProjectile(
+            game=self.game,
+            x=px,
+            y=py,
+            angle=angle,
+            speed=self.projectile_speed,
+            damage=self.damage,
+            lifetime=self.projectile_lifetime,
+            splash_radius=self.splash_radius
+        )
 
-        # Mettre à jour la position
-        self.projectile['x'] += self.projectile['dx'] * dt
-        self.projectile['y'] += self.projectile['dy'] * dt
-        self.projectile['lifetime'] -= dt
+        self.game.projectiles.append(projectile)
 
-        # Vérifier les collisions avec les murs
-        map_x, map_y = int(self.projectile['x']), int(self.projectile['y'])
-        if map_x < 0 or map_x >= len(self.game.map[0]) or map_y < 0 or map_y >= len(self.game.map) or \
-                self.game.map[map_y][map_x] != 0:
-            self.bfg_explosion()
-            return
-
-        # Vérifier les collisions avec les ennemis
-        for enemy in self.game.enemies:
-            dx = enemy.x - self.projectile['x']
-            dy = enemy.y - self.projectile['y']
-            distance = math.sqrt(dx ** 2 + dy ** 2)
-
-            if distance < enemy.size + self.projectile['size'] / 2:
-                self.bfg_explosion()
-                return
-
-        # Génération d'arcs secondaires périodiques
-        if pg.time.get_ticks() % 500 < 100:  # Tous les 0.5s, pendant 0.1s
-            self.generate_secondary_arcs()
-
-        # Fin de vie
-        if self.projectile['lifetime'] <= 0:
-            self.bfg_explosion()
-
-    def generate_secondary_arcs(self):
-        """Génère des arcs d'énergie secondaires qui touchent les ennemis à proximité"""
-        if not self.projectile:
-            return
-
-        # Trouver tous les ennemis dans le rayon d'effet secondaire
-        for enemy in self.game.enemies:
-            dx = enemy.x - self.projectile['x']
-            dy = enemy.y - self.projectile['y']
-            distance = math.sqrt(dx ** 2 + dy ** 2)
-
-            if distance < self.secondary_damage_radius:
-                # Appliquer des dégâts
-                enemy.take_damage(self.damage // 4)  # Dégâts réduits
-
-                # Effet visuel: tracer de rayon entre le projectile et l'ennemi
-                # À implémenter dans le système de rendu
-
-    def bfg_explosion(self):
-        """Gère l'explosion finale du projectile BFG"""
-        if not self.projectile:
-            return
-
-        # Dégâts massifs dans la zone d'explosion
-        explosion_radius = 250
-        for enemy in self.game.enemies:
-            dx = enemy.x - self.projectile['x']
-            dy = enemy.y - self.projectile['y']
-            distance = math.sqrt(dx ** 2 + dy ** 2)
-
-            if distance < explosion_radius:
-                # Dégâts diminuant avec la distance
-                damage_factor = 1 - (distance / explosion_radius)
-                final_damage = int(self.damage * damage_factor)
-                enemy.take_damage(final_damage)
-
-        # Effet d'explosion - à implémenter dans le système de particules
-        # self.game.particle_system.add_explosion(self.projectile['x'], self.projectile['y'], explosion_radius)
-
-        # Son d'explosion
-        # self.explosion_sound.play()
-
-        # Supprimer le projectile
-        self.projectile = None
+    def _handle_fire(self):
+        self.fire()
