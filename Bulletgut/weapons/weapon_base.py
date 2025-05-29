@@ -12,8 +12,6 @@ class WeaponBase(ABC):
         self.ammo_type = "default"
         self.ammo_per_shot = 1
         self.reload_time = 2.0  # Secondes
-        self.max_ammo = 100
-        self.current_ammo = self.max_ammo
         self.is_reloading = False
         self.last_fire_time = 0
         self.shot_cooldown = 1.0 / self.fire_rate
@@ -244,3 +242,9 @@ class WeaponBase(ABC):
     @abstractmethod
     def _handle_fire(self):
         pass
+
+    def has_enough_ammo(self):
+        return self.game.player.ammo[self.ammo_type] >= self.ammo_per_shot
+
+    def consume_ammo(self):
+        self.game.player.ammo[self.ammo_type] -= self.ammo_per_shot

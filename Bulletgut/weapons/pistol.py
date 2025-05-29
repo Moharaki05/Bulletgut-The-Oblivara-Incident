@@ -13,8 +13,6 @@ class Pistol(HitscanWeapon):
         self.spread = 0.02
         self.pellets = 1
         self.ammo_type = "bullets"
-        self.max_ammo = 200
-        self.current_ammo = self.max_ammo
         self.scale_factor = 1.5
 
 
@@ -39,7 +37,7 @@ class Pistol(HitscanWeapon):
 
     def _handle_fire(self):
         # Vérifier si on a des munitions
-        if self.current_ammo <= 0:
+        if self.game.player.ammo[self.ammo_type] <= 0:
             # Arrêter tout son en cours
             if hasattr(self, 'fire_sound'):
                 self.fire_sound.stop()
@@ -59,7 +57,7 @@ class Pistol(HitscanWeapon):
             return
 
         # Décrémenter les munitions
-        self.current_ammo -= 1
+        self.game.player.ammo[self.ammo_type] -= 1
 
         # Jouer le son de tir
         self.fire_sound.set_volume(0.65)
@@ -90,7 +88,7 @@ class Pistol(HitscanWeapon):
         # TODO: Implémenter le raycast pour détecter les impacts
         # Pour l'instant, simplement afficher un message de débogage
         print(f"Tir du pistolet depuis ({start_x}, {start_y}) dans la direction {direction}")
-        print(f"Munitions restantes: {self.current_ammo}")
+        print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")
 
         # Si vous avez un système de particules ou d'effets visuels, vous pouvez l'utiliser ici
         # self.game.add_effect('muzzle_flash', start_x, start_y)

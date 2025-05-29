@@ -13,9 +13,8 @@ class Chaingun(HitscanWeapon):
         self.spread = 0.04
         self.pellets = 1
         self.ammo_type = "bullets"
-        self.max_ammo = 200
-        self.current_ammo = self.max_ammo
         self.scale_factor = 1.6
+        self.played_empty_sound = False
 
         self.bobbing_amount = 15  # Amplitude du bobbing
         self.bobbing_speed = 0.3  # Vitesse du bobbing
@@ -56,6 +55,8 @@ class Chaingun(HitscanWeapon):
         self.stopping_fire = False
         self.sound_fadeout_time = 100  # Temps de fadeout en millisecondes (0.1s)
 
+        self.empty_sound_channel = None
+
     def update(self, dt):
         if not self.is_firing:
             # Appel à la méthode de bobbing de la classe de base
@@ -74,7 +75,7 @@ class Chaingun(HitscanWeapon):
             self.fire_cooldown -= dt
 
         # Vérifier si on est à court de munitions pendant le tir
-        if self.is_firing and self.trigger_held and self.current_ammo <= 0:
+        if self.is_firing and self.trigger_held and self.game.player.ammo[self.ammo_type] <= 0:
             # Jouer le son empty une seule fois
             self.empty_sound.play()
 
@@ -95,7 +96,7 @@ class Chaingun(HitscanWeapon):
 
         # IMPORTANT: Ne gérer le son et l'animation que si on est en train de tirer
         # ET que la gâchette est maintenue ET qu'on a des munitions
-        if self.is_firing and self.trigger_held and self.current_ammo > 0:
+        if self.is_firing and self.trigger_held and self.game.player.ammo[self.ammo_type] > 0:
             # Mettre à jour le cooldown du son
             if self.sound_cooldown > 0:
                 self.sound_cooldown -= dt
@@ -117,7 +118,7 @@ class Chaingun(HitscanWeapon):
                 self.current_sprite = self.sprites[self.current_sprite_index]
 
             # Gestion des tirs
-            if self.fire_cooldown <= 0 and self.current_ammo > 0:
+            if self.fire_cooldown <= 0 and self.game.player.ammo[self.ammo_type] > 0:
                 self._handle_fire()
                 self.fire_cooldown = self.shot_cooldown
 
@@ -138,23 +139,20 @@ class Chaingun(HitscanWeapon):
     def pull_trigger(self):
         """Commence le tir de l'arme"""
         # Vérifier si on a des munitions
-        if self.current_ammo <= 0:
-            # Jouer le son empty une seule fois et sortir
-            self.empty_sound.play()
+        if self.game.player.ammo[self.ammo_type] <= 0:
+            if not self.played_empty_sound:
+                self.empty_sound_channel = self.empty_sound.play()
+                self.played_empty_sound = True
             return
 
         # Si on a des munitions, commencer le tir
         self.is_firing = True
         self.trigger_held = True
         self.stopping_fire = False
-
-        # Jouer le son une seule fois au début
-        if not self.current_sound_channel or not self.current_sound_channel.get_busy():
-            self.current_sound_channel = self.fire_sound.play()
-            self.sound_cooldown = self.sound_repeat_time
+        self.played_empty_sound = False
 
         # Tirer immédiatement une première balle
-        if self.current_ammo > 0:
+        if self.game.player.ammo[self.ammo_type] > 0:
             self._fire_bullet()
             self.fire_cooldown = self.shot_cooldown
 
@@ -163,16 +161,22 @@ class Chaingun(HitscanWeapon):
         self.current_sprite_index = 1
         self.current_sprite = self.sprites[1]
 
+        # Jouer le son une seule fois au début
+        if not self.current_sound_channel or not self.current_sound_channel.get_busy():
+            self.current_sound_channel = self.fire_sound.play()
+            self.sound_cooldown = self.sound_repeat_time
+
     def release_trigger(self):
         """Arrête le tir de l'arme"""
         # Indiquer que l'arme n'est plus en train de tirer
         self.trigger_held = False
         self.is_firing = False
         self.stopping_fire = True
+        self.played_empty_sound = False
 
-        # Arrêter définitivement tous les sons
-        pg.mixer.stop()  # Arrête tous les canaux son en cours
-        self.current_sound_channel = None  # Réinitialiser la référence
+        if self.current_sound_channel and self.current_sound_channel.get_busy():
+            self.current_sound_channel.stop()
+        self.current_sound_channel = None
 
         # Réinitialiser le cooldown du son
         self.sound_cooldown = 0
@@ -184,14 +188,14 @@ class Chaingun(HitscanWeapon):
     def _fire_bullet(self):
         """Tire une seule balle (pour le tir automatique)"""
         # Vérifier les munitions
-        if self.current_ammo <= 0:
+        if self.game.player.ammo[self.ammo_type] <= 0:
             self.empty_sound.play()
             self.is_firing = False
             self.stopping_fire = False
             return False
 
         # Décrémenter les munitions
-        self.current_ammo -= 1
+        self.game.player.ammo[self.ammo_type] -= 1
 
         # Réinitialiser le cooldown pour la prochaine balle
         self.fire_cooldown = self.shot_cooldown
@@ -220,14 +224,14 @@ class Chaingun(HitscanWeapon):
 
         # TODO: Implémenter le raycast pour détecter les impacts
         print(f"Tir de la mitrailleuse depuis ({start_x}, {start_y}) dans la direction {direction}")
-        print(f"Munitions restantes: {self.current_ammo}")
+        print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")
 
         return True
 
     def _handle_fire(self):
         """Méthode appelée quand le joueur appuie sur le bouton de tir"""
         # Vérifier à nouveau les munitions pour être sûr
-        if self.current_ammo <= 0:
+        if self.game.player.ammo[self.ammo_type] <= 0:
             # Arrêter le tir et tous les sons en cours
             self.is_firing = False
             self.trigger_held = False

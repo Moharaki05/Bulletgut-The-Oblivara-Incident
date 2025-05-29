@@ -12,8 +12,6 @@ class RocketLauncher(ProjectileWeapon):
         self.fire_rate = 1.2
         self.shot_cooldown = 1.0 / self.fire_rate
         self.ammo_type = "rockets"
-        self.max_ammo = 50
-        self.current_ammo = self.max_ammo
         self.projectile_speed = 700
         self.projectile_lifetime = 5.0
         self.splash_damage = True
@@ -94,14 +92,14 @@ class RocketLauncher(ProjectileWeapon):
             return False
 
         # Vérifier les munitions
-        if self.current_ammo <= 0:
+        if self.game.player.ammo[self.ammo_type] <= 0:
             # Plus de munitions, jouer le son "clic"
             if self.empty_sound:
                 self.empty_sound.play()
             return False
 
         # Décrémenter les munitions
-        self.current_ammo -= 1
+        self.game.player.ammo[self.ammo_type] -= 1
 
         # Mettre à jour le temps de tir
         self.last_fire_time = current_time

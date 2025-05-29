@@ -29,14 +29,28 @@ class BFGProjectile(Projectile):
         self.scale = 10.0  # Agrandissement du sprite visuel
 
     def update(self, delta_time):
-        # Animation de sprite
+        # Collision ennemis ou murs
+        if self._check_collision():
+            self._explode()
+            return False
+
+        # Avance le projectile
+        self.x += self.dx * delta_time
+        self.y += self.dy * delta_time
+        self.lifetime -= delta_time
+
+        # Animation du projectile (BFGBEAM1 <-> BFGBEAM2)
         self.frame_timer += delta_time
         if self.frame_timer >= self.frame_duration:
             self.frame_timer = 0.0
             self.frame_index = (self.frame_index + 1) % len(self.frames)
             self.sprite = self.frames[self.frame_index]
 
-        return super().update(delta_time)
+        # Durée de vie terminée
+        if self.lifetime <= 0:
+            return False
+
+        return True
 
     def render(self, screen, raycaster):
         player = self.game.player

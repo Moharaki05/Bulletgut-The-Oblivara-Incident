@@ -12,8 +12,6 @@ class BFG(ProjectileWeapon):
         self.shot_cooldown = 1 / self.fire_rate
         self.ammo_type = "cells"
         self.ammo_per_shot = 40
-        self.max_ammo = 200
-        self.current_ammo = self.max_ammo
 
         self.projectile_speed = 75
         self.projectile_lifetime = 10.0
@@ -50,14 +48,14 @@ class BFG(ProjectileWeapon):
         # self.charge_sound = pg.mixer.Sound("assets/sounds/bfg_charge.wav")  # si tu veux réactiver la charge plus tard
 
     def fire(self):
-        if not self.is_animating and self.current_ammo >= self.ammo_per_shot:
-            self.current_ammo -= self.ammo_per_shot
+        if not self.is_animating and self.game.player.ammo[self.ammo_type] >= self.ammo_per_shot:
+            self.game.player.ammo[self.ammo_type] -= self.ammo_per_shot
             self.is_animating = True
             self.animation_timer = 0.0
             self.sprite_index = 0
             self.has_fired_projectile = False
             self.fire_sound.play()
-        elif self.current_ammo < self.ammo_per_shot:
+        elif self.game.player.ammo[self.ammo_type] < self.ammo_per_shot:
             self.empty_sound.play()
             print("Munitions épuisées")
 

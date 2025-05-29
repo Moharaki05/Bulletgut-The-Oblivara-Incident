@@ -23,6 +23,12 @@ class Player:
         self.moving = False
 
         self.weapons = []
+        self.ammo = {
+            "bullets": 50,  # pistolet, chaingun
+            "shells": 20,  # shotgun
+            "cells": 100,  # plasma gun, BFG
+            "rockets": 10  # lance-roquettes
+        }
         self.current_weapon_index = 0
 
     def handle_inputs(self, keys, dt, mouse_dx=0, level=None):

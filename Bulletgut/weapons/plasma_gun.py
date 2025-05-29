@@ -17,8 +17,6 @@ class PlasmaGun(ProjectileWeapon):
         self.splash_damage = False
         self.splash_radius = 0
         self.ammo_type = "cells"
-        self.max_ammo = 300
-        self.current_ammo = self.max_ammo
         self.scale_factor = 2.25
         self.projectile_sprite = pg.image.load("assets/weapons/projectiles/plasma/plasma.png").convert_alpha()
         self.position_offset = [0, SCREEN_HEIGHT * 0.05]  # 5% du bas
@@ -45,7 +43,7 @@ class PlasmaGun(ProjectileWeapon):
         super().update(dt)
 
         if self.trigger_held:
-            if self.fire_cooldown <= 0 and self.current_ammo > 0:
+            if self.fire_cooldown <= 0 and self.game.player.ammo[self.ammo_type] > 0:
                 self._fire_effect()
                 self.fire_cooldown = self.shot_cooldown
             self.fire_cooldown = max(0, self.fire_cooldown - dt)
@@ -63,7 +61,7 @@ class PlasmaGun(ProjectileWeapon):
         self.pull_trigger()
 
     def pull_trigger(self):
-        if self.current_ammo <= 0:
+        if self.game.player.ammo[self.ammo_type] <= 0:
             self.empty_sound.play()
             return
         self.trigger_held = True
@@ -102,15 +100,15 @@ class PlasmaGun(ProjectileWeapon):
 
         self.game.projectiles.append(projectile)
         self.fire_sound.play()
-        self.current_ammo -= 1
+        self.game.player.ammo[self.ammo_type] -= 1
 
     def _handle_fire(self):
         # Appelé par fire(), vérifie si tir possible
         current_time = pg.time.get_ticks() / 1000
-        if self.current_ammo <= 0 or (current_time - self.last_fire_time < self.shot_cooldown):
+        if self.game.player.ammo[self.ammo_type] <= 0 or (current_time - self.last_fire_time < self.shot_cooldown):
             return False
 
         self._fire_effect()
         self.last_fire_time = current_time
-        self.current_ammo -= 1
+        self.game.player.ammo[self.ammo_type] -= 1
         return True

@@ -13,8 +13,6 @@ class Shotgun(HitscanWeapon):
         self.spread = 0.12
         self.pellets = 8
         self.ammo_type = "shells"
-        self.max_ammo = 64
-        self.current_ammo = self.max_ammo
         self.scale_factor = 1.7
 
         # Désactiver complètement le système d'animation de la classe parente
@@ -55,7 +53,6 @@ class Shotgun(HitscanWeapon):
         if self.is_reloading:
             if current_time - self.last_fire_time >= self.reload_time:
                 self.is_reloading = False
-                self.current_ammo = self.max_ammo
 
         # Mise à jour du bobbing de l'arme
         if hasattr(self.game, 'player'):
@@ -123,7 +120,7 @@ class Shotgun(HitscanWeapon):
             return False
 
         # Vérifier les munitions
-        if self.current_ammo <= 0:
+        if self.game.player.ammo[self.ammo_type] < 1:
             # Jouer le son "vide"
             self.empty_sound.set_volume(1.0)
             self.empty_sound.play()
@@ -140,7 +137,7 @@ class Shotgun(HitscanWeapon):
             return None  # Ne pas tirer pendant le rechargement ou l'animation
 
         # Décrémenter les munitions
-        self.current_ammo -= 1
+        self.game.player.ammo[self.ammo_type] -= 1
 
         # Jouer le son de tir
         self.fire_sound.play()
@@ -174,7 +171,7 @@ class Shotgun(HitscanWeapon):
 
         # TODO: Implémenter le raycast pour détecter les impacts
         print(f"Plomb de fusil tiré depuis ({start_x}, {start_y}) dans la direction {pellet_direction}")
-        print(f"Munitions restantes: {self.current_ammo}")
+        print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")
 
         # Recul du joueur
         if hasattr(player, 'apply_recoil'):
