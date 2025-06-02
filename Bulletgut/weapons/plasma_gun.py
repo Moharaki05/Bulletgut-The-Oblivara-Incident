@@ -12,7 +12,7 @@ class PlasmaGun(ProjectileWeapon):
         self.damage = 25
         self.fire_rate = 10.0
         self.shot_cooldown = 1.0 / self.fire_rate
-        self.projectile_speed = 650
+        self.projectile_speed = 875
         self.projectile_lifetime = 3.0
         self.splash_damage = False
         self.splash_radius = 0

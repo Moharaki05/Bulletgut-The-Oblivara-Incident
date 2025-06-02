@@ -11,6 +11,8 @@ from weapons.bfg import BFG
 from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, \
     MOUSE_SENSITIVITY, MOUSE_DEADZONE, WEAPON_SLOTS
 
+
+# noinspection PyTypeChecker
 class Player:
     def __init__(self, x, y):
         self.weapon = None
@@ -170,7 +172,7 @@ class Player:
 
         # Définir l'arme active sur le pistolet
         self.current_weapon_index = WEAPON_SLOTS["pistol"]
-        self.weapon = self.weapons[self.current_weapon_index]  # 👈 C’est ça qui manquait
+        self.weapon = self.weapons[self.current_weapon_index]
         if self.weapon:
             self.weapon.is_equipped = True
 
@@ -185,13 +187,12 @@ class Player:
                 if self.weapon:
                     self.weapon.is_equipped = False
                     if hasattr(self.weapon, "on_deselected"):
-                        self.weapon.on_deselected()  # 👈 Ajout ici
+                        self.weapon.on_deselected()
 
                 # Switch to new weapon
                 self.weapon = self.weapons[new_index]
                 self.current_weapon_index = new_index
                 self.weapon.is_equipped = True
-                print(f"[WEAPON] Switched to: {self.weapon.name}")
                 return
 
         print("[WEAPON] No other weapon to switch to.")

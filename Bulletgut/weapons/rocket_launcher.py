@@ -150,8 +150,6 @@ class RocketLauncher(ProjectileWeapon):
         start_x = player_x + math.cos(player_angle) * offset
         start_y = player_y + math.sin(player_angle) * offset
 
-        print(f"Création d'une roquette à la position ({player_x}, {player_y}), angle {player_angle}")
-
         # Créer la roquette avec les coordonnées
         from weapons.projectiles.rocket import Rocket
 
@@ -171,7 +169,6 @@ class RocketLauncher(ProjectileWeapon):
 
             # Ajouter à la liste des projectiles
             self.game.projectiles.append(rocket)
-            print(f"Roquette ajoutée! Total projectiles: {len(self.game.projectiles)}")
 
         except TypeError as e:
             print(f"ERREUR lors de la création de la roquette: {e}")

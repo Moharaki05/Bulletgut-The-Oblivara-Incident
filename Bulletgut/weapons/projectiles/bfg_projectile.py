@@ -26,7 +26,7 @@ class BFGProjectile(Projectile):
         self.frame_timer = 0.0
         self.frame_duration = 0.1  # 100 ms par frame
         self.sprite = self.frames[0]
-        self.scale = 10.0  # Agrandissement du sprite visuel
+        self.scale = 17.0  # Agrandissement du sprite visuel
 
     def update(self, delta_time):
         # Collision ennemis ou murs
@@ -59,16 +59,35 @@ class BFGProjectile(Projectile):
 
         dx, dy = self.x - px, self.y - py
         dist = math.hypot(dx, dy)
+
+        if dist == 0:
+            return
+
+        # Raycast inline pour bloquer si un mur est entre le joueur et le projectile
+        step = 2
+        t = 0
+        blocked = False
+        while t < dist:
+            x = px + dx / dist * t
+            y = py + dy / dist * t
+            if raycaster.level.is_blocked(x, y):
+                blocked = True
+                break
+            t += step
+
+        if blocked:
+            return
+
+        # Angle relatif au joueur
         rel_angle = math.atan2(dy, dx) - player_angle
         rel_angle = (rel_angle + math.pi) % (2 * math.pi) - math.pi
 
         if abs(rel_angle) > raycaster.fov / 2:
             return
 
+        # Projection écran
         corrected_dist = dist * math.cos(rel_angle)
         screen_x = int((0.5 + rel_angle / raycaster.fov) * screen.get_width())
-
-        # Taille de base avec effet de perspective
         size = int((1000 / (corrected_dist + 0.0001)) * raycaster.wall_height_scale * self.scale)
 
         if self.sprite:

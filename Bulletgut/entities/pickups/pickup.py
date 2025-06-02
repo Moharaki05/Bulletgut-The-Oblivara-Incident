@@ -1,4 +1,5 @@
 import math
+import pygame as pg
 
 class Pickup:
     def __init__(self, x, y, image):
@@ -23,4 +24,9 @@ class Pickup:
         return dx * dx + dy * dy < 0.25  # distance au carré < 0.5
 
     def on_pickup(self, player, game):
-        pass
+        if not pg.mixer.get_init():
+            pg.mixer.init()
+
+        pickup_sound = pg.mixer.Sound("assets/sounds/pickups/item_pickup.wav")
+        pickup_sound.play()
+

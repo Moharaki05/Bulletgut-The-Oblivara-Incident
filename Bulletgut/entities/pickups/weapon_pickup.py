@@ -20,7 +20,6 @@ class WeaponPickup(Pickup):
 
         has_weapon = player.weapons[slot] is not None
 
-        # ✅ Ajouter des munitions SEULEMENT si ammo_type est défini
         if self.ammo_type is not None:
             if self.ammo_type in player.ammo:
                 if player.ammo[self.ammo_type] < player.max_ammo[self.ammo_type]:
@@ -34,16 +33,30 @@ class WeaponPickup(Pickup):
             else:
                 print(f"[PICKUP] Unknown ammo type: {self.ammo_type}")
 
-        # ✅ Ajouter l'arme même si elle n'utilise pas de munitions
         if not has_weapon:
             weapon_class = player.weapon_factory.get(self.weapon_name)
             if weapon_class:
                 new_weapon = weapon_class(game)
                 player.weapons[slot] = new_weapon
                 print(f"[PICKUP] Picked up new weapon: {self.weapon_name}")
+
+                if player.weapon:
+                    player.weapon.is_equipped = False
+                    if hasattr(player.weapon, "on_deselected"):
+                        player.weapon.on_deselected()
+
+                player.weapon = new_weapon
+                player.current_weapon_index = slot
+                player.weapon.is_equipped = True
             else:
                 print(f"[PICKUP] Unknown weapon class: {self.weapon_name}")
         else:
             print(f"[PICKUP] Already has weapon: {self.weapon_name}")
+
+        if not pg.mixer.get_init():
+            pg.mixer.init()
+
+        pickup_sound = pg.mixer.Sound("assets/sounds/pickups/weapon_pickup.wav")
+        pickup_sound.play()
 
         self.picked_up = True

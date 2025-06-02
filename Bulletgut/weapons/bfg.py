@@ -13,7 +13,7 @@ class BFG(ProjectileWeapon):
         self.ammo_type = "cells"
         self.ammo_per_shot = 40
 
-        self.projectile_speed = 75
+        self.projectile_speed = 775
         self.projectile_lifetime = 10.0
         self.splash_damage = True
         self.splash_radius = 200
@@ -45,7 +45,6 @@ class BFG(ProjectileWeapon):
         # Sons
         self.fire_sound = pg.mixer.Sound("assets/sounds/bfg/bfg_fire.wav")
         self.empty_sound = pg.mixer.Sound("assets/sounds/bfg/empty_bfg_click.wav")
-        # self.charge_sound = pg.mixer.Sound("assets/sounds/bfg_charge.wav")  # si tu veux réactiver la charge plus tard
 
     def fire(self):
         if not self.is_animating and self.game.player.ammo[self.ammo_type] >= self.ammo_per_shot:

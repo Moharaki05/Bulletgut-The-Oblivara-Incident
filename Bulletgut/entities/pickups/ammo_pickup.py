@@ -20,6 +20,8 @@ class AmmoPickup(Pickup):
         else:
             print(f"[PICKUP] {self.ammo_type} full! ({current}/{max_ammo})")
 
+        super().on_pickup(player, game)
+
 
 
 
