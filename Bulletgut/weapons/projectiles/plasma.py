@@ -10,7 +10,6 @@ class Plasma(Projectile):
     def update(self, delta_time):
         # Vérification de collision
         if self._check_collision():
-            print("💥 Plasma collision !")
             self._explode()
             return False
 

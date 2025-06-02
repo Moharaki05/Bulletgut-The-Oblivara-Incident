@@ -1,6 +1,5 @@
 import pygame as pg
 import math
-from data.config import TILE_SIZE
 
 class Projectile:
     def __init__(self, game, x, y, angle, speed, damage, lifetime, splash_damage, splash_radius, sprite):
@@ -24,8 +23,6 @@ class Projectile:
     def update(self, delta_time):
         self.x += self.dx * delta_time
         self.y += self.dy * delta_time
-
-        print(f"Projectile at ({self.x:.2f}, {self.y:.2f}) - is_blocked: {self.game.level.is_blocked(self.x, self.y)}")
 
         self.lifetime -= delta_time
 

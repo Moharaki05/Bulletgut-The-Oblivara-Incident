@@ -1,6 +1,7 @@
 import pygame as pg
 import math
-from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FOV, WALL_HEIGHT_SCALE, TILE_SIZE
+from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FOV, WALL_HEIGHT_SCALE, TILE_SIZE, PICKUP_SCALE
+
 
 class Raycaster:
     def __init__(self, level, player):
@@ -262,3 +263,107 @@ class Raycaster:
 
     def get_center_ray_angle(self):
         return self.player.angle
+
+    def render_pickups(self, screen, player, pickups):
+        ox, oy = player.get_position()
+        player_angle = player.get_angle()
+
+        # Sort pickups by distance (farthest first for proper depth ordering)
+        sorted_pickups = []
+        for pickup in pickups:
+            if pickup.picked_up:
+                continue
+
+            dx = pickup.x - ox
+            dy = pickup.y - oy
+            distance = math.hypot(dx, dy)
+            sorted_pickups.append((pickup, distance))
+
+        sorted_pickups.sort(key=lambda x: x[1], reverse=True)
+
+        for pickup, distance in sorted_pickups:
+            dx = pickup.x - ox
+            dy = pickup.y - oy
+
+            # Calculate angle to pickup relative to player's facing direction
+            pickup_angle = math.atan2(dy, dx)
+            angle_diff = pickup_angle - player_angle
+
+            # Normalize angle difference to [-π, π]
+            while angle_diff > math.pi:
+                angle_diff -= 2 * math.pi
+            while angle_diff < -math.pi:
+                angle_diff += 2 * math.pi
+
+            # Check if pickup is within FOV
+            if abs(angle_diff) > self.fov / 2:
+                continue
+
+            # Calculate screen X position
+            screen_x = int(SCREEN_WIDTH / 2 + (angle_diff / (self.fov / 2)) * (SCREEN_WIDTH / 2))
+
+            # Correct distance for fisheye effect (same as walls)
+            corrected_distance = distance * math.cos(angle_diff)
+
+            # Wolf3D-style scaling: pickups are much smaller than walls
+            # Use a smaller base size for pickups (they're floor items, not wall-height)
+            base_pickup_size = 8000  # Much smaller than wall's 40000
+            pickup_height = int((base_pickup_size / (corrected_distance + 0.0001)) * WALL_HEIGHT_SCALE * PICKUP_SCALE)
+
+            # Get original sprite dimensions
+            sprite = pickup.sprite
+            original_width, original_height = sprite.get_size()
+
+            # Maintain aspect ratio properly
+            aspect_ratio = original_width / original_height
+            pickup_width = int(pickup_height * aspect_ratio)
+
+            # Clamp height but recalculate width to maintain aspect ratio
+            max_pickup_height = SCREEN_HEIGHT // 6
+            if pickup_height > max_pickup_height:
+                pickup_height = max_pickup_height
+                pickup_width = int(pickup_height * aspect_ratio)
+
+            # Ensure minimum size
+            pickup_height = max(12, pickup_height)
+            pickup_width = max(int(12 * aspect_ratio), pickup_width)
+
+            # Calculate drawing bounds
+            left_x = screen_x - pickup_width // 2
+            right_x = left_x + pickup_width
+
+            # Skip if completely off-screen
+            if right_x < 0 or left_x >= SCREEN_WIDTH:
+                continue
+
+            # Check z-buffer visibility
+            visible = False
+            for x in range(max(0, left_x), min(SCREEN_WIDTH, right_x)):
+                if corrected_distance < self.z_buffer[x]:
+                    visible = True
+                    break
+
+            if not visible:
+                continue
+
+            # Scale the sprite maintaining aspect ratio
+            scaled_sprite = pg.transform.scale(sprite, (pickup_width, pickup_height))
+
+            # Position pickup on the ground (Wolf3D style)
+            # Ground level should be at the horizon line (screen center)
+            horizon_y = SCREEN_HEIGHT // 2
+            pickup_y = horizon_y + pickup_height + 35  # Pickup sits slightly below horizon, closer to ground
+
+            # Render pickup column by column with z-buffer checking
+            for x in range(max(0, left_x), min(SCREEN_WIDTH, right_x)):
+                if corrected_distance < self.z_buffer[x]:
+                    # Calculate which column of the sprite to draw
+                    local_x = x - left_x
+                    if pickup_width > 0 and local_x < pickup_width:
+                        # Extract single pixel column from scaled sprite
+                        try:
+                            column = scaled_sprite.subsurface(local_x, 0, 1, pickup_height)
+                            screen.blit(column, (x, pickup_y))
+                        except ValueError:
+                            # Skip if subsurface is invalid
+                            continue

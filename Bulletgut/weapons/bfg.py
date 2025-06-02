@@ -55,6 +55,7 @@ class BFG(ProjectileWeapon):
             self.sprite_index = 0
             self.has_fired_projectile = False
             self.fire_sound.play()
+            print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")
         elif self.game.player.ammo[self.ammo_type] < self.ammo_per_shot:
             self.empty_sound.play()
             print("Munitions épuisées")

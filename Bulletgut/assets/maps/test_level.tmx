@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="9" nextobjectid="26">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="10" nextobjectid="36">
  <properties>
   <property name="floor_color" value="#1e1e1e"/>
  </properties>
@@ -130,6 +130,67 @@
  </objectgroup>
  <objectgroup id="7" name="EnemySpawns">
   <object id="20" type="enemy" x="1109.33" y="544">
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="9" name="Pickups">
+  <object id="28" name="shells" type="Ammo" x="388.667" y="469.333">
+   <properties>
+    <property name="ammo_type" value="shells"/>
+    <property name="amount" type="int" value="20"/>
+    <property name="sprite" value="assets/pickups/ammo/ammo_shells.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="33" name="shotgun" type="Weapon" x="392.667" y="653.333">
+   <properties>
+    <property name="ammo_type" value="shells"/>
+    <property name="amount" type="int" value="8"/>
+    <property name="sprite" value="assets/pickups/weapons/shotgun.png"/>
+    <property name="weapon_name" value="shotgun"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="29" name="bullets" type="Ammo" x="1718" y="476">
+   <properties>
+    <property name="ammo_type" value="bullets"/>
+    <property name="amount" type="int" value="20"/>
+    <property name="sprite" value="assets/pickups/ammo/ammo_bullets.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="31" name="cells" type="Ammo" x="1416" y="256">
+   <properties>
+    <property name="ammo_type" value="cells"/>
+    <property name="amount" type="int" value="20"/>
+    <property name="sprite" value="assets/pickups/ammo/ammo_cells.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="32" name="rockets" type="Ammo" x="1370" y="882">
+   <properties>
+    <property name="ammo_type" value="rockets"/>
+    <property name="amount" type="int" value="20"/>
+    <property name="sprite" value="assets/pickups/ammo/ammo_rockets.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="34" name="rocketlauncher" type="Weapon" x="810" y="208">
+   <properties>
+    <property name="ammo_type" value="rockets"/>
+    <property name="amount" type="int" value="10"/>
+    <property name="sprite" value="assets/pickups/weapons/rocketlauncher.png"/>
+    <property name="weapon_name" value="rocketlauncher"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="35" name="shotgun" type="Weapon" x="918" y="524">
+   <properties>
+    <property name="ammo_type" value="shells"/>
+    <property name="amount" type="int" value="8"/>
+    <property name="sprite" value="assets/pickups/weapons/shotgun.png"/>
+    <property name="weapon_name" value="shotgun"/>
+   </properties>
    <point/>
   </object>
  </objectgroup>

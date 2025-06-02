@@ -18,8 +18,7 @@ class WeaponBase(ABC):
 
         # Animation
         self.sprites = []
-        self.sprite_offsets = [] if not hasattr(self, 'sprite_offsets') \
-            else self.sprite_offsets
+        self.sprite_offsets = []
         self.current_sprite_index = 0
         self.current_sprite = None
         self.animation_speed = 0.1
@@ -59,7 +58,6 @@ class WeaponBase(ABC):
         if self.is_reloading:
             if time_since_last_fire >= self.reload_time:
                 self.is_reloading = False
-                self.current_ammo = self.max_ammo
 
         # Mettre à jour l'animation
         self._update_animation(dt)
@@ -223,7 +221,7 @@ class WeaponBase(ABC):
 
     def reload(self):
         """Recharge l'arme"""
-        if self.is_reloading or self.current_ammo == self.max_ammo:
+        if self.is_reloading:
             return False
 
         self.is_reloading = True

@@ -66,10 +66,6 @@ class Chaingun(HitscanWeapon):
             self.bobbing_x *= 0.8
             self.bobbing_y *= 0.8
 
-            # Si les valeurs sont très petites, les mettre à zéro
-            if abs(self.bobbing_x) < 0.1: self.bobbing_x = 0
-            if abs(self.bobbing_y) < 0.1: self.bobbing_y = 0
-
         # Mettre à jour le cooldown de tir si nécessaire
         if self.fire_cooldown > 0:
             self.fire_cooldown -= dt
@@ -118,7 +114,7 @@ class Chaingun(HitscanWeapon):
                 self.current_sprite = self.sprites[self.current_sprite_index]
 
             # Gestion des tirs
-            if self.fire_cooldown <= 0 and self.game.player.ammo[self.ammo_type] > 0:
+            if self.fire_cooldown <= 0 < self.game.player.ammo[self.ammo_type]:
                 self._handle_fire()
                 self.fire_cooldown = self.shot_cooldown
 
@@ -275,32 +271,3 @@ def _update_weapon_bobbing(self, dt):
             self.bobbing_x = 0
         if abs(self.bobbing_y) < 0.1:
             self.bobbing_y = 0
-
-    def _update_weapon_bobbing(self, dt):
-        # Si on tire et que le bobbing doit être désactivé pendant le tir
-        if self.is_firing and self.disable_bobbing_when_firing:
-            # Réinitialiser les valeurs de bobbing (pas de mouvement)
-            self.bobbing_x = 0
-            self.bobbing_y = 0
-            return
-
-        # Si le joueur se déplace (vérifiez les mouvements)
-        player_moving = abs(self.game.player.rel.x) > 0 or abs(self.game.player.rel.y) > 0
-
-        if player_moving:
-            # Mettre à jour le compteur de bobbing
-            self.bobbing_counter += self.bobbing_speed * dt
-
-            # Calculer les valeurs de bobbing pour le mouvement
-            self.bobbing_x = pg.math.sin(self.bobbing_counter) * self.bobbing_amount * 0.5
-            self.bobbing_y = abs(pg.math.sin(self.bobbing_counter * 2)) * self.bobbing_amount
-        else:
-            # Si le joueur ne bouge pas, réinitialiser progressivement le bobbing
-            self.bobbing_x *= 0.9  # Réduction progressive
-            self.bobbing_y *= 0.9  # Réduction progressive
-
-            # Si les valeurs sont très petites, les mettre à zéro
-            if abs(self.bobbing_x) < 0.1:
-                self.bobbing_x = 0
-            if abs(self.bobbing_y) < 0.1:
-                self.bobbing_y = 0

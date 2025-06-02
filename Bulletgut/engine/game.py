@@ -85,6 +85,9 @@ class Game:
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level)
 
+        for pickup in self.level.pickups:
+            pickup.update(self.player, self)
+
         for door in self.level.doors:
             door.update(dt)
 
@@ -100,7 +103,8 @@ class Game:
     def render(self):
         self.screen.fill((0, 0, 0))
         self.raycaster.cast_rays(self.screen, self.player, self.level.floor_color)
-        self.raycaster.render_enemies(self.screen, self.player, self.level.enemies)
+        # self.raycaster.render_enemies(self.screen, self.player, self.level.enemies)
+        self.raycaster.render_pickups(self.screen, self.player, self.level.pickups)
 
         if self.player.weapon:
             self.player.weapon.render(self.screen)
@@ -128,7 +132,6 @@ class Game:
             # Calcule position relative au joueur
             dx = projectile.x - self.player.x
             dy = projectile.y - self.player.y
-            dist = math.hypot(dx, dy)
 
             # Calcule l'angle relatif entre projectile et direction du joueur
             rel_angle = math.atan2(dy, dx) - self.player.angle
@@ -138,11 +141,6 @@ class Game:
             if abs(rel_angle) > self.raycaster.fov / 2:
                 continue
 
-            # Projette sur l'écran (même principe que dans Projectile.render)
-            screen_x = int((0.5 + rel_angle / self.raycaster.fov) * self.screen.get_width())
-            screen_y = self.screen.get_height() // 2  # centré verticalement
-
-            # Dessin debug (point rouge)
             projectile.render(self.screen, self.raycaster)
 
 

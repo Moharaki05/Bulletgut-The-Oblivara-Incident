@@ -1,6 +1,5 @@
 from weapons.weapon_base import WeaponBase
 from abc import ABC
-import pygame as pg
 import math
 
 class MeleeWeapon(WeaponBase, ABC):

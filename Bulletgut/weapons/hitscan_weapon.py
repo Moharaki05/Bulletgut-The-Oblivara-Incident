@@ -1,6 +1,4 @@
-# hitscan_weapon.py
 from abc import ABC
-import pygame as pg
 import math
 import random
 from weapons.weapon_base import WeaponBase

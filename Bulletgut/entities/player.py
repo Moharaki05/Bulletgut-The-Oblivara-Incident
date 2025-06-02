@@ -8,7 +8,9 @@ from weapons.shotgun import Shotgun
 from weapons.chaingun import Chaingun
 from weapons.chainsaw import Chainsaw
 from weapons.bfg import BFG
-from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, SCREEN_WIDTH, SCREEN_HEIGHT
+from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, SCREEN_WIDTH, \
+    SCREEN_HEIGHT, MOUSE_SENSITIVITY, MOUSE_DEADZONE
+
 
 class Player:
     def __init__(self, x, y):
@@ -23,13 +25,30 @@ class Player:
         self.moving = False
 
         self.weapons = []
+        self.weapon_factory = {
+            "shotgun": Shotgun,
+            "chainsaw": Chainsaw,
+            "chaingun": Chaingun,
+            "plasmagun": PlasmaGun,
+            "rocketlauncher": RocketLauncher,
+            "bfg": BFG
+        }
+
         self.ammo = {
-            "bullets": 50,  # pistolet, chaingun
-            "shells": 20,  # shotgun
-            "cells": 100,  # plasma gun, BFG
-            "rockets": 10  # lance-roquettes
+            "bullets": 10,  # pistolet, chaingun
+            "shells": 0,  # shotgun
+            "cells": 0,  # plasma gun, BFG
+            "rockets": 0  # lance-roquettes
+        }
+        self.max_ammo = {
+            "bullets": 400,
+            "shells": 100,
+            "cells": 300,
+            "rockets": 100
         }
         self.current_weapon_index = 0
+        print(f"[DEBUG] Player spawned at: ({self.x}, {self.y})")
+
 
     def handle_inputs(self, keys, dt, mouse_dx=0, level=None):
         # Direction vector
@@ -71,16 +90,12 @@ class Player:
 
 
     def handle_mouse_movement(self, dx):
-        # Style Doom/Wolf3D : sensibilité constante
-        sensitivity = 0.025
-
         # Ignorer les micro-mouvements
-        deadzone = 0.05
-        if abs(dx) < deadzone:
+        if abs(dx) < MOUSE_DEADZONE:
             dx = 0
 
         # Appliquer la rotation
-        self.angle += dx * sensitivity
+        self.angle += dx * MOUSE_SENSITIVITY
         self.angle %= 2 * math.pi  # Garde l'angle entre 0 et 2pi
 
     def check_collision(self, level, x, y):
@@ -146,13 +161,7 @@ class Player:
 
     def initialize_weapons(self, game):
         self.weapons.append(Fists(game))
-        self.weapons.append(Chainsaw(game))
         self.weapons.append(Pistol(game))
-        self.weapons.append(Shotgun(game))
-        self.weapons.append(Chaingun(game))
-        self.weapons.append(RocketLauncher(game))
-        self.weapons.append(PlasmaGun(game))
-        self.weapons.append(BFG(game))
 
         if hasattr(self.weapon, 'on_selected'):
             self.weapon.on_selected()
@@ -201,12 +210,6 @@ class Player:
         else:
             raise ValueError("world_position doit être un Vector2 ou un tuple/liste (x, y)")
 
-        # Calculer l'angle relatif à la direction du joueur
-        angle = math.atan2(dy, dx) - self.angle
-
-        # Calculer la distance
-        distance = math.sqrt(dx ** 2 + dy ** 2)
-
         # Direction du regard du joueur
         forward_x = math.cos(self.angle)
         forward_y = math.sin(self.angle)
@@ -226,14 +229,21 @@ class Player:
         # Calcul des coordonnées à l'écran
         if proj_forward > 0:  # L'objet est devant le joueur
             screen_x = SCREEN_WIDTH / 2 + (proj_right / proj_forward) * (SCREEN_WIDTH / 2)
-            # Plus l'objet est loin, plus il est petit/proche du centre
-            scale_factor = 1 / proj_forward
             screen_y = SCREEN_HEIGHT / 2
         else:
             # L'objet est derrière le joueur, ne pas l'afficher
             return (-100, -100)  # Hors écran
 
         return int(screen_x), int(screen_y)
+
+    def add_ammo(self, weapon_type, amount):
+        if weapon_type in self.ammo:
+            self.ammo[weapon_type] += amount
+            print(f"+{amount} {weapon_type} ammo (total: {self.ammo[weapon_type]})")
+        else:
+            print(f"Unknown ammo type: {weapon_type}")
+
+
 
 
 

@@ -43,9 +43,10 @@ class PlasmaGun(ProjectileWeapon):
         super().update(dt)
 
         if self.trigger_held:
-            if self.fire_cooldown <= 0 and self.game.player.ammo[self.ammo_type] > 0:
+            if self.fire_cooldown <= 0 < self.game.player.ammo[self.ammo_type]:
                 self._fire_effect()
                 self.fire_cooldown = self.shot_cooldown
+                print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")
             self.fire_cooldown = max(0, self.fire_cooldown - dt)
 
             self.animation_timer += dt
@@ -56,6 +57,7 @@ class PlasmaGun(ProjectileWeapon):
         else:
             self.current_sprite_index = 0
             self.current_sprite = self.sprites[0]
+
 
     def fire(self):
         self.pull_trigger()

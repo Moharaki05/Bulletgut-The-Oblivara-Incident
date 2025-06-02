@@ -35,8 +35,6 @@ class Explosion:
         if 0 <= screen_x < len(raycaster.z_buffer):
             wall_dist = raycaster.z_buffer[screen_x]
             depth_diff = corrected_dist - wall_dist
-            print(
-                f"[EXPLOSION] screen_x={screen_x}, corrected_dist={corrected_dist:.2f}, wall_dist={wall_dist:.2f}, Δdepth={depth_diff:.2f}")
             if depth_diff > 20:  # autorise une petite marge
                 return
         else:

@@ -39,7 +39,7 @@ class BFGProjectile(Projectile):
         self.y += self.dy * delta_time
         self.lifetime -= delta_time
 
-        # Animation du projectile (BFGBEAM1 <-> BFGBEAM2)
+        # Animation du projectile
         self.frame_timer += delta_time
         if self.frame_timer >= self.frame_duration:
             self.frame_timer = 0.0

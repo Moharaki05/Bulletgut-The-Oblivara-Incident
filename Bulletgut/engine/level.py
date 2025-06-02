@@ -3,6 +3,9 @@ from pytmx.util_pygame import load_pygame
 from data.config import TILE_SIZE
 from entities.door import Door
 from entities.enemy_base import Enemy
+from entities.pickups.ammo_pickup import AmmoPickup
+from entities.pickups.weapon_pickup import WeaponPickup
+
 
 class Level:
     def __init__(self, filename):
@@ -27,6 +30,7 @@ class Level:
         self.collision_map = self.build_collision_map()
         self.spawn_point = self.get_player_spawn()
         self.doors = self.load_doors()
+        self.pickups = self.load_pickups()
 
 
         # Store closed door GIDs for rendering
@@ -223,18 +227,33 @@ class Level:
                 frame_height = 57
                 first_frame = enemy_texture.subsurface(pg.Rect(0, 0, frame_width, frame_height))
 
-                # enemy_texture.fill((255, 0, 0))  # bright red block
-
                 enemy = Enemy(x, y, first_frame)
                 enemies.append(enemy)
         return enemies
 
     def check_collision(self, position):
-        """
-        Vérifie si une position donnée est en collision avec les murs ou autres obstacles
-
-        :param position: Un tuple ou liste (x, y) représentant la position à vérifier
-        :return: True s'il y a collision, False sinon
-        """
         x, y = int(position[0]), int(position[1])
         return self.is_blocked(x, y)
+
+    def load_pickups(self):
+        pickups = []
+        for obj in self.tmx_data.objects:
+            if obj.type == "Ammo":
+                ammo_type = obj.properties["ammo_type"]
+                amount = int(obj.properties["amount"])
+                sprite_path = obj.properties.get("sprite", f"assets/pickups/ammo/ammo_{ammo_type}.png")
+                x = obj.x
+                y = obj.y
+                pickups.append(AmmoPickup(x, y, ammo_type, amount, sprite_path))
+
+            elif obj.type == "Weapon":
+                weapon_name = obj.properties["weapon_name"]
+                sprite = obj.properties.get("sprite", f"assets/pickups/weapons/{weapon_name}.png")
+                ammo_type = obj.properties["ammo_type"]
+                amount = int(obj.properties["amount"])
+                x = obj.x
+                y = obj.y
+                pickups.append(WeaponPickup(x, y, weapon_name, sprite, ammo_type, amount))
+
+        return pickups
+
