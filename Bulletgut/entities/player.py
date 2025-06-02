@@ -8,9 +8,8 @@ from weapons.shotgun import Shotgun
 from weapons.chaingun import Chaingun
 from weapons.chainsaw import Chainsaw
 from weapons.bfg import BFG
-from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, SCREEN_WIDTH, \
-    SCREEN_HEIGHT, MOUSE_SENSITIVITY, MOUSE_DEADZONE
-
+from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, \
+    MOUSE_SENSITIVITY, MOUSE_DEADZONE, WEAPON_SLOTS
 
 class Player:
     def __init__(self, x, y):
@@ -24,8 +23,10 @@ class Player:
         self.collision_radius = PLAYER_COLLISION_RADIUS
         self.moving = False
 
-        self.weapons = []
+        self.weapons = [None] * len(WEAPON_SLOTS)
         self.weapon_factory = {
+            "fists": Fists,
+            "pistol": Pistol,
             "shotgun": Shotgun,
             "chainsaw": Chainsaw,
             "chaingun": Chaingun,
@@ -160,81 +161,40 @@ class Player:
         return self.moving
 
     def initialize_weapons(self, game):
-        self.weapons.append(Fists(game))
-        self.weapons.append(Pistol(game))
+        # Créer une liste vide avec 8 slots
+        self.weapons = [None] * 8
 
-        if hasattr(self.weapon, 'on_selected'):
-            self.weapon.on_selected()
+        # Donner les armes de départ (fists + pistol)
+        self.weapons[WEAPON_SLOTS["fists"]] = self.weapon_factory["fists"](game)
+        self.weapons[WEAPON_SLOTS["pistol"]] = self.weapon_factory["pistol"](game)
 
-        # 🔧 Forcer un update visuel/sound immédiat à 0s (utile pour chainsaw)
-        if hasattr(self.weapon, 'update'):
-            self.weapon.update(0)
-
-        if self.weapons:
-            self.current_weapon_index = 0
-            self.weapons[self.current_weapon_index].is_equipped = True
-            self.weapon = self.weapons[self.current_weapon_index]
+        # Définir l'arme active sur le pistolet
+        self.current_weapon_index = WEAPON_SLOTS["pistol"]
+        self.weapon = self.weapons[self.current_weapon_index]  # 👈 C’est ça qui manquait
+        if self.weapon:
+            self.weapon.is_equipped = True
 
     def switch_weapon(self, direction):
-        if not self.weapons:
-            return
+        num_slots = len(self.weapons)
+        start_index = self.current_weapon_index
 
-        # Stopper l'arme actuelle
-        if hasattr(self.weapon, 'on_deselected'):
-            self.weapon.on_deselected()
+        for i in range(1, num_slots):
+            new_index = (start_index + direction * i) % num_slots
+            if self.weapons[new_index] is not None:
+                # Unselect current weapon
+                if self.weapon:
+                    self.weapon.is_equipped = False
+                    if hasattr(self.weapon, "on_deselected"):
+                        self.weapon.on_deselected()  # 👈 Ajout ici
 
-        # Passer à la nouvelle arme
-        self.weapons[self.current_weapon_index].is_equipped = False
-        self.current_weapon_index = (self.current_weapon_index + direction) % len(self.weapons)
-        self.weapon = self.weapons[self.current_weapon_index]
-        self.weapons[self.current_weapon_index].is_equipped = True
+                # Switch to new weapon
+                self.weapon = self.weapons[new_index]
+                self.current_weapon_index = new_index
+                self.weapon.is_equipped = True
+                print(f"[WEAPON] Switched to: {self.weapon.name}")
+                return
 
-        # Activer la nouvelle arme
-        if hasattr(self.weapon, 'on_selected'):
-            self.weapon.on_selected()
-
-        # Appliquer un update visuel immédiat (utile pour idle chainsaw)
-        if hasattr(self.weapon, 'update'):
-            self.weapon.update(0)
-
-    def get_screen_position(self, world_position):
-        # Calculer la position relative par rapport au joueur
-        # Si world_position est un Vector2
-        if hasattr(world_position, 'x') and hasattr(world_position, 'y'):
-            dx = world_position.x - self.x
-            dy = world_position.y - self.y
-        # Si world_position est un tuple ou une liste
-        elif isinstance(world_position, (tuple, list)) and len(world_position) >= 2:
-            dx = world_position[0] - self.x
-            dy = world_position[1] - self.y
-        else:
-            raise ValueError("world_position doit être un Vector2 ou un tuple/liste (x, y)")
-
-        # Direction du regard du joueur
-        forward_x = math.cos(self.angle)
-        forward_y = math.sin(self.angle)
-
-        # Direction perpendiculaire (droite du joueur)
-        right_x = math.sin(self.angle)
-        right_y = -math.cos(self.angle)
-
-        # Vecteur de la position du joueur à l'objet
-        dir_x = dx
-        dir_y = dy
-
-        # Projection sur les axes forward et right
-        proj_forward = dir_x * forward_x + dir_y * forward_y
-        proj_right = dir_x * right_x + dir_y * right_y
-
-        # Calcul des coordonnées à l'écran
-        if proj_forward > 0:  # L'objet est devant le joueur
-            screen_x = SCREEN_WIDTH / 2 + (proj_right / proj_forward) * (SCREEN_WIDTH / 2)
-            screen_y = SCREEN_HEIGHT / 2
-        else:
-            # L'objet est derrière le joueur, ne pas l'afficher
-            return (-100, -100)  # Hors écran
-
-        return int(screen_x), int(screen_y)
+        print("[WEAPON] No other weapon to switch to.")
 
     def add_ammo(self, weapon_type, amount):
         if weapon_type in self.ammo:
@@ -243,13 +203,6 @@ class Player:
         else:
             print(f"Unknown ammo type: {weapon_type}")
 
-
-
-
-
-
-
-
-
-
-
+    def has_weapon(self, weapon_name):
+        slot = WEAPON_SLOTS.get(weapon_name)
+        return slot is not None and self.weapons[slot] is not None

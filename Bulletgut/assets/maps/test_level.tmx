@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="10" nextobjectid="36">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="10" nextobjectid="37">
  <properties>
   <property name="floor_color" value="#1e1e1e"/>
  </properties>
@@ -154,7 +154,7 @@
   <object id="29" name="bullets" type="Ammo" x="1718" y="476">
    <properties>
     <property name="ammo_type" value="bullets"/>
-    <property name="amount" type="int" value="20"/>
+    <property name="amount" type="int" value="50"/>
     <property name="sprite" value="assets/pickups/ammo/ammo_bullets.png"/>
    </properties>
    <point/>
@@ -162,7 +162,7 @@
   <object id="31" name="cells" type="Ammo" x="1416" y="256">
    <properties>
     <property name="ammo_type" value="cells"/>
-    <property name="amount" type="int" value="20"/>
+    <property name="amount" type="int" value="100"/>
     <property name="sprite" value="assets/pickups/ammo/ammo_cells.png"/>
    </properties>
    <point/>
@@ -170,7 +170,7 @@
   <object id="32" name="rockets" type="Ammo" x="1370" y="882">
    <properties>
     <property name="ammo_type" value="rockets"/>
-    <property name="amount" type="int" value="20"/>
+    <property name="amount" type="int" value="5"/>
     <property name="sprite" value="assets/pickups/ammo/ammo_rockets.png"/>
    </properties>
    <point/>
@@ -190,6 +190,15 @@
     <property name="amount" type="int" value="8"/>
     <property name="sprite" value="assets/pickups/weapons/shotgun.png"/>
     <property name="weapon_name" value="shotgun"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="36" name="chainsaw" type="Weapon" x="842" y="904">
+   <properties>
+    <property name="ammo_type" value=""/>
+    <property name="amount" type="int" value="10"/>
+    <property name="sprite" value="assets/pickups/weapons/chainsaw.png"/>
+    <property name="weapon_name" value="chainsaw"/>
    </properties>
    <point/>
   </object>

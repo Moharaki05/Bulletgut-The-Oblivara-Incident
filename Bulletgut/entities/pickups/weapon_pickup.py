@@ -1,4 +1,6 @@
 import pygame as pg
+
+from data.config import WEAPON_SLOTS
 from entities.pickups.pickup import Pickup
 
 class WeaponPickup(Pickup):
@@ -10,31 +12,38 @@ class WeaponPickup(Pickup):
         self.amount = amount
 
     def on_pickup(self, player, game):
-        weapon_class = player.weapon_factory.get(self.weapon_name)
+        slot = WEAPON_SLOTS.get(self.weapon_name)
 
-        if not weapon_class:
-            print(f"[PICKUP] Unknown weapon: {self.weapon_name}")
+        if slot is None:
+            print(f"[PICKUP] Unknown weapon slot for: {self.weapon_name}")
             return
 
-        # Vérifie si l'arme est déjà dans l'inventaire
-        already_has_weapon = any(isinstance(w, weapon_class) for w in player.weapons)
+        has_weapon = player.weapons[slot] is not None
 
-        # Ajoute les munitions si possible
-        if self.ammo_type in player.ammo:
-            current = player.ammo[self.ammo_type]
-            max_ammo = player.max_ammo.get(self.ammo_type, 0)
-            if current < max_ammo:
-                gained = min(self.amount, max_ammo - current)
-                player.ammo[self.ammo_type] += gained
-                print(f"[PICKUP] Gained {gained} {self.ammo_type} (now {player.ammo[self.ammo_type]})")
+        # ✅ Ajouter des munitions SEULEMENT si ammo_type est défini
+        if self.ammo_type is not None:
+            if self.ammo_type in player.ammo:
+                if player.ammo[self.ammo_type] < player.max_ammo[self.ammo_type]:
+                    before = player.ammo[self.ammo_type]
+                    player.ammo[self.ammo_type] = min(
+                        player.ammo[self.ammo_type] + self.amount,
+                        player.max_ammo[self.ammo_type]
+                    )
+                    gained = player.ammo[self.ammo_type] - before
+                    print(f"[PICKUP] Gained {gained} {self.ammo_type} (from weapon pickup)")
+            else:
+                print(f"[PICKUP] Unknown ammo type: {self.ammo_type}")
 
-        # Ajoute l'arme si elle est nouvelle
-        if not already_has_weapon:
-            new_weapon = weapon_class(game)
-            player.weapons.append(new_weapon)
-            print(f"[PICKUP] Picked up new weapon: {self.weapon_name}")
+        # ✅ Ajouter l'arme même si elle n'utilise pas de munitions
+        if not has_weapon:
+            weapon_class = player.weapon_factory.get(self.weapon_name)
+            if weapon_class:
+                new_weapon = weapon_class(game)
+                player.weapons[slot] = new_weapon
+                print(f"[PICKUP] Picked up new weapon: {self.weapon_name}")
+            else:
+                print(f"[PICKUP] Unknown weapon class: {self.weapon_name}")
         else:
             print(f"[PICKUP] Already has weapon: {self.weapon_name}")
 
-        # Marquer comme ramassé
         self.picked_up = True
