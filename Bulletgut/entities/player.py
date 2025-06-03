@@ -33,6 +33,7 @@ class Player:
         self.armor = 0
         self.max_armor = 100
         self.abs_max_armor = 200
+        self.armor_absorption = 0.33
 
         self.alive = True
 
@@ -233,14 +234,14 @@ class Player:
 
         self.damage_flash_timer = 0.25
 
-        armor_absorption = 0.33
         if self.armor > 0:
-            absorbed = min(damage * armor_absorption, self.armor)
+            absorbed = min(damage * self.armor_absorption, self.armor)
             self.armor -= absorbed
             damage -= absorbed
 
         self.health -= damage
         print("Vie restante: ",self.health)
+        print("Armure restante: ", self.armor)
 
         if self.alive:
             self.hurt_sound.play()

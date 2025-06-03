@@ -18,10 +18,19 @@ class ItemPickup(Pickup):
 
         elif self.item_type == "item_armor":
             if player.armor < player.max_armor:
-                player.armor = min(player.armor + self.amount, player.max_armor)
+                player.armor = player.max_armor
+                player.armor_absorption = 0.33
                 self.picked_up = True
                 super().on_pickup(player, game)
-                print(f"[PICKUP] +{self.amount} armor")
+                print(f"[PICKUP] Armor set at {self.amount} %, absorption set to {player.armor_absorption}")
+
+        elif self.item_type == "item_megaarmor":
+            if player.armor < player.abs_max_armor:
+                player.armor = player.abs_max_armor
+                player.armor_absorption = 0.5
+                self.picked_up = True
+                super().on_pickup(player, game)
+                print(f"[PICKUP] Armor set at {self.amount} %, absorption set to {player.armor_absorption}")
 
 
 
