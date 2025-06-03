@@ -59,7 +59,8 @@ class Door:
         return self.progress < 0.95
 
     def get_door_thickness_px(self):
-        return TILE_SIZE * self.thickness * (1.0 - self.progress)
+        # Door thickness stays constant. It no longer shrinks as the door opens
+        return TILE_SIZE * self.thickness
 
     def get_world_position(self):
         # Base position at center of tile
@@ -71,36 +72,32 @@ class Door:
 
         # Apply offset based on axis
         if self.axis == "x":
-            # Door slides horizontally (like Wolf3D)
-            return (base_x, base_y)
+            # Door slides horizontally to the left
+            return (base_x - slide_distance, base_y)
         else:
-            # Door slides vertically
-            return (base_x, base_y)
+            # Door slides vertically upwards
+            return (base_x, base_y - slide_distance)
 
     def get_door_bounds(self):
         x, y = self.get_world_position()
 
-        # The visible part of the door gets smaller as it opens
-        effective_size = (1.0 - self.progress) * TILE_SIZE
-
-        # Center the remaining door in the opening
-        offset = (TILE_SIZE - effective_size) / 2
+        door_thickness = TILE_SIZE * self.thickness
 
         if self.axis == "x":
-            # Horizontal sliding door (slides into left wall)
+            # Horizontal sliding door (slides into the left wall)
             return {
-                "min_x": x - TILE_SIZE / 2 + offset,
-                "max_x": x - TILE_SIZE / 2 + offset + effective_size,
+                "min_x": x - door_thickness / 2,
+                "max_x": x + door_thickness / 2,
                 "min_y": y - TILE_SIZE / 2,
-                "max_y": y + TILE_SIZE / 2
+                "max_y": y + TILE_SIZE / 2,
             }
         else:
-            # Vertical sliding door (slides into ceiling)
+            # Vertical sliding door (slides into the ceiling)
             return {
                 "min_x": x - TILE_SIZE / 2,
                 "max_x": x + TILE_SIZE / 2,
-                "min_y": y - TILE_SIZE / 2 + offset,
-                "max_y": y - TILE_SIZE / 2 + offset + effective_size
+                "min_y": y - door_thickness / 2,
+                "max_y": y + door_thickness / 2,
             }
 
     def is_open(self):
