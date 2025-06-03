@@ -67,6 +67,7 @@ class Game:
                         if self.player.weapon:
                             self.player.weapon.fire()
                     elif not self.restart_anim_in_progress:
+                        self.hud.render(self.player, self)
                         self.restart_anim_surface = self.screen.copy()
                         self.restart_anim_in_progress = True
                         self.restart_anim_done = False
@@ -129,6 +130,10 @@ class Game:
         for enemy in self.level.enemies:
             enemy.update(self.player, dt)
 
+        if not self.player.alive and not self.hud.messages.has_death_message:
+            self.hud.messages.add("YOU DIED. CLICK TO RESTART.", (255, 0, 0))
+            self.hud.messages.has_death_message = True
+
         if self.player.weapon:
             self.player.weapon.update(dt)
 
@@ -162,9 +167,8 @@ class Game:
             flash_surface.fill((255, 0, 0))
             self.screen.blit(flash_surface, (0, 0))
 
+        self.hud.render(self.player, self)
         self.draw_restart_transition()
-
-        self.hud.render(self.player)
 
         pg.display.flip()
 
@@ -199,6 +203,7 @@ class Game:
         self.projectiles.clear()
         self.effects.clear()
         self.enemies.clear()
+        self.hud.messages.has_death_message = False
 
         self.restart_anim_col_width = 4
         num_cols = SCREEN_WIDTH // self.restart_anim_col_width

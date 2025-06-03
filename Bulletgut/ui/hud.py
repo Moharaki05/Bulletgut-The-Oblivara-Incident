@@ -1,5 +1,6 @@
 import pygame as pg
 from ui.faces import FaceManager
+from ui.messages import MessageManager
 
 SCREEN_WIDTH = 1280
 HUD_HEIGHT = 128
@@ -13,12 +14,15 @@ class HUD:
         self.doom_font_big = pg.font.SysFont("consolas", 60, bold=True)
         self.doom_font_small = pg.font.SysFont("consolas", 20, bold=True)
         self.face_manager = FaceManager()
+        self.messages = MessageManager()
+        self.last_rendered_surface = None
 
-    def blit_centered_text(self, surf, text, rect):
+    @staticmethod
+    def blit_centered_text(surf, text, rect):
         text_rect = text.get_rect(center=rect.center)
         surf.blit(text, text_rect)
 
-    def render(self, player):
+    def render(self, player, game):
         self.screen.blit(self.hud_image, (0, 720))
 
         # Ammo, health, armor (grands chiffres)
@@ -61,3 +65,8 @@ class HUD:
             right = pg.Rect(1115, y, 70, 20)
             self.blit_centered_text(self.screen, self.doom_font_small.render(str(current), True, YELLOW), left)
             self.blit_centered_text(self.screen, self.doom_font_small.render(str(maximum), True, YELLOW), right)
+
+        if not game.player.alive:
+            self.last_rendered_surface = self.screen.subsurface(pg.Rect(0, 720, 1280, 128)).copy()
+
+        self.messages.render(self.screen)

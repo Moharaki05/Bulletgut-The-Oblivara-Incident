@@ -1,4 +1,5 @@
 import pygame as pg
+import random
 import os
 
 class FaceManager:
@@ -7,6 +8,8 @@ class FaceManager:
         self.hurt_faces = {}
         self.evil_faces = {}
         self.dead_face = None
+        self.current_frame = 0
+        self.next_frame_time = pg.time.get_ticks() + 1000
 
         for filename in os.listdir(base_path):
             path = os.path.join(base_path, filename)
@@ -29,7 +32,8 @@ class FaceManager:
                 state = (idx - 1) // 3 + 1  # 1 à 5
                 self.standard_faces[state].append(pg.image.load(path).convert_alpha())
 
-    def get_health_state(self, health):
+    @staticmethod
+    def get_health_state(health):
         if health > 80:
             return 1
         elif health > 60:
@@ -55,5 +59,8 @@ class FaceManager:
         if (getattr(player, "got_weapon_until", 0) or 0) > now:
             return self.evil_faces.get(state)
 
-        frame = (now // 250) % 3
-        return self.standard_faces[state][frame]
+        if now >= self.next_frame_time:
+            self.current_frame = (self.current_frame + 1) % 3
+            self.next_frame_time = now + random.randint(800, 1300)
+
+        return self.standard_faces[state][self.current_frame]

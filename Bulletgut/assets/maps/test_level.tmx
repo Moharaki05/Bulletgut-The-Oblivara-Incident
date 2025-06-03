@@ -241,7 +241,7 @@
   <object id="41" name="medikit" type="Item" x="286" y="638">
    <properties>
     <property name="amount" type="int" value="25"/>
-    <property name="item_type" value="item_health"/>
+    <property name="item_type" value="item_medikit"/>
     <property name="sprite" value="assets/pickups/items/item_medikit.png"/>
    </properties>
    <point/>
