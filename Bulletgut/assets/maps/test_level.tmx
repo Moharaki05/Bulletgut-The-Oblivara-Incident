@@ -123,7 +123,7 @@
   <object id="13" type="door" x="448" y="512.25" width="64" height="64">
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
-    <property name="axis" value="y"/>
+    <property name="axis" value="-y"/>
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>
@@ -175,21 +175,12 @@
    </properties>
    <point/>
   </object>
-  <object id="34" name="rocketlauncher" type="Weapon" x="810" y="208">
+  <object id="34" name="rocketlauncher" type="Weapon" x="1482" y="826">
    <properties>
     <property name="ammo_type" value="rockets"/>
     <property name="amount" type="int" value="10"/>
     <property name="sprite" value="assets/pickups/weapons/rocketlauncher.png"/>
     <property name="weapon_name" value="rocketlauncher"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="35" name="shotgun" type="Weapon" x="918" y="524">
-   <properties>
-    <property name="ammo_type" value="shells"/>
-    <property name="amount" type="int" value="8"/>
-    <property name="sprite" value="assets/pickups/weapons/shotgun.png"/>
-    <property name="weapon_name" value="shotgun"/>
    </properties>
    <point/>
   </object>
@@ -211,7 +202,7 @@
    </properties>
    <point/>
   </object>
-  <object id="38" name="bfg" type="Weapon" x="1416" y="562">
+  <object id="38" name="bfg" type="Weapon" x="1346" y="252">
    <properties>
     <property name="ammo_type" value="cells"/>
     <property name="amount" type="int" value="40"/>
@@ -220,7 +211,7 @@
    </properties>
    <point/>
   </object>
-  <object id="39" name="plasmagun" type="Weapon" x="1138" y="218">
+  <object id="39" name="plasmagun" type="Weapon" x="1492" y="316">
    <properties>
     <property name="ammo_type" value="cells"/>
     <property name="amount" type="int" value="40"/>
@@ -229,16 +220,7 @@
    </properties>
    <point/>
   </object>
-  <object id="40" name="bfg" type="Weapon" x="190" y="532">
-   <properties>
-    <property name="ammo_type" value="cells"/>
-    <property name="amount" type="int" value="40"/>
-    <property name="sprite" value="assets/pickups/weapons/bfg.png"/>
-    <property name="weapon_name" value="bfg"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="41" name="medikit" type="Item" x="286" y="638">
+  <object id="41" name="medikit" type="Item" x="590" y="882">
    <properties>
     <property name="amount" type="int" value="25"/>
     <property name="item_type" value="item_medikit"/>
@@ -246,7 +228,7 @@
    </properties>
    <point/>
   </object>
-  <object id="42" name="armor" type="Item" x="642" y="516">
+  <object id="42" name="armor" type="Item" x="608" y="228">
    <properties>
     <property name="amount" type="int" value="100"/>
     <property name="item_type" value="item_armor"/>
@@ -254,7 +236,7 @@
    </properties>
    <point/>
   </object>
-  <object id="43" name="megaarmor" type="Item" x="810" y="360">
+  <object id="43" name="megaarmor" type="Item" x="1132" y="234">
    <properties>
     <property name="amount" type="int" value="200"/>
     <property name="item_type" value="item_megaarmor"/>

@@ -55,10 +55,12 @@ class Door:
         return self.progress < 0.95
 
     def is_visible(self):
-        # Door is visible unless it's fully open
-        return self.progress < 0.95
+        # CHANGEMENT PRINCIPAL: La porte reste toujours visible pendant l'animation
+        # Elle ne disparaît que quand elle est complètement ouverte
+        return self.progress < 1.0  # Changé de 0.95 à 1.0
 
     def get_door_thickness_px(self):
+        # La largeur diminue progressivement selon le progrès d'ouverture
         return TILE_SIZE * self.thickness * (1.0 - self.progress)
 
     def get_world_position(self):
@@ -66,53 +68,53 @@ class Door:
         base_x = self.grid_x * TILE_SIZE + TILE_SIZE / 2
         base_y = self.grid_y * TILE_SIZE + TILE_SIZE / 2
 
-        # Calculate sliding offset based on progress
-        slide_distance = self.progress * TILE_SIZE
+        # AMÉLIORATION: Position de glissement plus progressive
+        slide_distance = self.progress * (TILE_SIZE * 0.5)  # Glisse sur la moitié de la tile
 
-        # Apply offset based on axis
         if self.axis == "x":
-            # Door slides horizontally (like Wolf3D)
-            return (base_x, base_y)
+            # Door slides horizontally (into the wall)
+            return (base_x - slide_distance, base_y)
         else:
-            # Door slides vertically
-            return (base_x, base_y)
+            # Door slides vertically (into ceiling/floor)
+            return (base_x, base_y - slide_distance)
 
     def get_door_bounds(self):
         x, y = self.get_world_position()
 
-        # The visible part of the door gets smaller as it opens
-        effective_size = (1.0 - self.progress) * TILE_SIZE
-
-        # Center the remaining door in the opening
-        offset = (TILE_SIZE - effective_size) / 2
+        # AMÉLIORATION: Calcul plus précis des bounds pour le glissement
+        # La partie visible de la porte rétrécit progressivement
+        visible_ratio = 1.0 - self.progress
 
         if self.axis == "x":
-            # Horizontal sliding door (slides into left wall)
+            # Horizontal sliding door
+            door_width = TILE_SIZE * visible_ratio
             return {
-                "min_x": x - TILE_SIZE / 2 + offset,
-                "max_x": x - TILE_SIZE / 2 + offset + effective_size,
+                "min_x": x - door_width / 2,
+                "max_x": x + door_width / 2,
                 "min_y": y - TILE_SIZE / 2,
                 "max_y": y + TILE_SIZE / 2
             }
         else:
-            # Vertical sliding door (slides into ceiling)
+            # Vertical sliding door
+            door_height = TILE_SIZE * visible_ratio
             return {
                 "min_x": x - TILE_SIZE / 2,
                 "max_x": x + TILE_SIZE / 2,
-                "min_y": y - TILE_SIZE / 2 + offset,
-                "max_y": y - TILE_SIZE / 2 + offset + effective_size
+                "min_y": y - door_height / 2,
+                "max_y": y + door_height / 2
             }
 
     def is_open(self):
         return self.state == "open"
 
     def get_texture_coordinates(self):
+        # AMÉLIORATION: Offset de texture plus fluide
+        offset = self.progress * TILE_SIZE * 0.8  # 80% pour un meilleur effet visuel
+
         if self.axis == "x":
-            # For horizontal sliding doors, we need to offset the texture horizontally
-            return self.texture_offset, 0
+            return offset, 0
         else:
-            # For vertical sliding doors, we need to offset the texture vertically
-            return 0, self.texture_offset
+            return 0, offset
 
     def _check_collision(self):
         # Vérifier collision avec les murs/obstacles
@@ -129,4 +131,3 @@ class Door:
                     return True
 
         return False
-

@@ -91,8 +91,8 @@ class Game:
                 # Debug events
                 if event.key == pg.K_ESCAPE:
                     self.running = False
-                if event.key == pg.K_p:
-                    self.player.take_damage(10)
+                # if event.key == pg.K_p:
+                #     self.player.take_damage(10)
 
     def is_near_door(self, door):
         px, py = self.player.get_position()

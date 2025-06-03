@@ -1,5 +1,4 @@
 import pygame as pg
-
 from data.config import WEAPON_SLOTS
 from entities.pickups.pickup import Pickup
 
