@@ -13,9 +13,10 @@ from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLI
     MOUSE_SENSITIVITY, MOUSE_DEADZONE, WEAPON_SLOTS
 
 
-# noinspection PyTypeChecker
 class Player:
     def __init__(self, x, y):
+        self.was_hit_until = 0
+        self.got_weapon_until = 0
         self.weapon = None
         self.x = x
         self.y = y
@@ -240,8 +241,8 @@ class Player:
             damage -= absorbed
 
         self.health -= damage
-        print("Vie restante: ",self.health)
-        print("Armure restante: ", self.armor)
+
+        self.was_hit_until = pg.time.get_ticks() + 1000  # visible pendant 1 seconde
 
         if self.alive:
             self.hurt_sound.play()

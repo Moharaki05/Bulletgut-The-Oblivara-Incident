@@ -21,7 +21,8 @@ class Raycaster:
         self.render_walls(screen, player)
 
     def render_floor(self, screen, color):
-        pg.draw.rect(screen, color, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
+        height = screen.get_height()
+        pg.draw.rect(screen, color, (0, height // 2, SCREEN_WIDTH, height // 2))
 
     def handle_door_intersection(self, ox, oy, angle):
         closest_door = None
@@ -167,7 +168,8 @@ class Raycaster:
             if tile_img:
                 texture = pg.transform.scale(tile_img, (TILE_SIZE, TILE_SIZE))
                 texture_column = texture.subsurface(tex_x, 0, 1, TILE_SIZE)
-                safe_height = max(1, min(int(wall_height), SCREEN_HEIGHT * 2))
+                height = screen.get_height()
+                safe_height = max(1, min(int(wall_height), height * 2))
 
                 # Adjust door thickness if it's a door
                 if door_obj and door_depth < wall_depth:
@@ -176,7 +178,7 @@ class Raycaster:
                 else:
                     column = pg.transform.scale(texture_column, (ray_width, safe_height))
 
-                column_y = (SCREEN_HEIGHT - safe_height) // 2
+                column_y = (height - safe_height) // 2
                 x = ray * ray_width
                 screen.blit(column, (x, column_y))
 
@@ -242,7 +244,8 @@ class Raycaster:
                 continue
 
             sprite = pg.transform.scale(enemy_img, (img_width, img_height))
-            center_y = SCREEN_HEIGHT // 2
+            height = screen.get_height()
+            center_y = height // 2
             floor_offset = img_height * 0.3
             screen_y = center_y - (img_height // 2) + floor_offset
 
@@ -351,8 +354,9 @@ class Raycaster:
 
             # Position pickup on the ground (Wolf3D style)
             # Ground level should be at the horizon line (screen center)
-            horizon_y = SCREEN_HEIGHT // 2
-            pickup_y = horizon_y + pickup_height + 35  # Pickup sits slightly below horizon, closer to ground
+            surface_height = screen.get_height()
+            horizon_y = surface_height // 2
+            pickup_y = horizon_y + pickup_height + 35
 
             # Render pickup column by column with z-buffer checking
             for x in range(max(0, left_x), min(SCREEN_WIDTH, right_x)):

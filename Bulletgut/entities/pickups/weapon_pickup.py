@@ -40,6 +40,8 @@ class WeaponPickup(Pickup):
                 player.weapons[slot] = new_weapon
                 print(f"[PICKUP] Picked up new weapon: {self.weapon_name}")
 
+                player.got_weapon_until = pg.time.get_ticks() + 1000
+
                 if player.weapon:
                     player.weapon.is_equipped = False
                     if hasattr(player.weapon, "on_deselected"):

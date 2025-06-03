@@ -1,17 +1,18 @@
 import math
 import random
-
 import pygame as pg
-from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE
+from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE, HUD_HEIGHT
 from engine.raycaster import Raycaster
 from entities.player import Player
 from engine.level import Level
+from ui.hud import HUD
 
 
 class Game:
     def __init__(self):
         pg.init()
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.render_surface = self.screen.subsurface((0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - HUD_HEIGHT))
         self.clock = pg.time.Clock()
         self.running = True
 
@@ -49,6 +50,9 @@ class Game:
         self.take_restart_screenshot = False
         self.pending_restart = False
         self.has_restarted = False
+
+        # UI
+        self.hud = HUD(self.screen)
 
     def handle_events(self):
         self.mouse_dx = 0
@@ -134,21 +138,21 @@ class Game:
     def render(self):
         self.screen.fill((0, 0, 0))
 
-        self.raycaster.cast_rays(self.screen, self.player, self.level.floor_color)
-        # self.raycaster.render_enemies(self.screen, self.player, self.level.enemies)
-        self.raycaster.render_pickups(self.screen, self.player, self.level.pickups)
+        self.raycaster.cast_rays(self.render_surface, self.player, self.level.floor_color)
+        self.raycaster.render_enemies(self.render_surface, self.player, self.level.enemies)
+        self.raycaster.render_pickups(self.render_surface, self.player, self.level.pickups)
 
         if self.player.weapon:
-            self.player.weapon.render(self.screen)
+            self.player.weapon.render(self.render_surface)
 
         self._render_projectiles()
 
         for effect in self.effects:
-            effect.render(self.screen, self.raycaster, self.player)
+            effect.render(self.render_surface, self.raycaster, self.player)
 
         if self.crosshair_enabled:
             center_x = SCREEN_WIDTH // 2 - self.crosshair_image.get_width() // 2
-            center_y = SCREEN_HEIGHT // 2 - self.crosshair_image.get_height() // 2
+            center_y = (SCREEN_HEIGHT - HUD_HEIGHT) // 2 - self.crosshair_image.get_height() // 2
             self.screen.blit(self.crosshair_image, (center_x, center_y))
 
         if self.player.damage_flash_timer > 0:
@@ -159,6 +163,8 @@ class Game:
             self.screen.blit(flash_surface, (0, 0))
 
         self.draw_restart_transition()
+
+        self.hud.render(self.player)
 
         pg.display.flip()
 
@@ -182,7 +188,7 @@ class Game:
             if abs(rel_angle) > self.raycaster.fov / 2:
                 continue
 
-            projectile.render(self.screen, self.raycaster)
+            projectile.render(self.render_surface, self.raycaster)
 
     def reload_level(self):
         self.level = Level("assets/maps/test_level.tmx")

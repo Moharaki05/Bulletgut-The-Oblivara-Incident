@@ -2,8 +2,9 @@
 import math
 
 # General settings
+HUD_HEIGHT = 128
 SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
+SCREEN_HEIGHT = 720 + HUD_HEIGHT
 FPS = 60
 TILE_SIZE = 64
 
