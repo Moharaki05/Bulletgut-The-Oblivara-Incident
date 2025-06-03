@@ -4,6 +4,7 @@ from data.config import TILE_SIZE
 from entities.door import Door
 from entities.enemy_base import Enemy
 from entities.pickups.ammo_pickup import AmmoPickup
+from entities.pickups.item_pickup import ItemPickup
 from entities.pickups.weapon_pickup import WeaponPickup
 
 
@@ -254,6 +255,14 @@ class Level:
                 x = obj.x
                 y = obj.y
                 pickups.append(WeaponPickup(x, y, weapon_name, sprite, ammo_type, amount))
+
+            elif obj.type == "Item":
+                item_type = obj.properties["item_type"]
+                sprite = obj.properties.get("sprite", f"assets/pickups/items/{item_type}.png")
+                amount = int(obj.properties["amount"])
+                x = obj.x
+                y = obj.y
+                pickups.append(ItemPickup(x, y, item_type, amount, sprite))
 
         return pickups
 
