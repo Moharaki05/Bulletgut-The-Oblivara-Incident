@@ -1,4 +1,6 @@
 import math
+import random
+
 import pygame as pg
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE
 from engine.raycaster import Raycaster
@@ -36,6 +38,18 @@ class Game:
         # Initialiser les armes
         self.player.initialize_weapons(self)
 
+        self.restart_anim_col_width = 4
+        num_cols = SCREEN_WIDTH // self.restart_anim_col_width
+        self.restart_anim_columns = [0] * num_cols
+        self.restart_anim_speeds = [random.randint(16, 32) for _ in range(num_cols)]
+        self.restart_anim_surface = None
+        self.restart_anim_in_progress = False
+        self.restart_anim_done = False
+
+        self.take_restart_screenshot = False
+        self.pending_restart = False
+        self.has_restarted = False
+
     def handle_events(self):
         self.mouse_dx = 0
         for event in pg.event.get():
@@ -45,10 +59,16 @@ class Game:
                 self.mouse_dx = event.rel[0]
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    if event.button == 1:
-                        # Utiliser l'arme actuelle du joueur
+                    if self.player.alive:
                         if self.player.weapon:
                             self.player.weapon.fire()
+                    elif not self.restart_anim_in_progress:
+                        self.restart_anim_surface = self.screen.copy()
+                        self.restart_anim_in_progress = True
+                        self.restart_anim_done = False
+                        self.has_restarted = False
+                        # self.restart_anim_columns = [0] * (SCREEN_WIDTH // self.restart_anim_col_width)
+                        # self.restart_anim_speeds = [random.randint(8, 20) for _ in self.restart_anim_columns]
                 if event.button == 4:  # Molette vers le haut
                     self.player.switch_weapon(-1)
                 elif event.button == 5:  # Molette vers le bas
@@ -63,9 +83,11 @@ class Game:
                     for door in self.level.doors:
                         if self.is_near_door(door):
                             door.toggle()
-                # Debug quit
+                # Debug events
                 if event.key == pg.K_ESCAPE:
                     self.running = False
+                if event.key == pg.K_p:
+                    self.player.take_damage(10)
 
     def is_near_door(self, door):
         px, py = self.player.get_position()
@@ -74,16 +96,25 @@ class Game:
         dist_squared = dx * dx + dy * dy
         return dist_squared <= (TILE_SIZE * 2.1) ** 2  # Adjust 1.1 as needed
 
-
     def update(self):
         #later: update player, enemies, projectiles, etc.
         dt = self.clock.tick(FPS) / 1000 # Delta time in seconds
-        # print(f"FPS: {self.clock.get_fps()}")
         pg.display.set_caption(f"Bulletgut : The Oblivara Incident - FPS: {self.clock.get_fps():.2f}")
+
+        if self.restart_anim_in_progress:
+            self.update_restart_transition()
+
+        if self.has_restarted:
+            self.reload_level()
+            self.pending_restart = False
+            self.restart_anim_in_progress = False
+            return
 
         # Handle input
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level)
+        if self.player.damage_flash_timer > 0:
+            self.player.damage_flash_timer = max(0.0, self.player.damage_flash_timer - dt)
 
         for pickup in self.level.pickups:
             pickup.update(self.player, self)
@@ -102,6 +133,7 @@ class Game:
 
     def render(self):
         self.screen.fill((0, 0, 0))
+
         self.raycaster.cast_rays(self.screen, self.player, self.level.floor_color)
         # self.raycaster.render_enemies(self.screen, self.player, self.level.enemies)
         self.raycaster.render_pickups(self.screen, self.player, self.level.pickups)
@@ -118,6 +150,15 @@ class Game:
             center_x = SCREEN_WIDTH // 2 - self.crosshair_image.get_width() // 2
             center_y = SCREEN_HEIGHT // 2 - self.crosshair_image.get_height() // 2
             self.screen.blit(self.crosshair_image, (center_x, center_y))
+
+        if self.player.damage_flash_timer > 0:
+            alpha = int(255 * (self.player.damage_flash_timer / 0.2))
+            flash_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            flash_surface.set_alpha(alpha)
+            flash_surface.fill((255, 0, 0))
+            self.screen.blit(flash_surface, (0, 0))
+
+        self.draw_restart_transition()
 
         pg.display.flip()
 
@@ -143,9 +184,49 @@ class Game:
 
             projectile.render(self.screen, self.raycaster)
 
+    def reload_level(self):
+        self.level = Level("assets/maps/test_level.tmx")
+        spawn_x, spawn_y = self.level.spawn_point
+        self.player = Player(spawn_x, spawn_y)
+        self.player.initialize_weapons(self)
+        self.raycaster = Raycaster(self.level, self.player)
+        self.projectiles.clear()
+        self.effects.clear()
+        self.enemies.clear()
 
+        self.restart_anim_col_width = 4
+        num_cols = SCREEN_WIDTH // self.restart_anim_col_width
+        self.restart_anim_columns = [0] * num_cols
+        self.restart_anim_speeds = [random.randint(8, 20) for _ in range(num_cols)]
+        self.restart_anim_done = False
+        self.has_restarted = False
+        self.restart_anim_in_progress = False
 
+    def draw_restart_transition(self):
+        if not self.restart_anim_surface:
+            return
 
+        all_done = True
+        col_width = self.restart_anim_col_width
 
+        for x in range(0, SCREEN_WIDTH, col_width):
+            col_index = x // col_width
 
+            if self.restart_anim_columns[col_index] < SCREEN_HEIGHT:
+                self.restart_anim_columns[col_index] += self.restart_anim_speeds[col_index]
+                all_done = False
 
+            remaining_height = SCREEN_HEIGHT - self.restart_anim_columns[col_index]
+            if remaining_height > 0:
+                source_rect = pg.Rect(x, self.restart_anim_columns[col_index], col_width, remaining_height)
+                dest_pos = (x, self.restart_anim_columns[col_index])
+                column = self.restart_anim_surface.subsurface(source_rect)
+                self.screen.blit(column, dest_pos)
+
+        if all_done and not self.restart_anim_done:
+            self.restart_anim_done = True
+
+    def update_restart_transition(self):
+        self.draw_restart_transition()
+        if self.restart_anim_done and not self.has_restarted:
+           self.has_restarted = True

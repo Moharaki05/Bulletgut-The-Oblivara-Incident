@@ -28,6 +28,7 @@ class Rocket(Projectile):
         if not super().update(dt):
             return False
 
+        self.position.update(self.x, self.y)
         return True  # Toujours en vie
 
     def render(self, screen, raycaster):
@@ -64,7 +65,7 @@ class Rocket(Projectile):
         self.game.effects.append(
             Explosion(self.x, self.y, self.explosion_sprites)
         )
-        self.exploded = True
+        self._explode()
 
     def _explode(self):
         if not self.exploded:
@@ -73,14 +74,15 @@ class Rocket(Projectile):
             if self.explosion_sound:
                 self.explosion_sound.play()
 
-            # self._apply_splash_damage()
+            self._apply_splash_damage()
 
-    # def _apply_splash_damage(self):
-    #     player_dist = (self.game.player.get_position() - self.position).length()
-    #     if player_dist < self.splash_radius:
-    #         damage_factor = 1 - (player_dist / self.splash_radius)
-    #         damage_to_player = self.damage * damage_factor
-    #         self.game.player.take_damage(damage_to_player)
+    def _apply_splash_damage(self):
+        player_pos = pg.Vector2(self.game.player.get_position())
+        player_dist = (player_pos - self.position).length()
+        if player_dist < self.splash_radius:
+            damage_factor = 1 - (player_dist / self.splash_radius)
+            damage_to_player = self.damage * damage_factor
+            self.game.player.take_damage(damage_to_player)
     #
     #     for enemy in self.game.enemies:
     #         if enemy.is_alive:

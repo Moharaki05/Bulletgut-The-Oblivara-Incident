@@ -1,4 +1,5 @@
 import math
+import random
 import pygame as pg
 from weapons.fists import Fists
 from weapons.pistol import Pistol
@@ -25,6 +26,24 @@ class Player:
         self.collision_radius = PLAYER_COLLISION_RADIUS
         self.moving = False
 
+        self.health = 100
+        self.max_health = 100
+        self.abs_max_health = 200
+
+        self.armor = 0
+        self.max_armor = 100
+        self.abs_max_armor = 200
+
+        self.alive = True
+
+        self.damage_flash_timer = 0
+
+        self.hurt_sound = pg.mixer.Sound("assets/sounds/player/player_injured.wav")
+        self.death_sounds = [
+            pg.mixer.Sound("assets/sounds/player/player_death1.wav"),
+            pg.mixer.Sound("assets/sounds/player/player_death2.wav")
+        ]
+
         self.weapons = [None] * len(WEAPON_SLOTS)
         self.weapon_factory = {
             "fists": Fists,
@@ -50,11 +69,11 @@ class Player:
             "rockets": 100
         }
         self.current_weapon_index = 0
-        print(f"[DEBUG] Player spawned at: ({self.x}, {self.y})")
-
 
     def handle_inputs(self, keys, dt, mouse_dx=0, level=None):
-        # Direction vector
+        if not self.alive:
+            return
+
         speed = self.move_speed * dt
         dx = math.cos(self.angle)
         dy = math.sin(self.angle)
@@ -207,3 +226,28 @@ class Player:
     def has_weapon(self, weapon_name):
         slot = WEAPON_SLOTS.get(weapon_name)
         return slot is not None and self.weapons[slot] is not None
+
+    def take_damage(self, damage):
+        if not self.alive:
+            return
+
+        self.damage_flash_timer = 0.25
+
+        armor_absorption = 0.33
+        if self.armor > 0:
+            absorbed = min(damage * armor_absorption, self.armor)
+            self.armor -= absorbed
+            damage -= absorbed
+
+        self.health -= damage
+        print("Vie restante: ",self.health)
+
+        if self.alive:
+            self.hurt_sound.play()
+
+        if self.health <= 0:
+            self.health = 0
+            self.alive = False
+            random.choice(self.death_sounds).play()
+            print("[PLAYER] You died!")
+
