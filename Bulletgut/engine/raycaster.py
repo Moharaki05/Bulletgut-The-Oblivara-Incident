@@ -25,25 +25,29 @@ class Raycaster:
         pg.draw.rect(screen, color, (0, height // 2, SCREEN_WIDTH, height // 2))
 
     def handle_door_intersection(self, ox, oy, angle):
-        """Version améliorée inspirée de DUGA"""
+        """DUGA-style door intersection handling with proper texture sliding"""
         closest_door = None
         closest_depth = float("inf")
         tex_x = 0
         side = None
 
         for door in self.level.doors:
-            # Utiliser les bounds précis de la porte
+            # Skip doors that are fully open (like DUGA)
+            if door.progress >= 0.95:
+                continue
+
             bounds = door.get_door_bounds()
 
-            # Vérifier si la porte est suffisamment ouverte pour être ignorée
-            if door.progress >= 0.98:
+            # Check bounds validity
+            if not bounds:
                 continue
 
             if door.axis == "x":
+                # Horizontal sliding door
                 if abs(math.cos(angle)) < 1e-6:
                     continue
 
-                # Tester l'intersection with sliding door bounds
+                # Test both faces of the door
                 for face_x in [bounds["min_x"], bounds["max_x"]]:
                     t = (face_x - ox) / math.cos(angle)
                     if t <= 0:
@@ -54,16 +58,18 @@ class Raycaster:
                     if bounds["min_y"] <= hit_y <= bounds["max_y"] and t < closest_depth:
                         closest_door = door
                         closest_depth = t
-
-                        # Calcul de texture avec offset de glissement
-                        rel_y = (hit_y - bounds["min_y"]) / (bounds["max_y"] - bounds["min_y"])
-                        tex_x = int(rel_y * TILE_SIZE)
-
-                        # Appliquer l'offset de texture pour l'effet de glissement
-                        tex_x = (tex_x + door.get_texture_offset()) % TILE_SIZE
                         side = "x"
 
+                        # DUGA-style texture calculation with sliding offset
+                        rel_y = (hit_y - bounds["min_y"]) / (bounds["max_y"] - bounds["min_y"])
+                        base_tex_x = int(rel_y * TILE_SIZE)
+
+                        # Apply sliding offset (this creates the sliding texture effect)
+                        offset = door.get_texture_offset()
+                        tex_x = (base_tex_x + offset) % TILE_SIZE
+
             else:  # door.axis == "y"
+                # Vertical sliding door
                 if abs(math.sin(angle)) < 1e-6:
                     continue
 
@@ -77,18 +83,20 @@ class Raycaster:
                     if bounds["min_x"] <= hit_x <= bounds["max_x"] and t < closest_depth:
                         closest_door = door
                         closest_depth = t
-
-                        # Calcul de texture avec offset de glissement
-                        rel_x = (hit_x - bounds["min_x"]) / (bounds["max_x"] - bounds["min_x"])
-                        tex_x = int(rel_x * TILE_SIZE)
-
-                        # Appliquer l'offset de texture pour l'effet de glissement
-                        tex_x = (tex_x + door.get_texture_offset()) % TILE_SIZE
                         side = "y"
+
+                        # DUGA-style texture calculation with sliding offset
+                        rel_x = (hit_x - bounds["min_x"]) / (bounds["max_x"] - bounds["min_x"])
+                        base_tex_x = int(rel_x * TILE_SIZE)
+
+                        # Apply sliding offset
+                        offset = door.get_texture_offset()
+                        tex_x = (base_tex_x + offset) % TILE_SIZE
 
         return closest_door, closest_depth, tex_x, side
 
     def render_walls(self, screen, player):
+        """Updated wall rendering with DUGA-style door handling"""
         ox, oy = player.get_position()
         map_x = int(ox // TILE_SIZE)
         map_y = int(oy // TILE_SIZE)
@@ -124,8 +132,10 @@ class Raycaster:
             tile_x, tile_y = map_x, map_y
             side = None
 
+            # Check for door intersection first (DUGA style)
             door_obj, door_depth, door_tex_x, door_side = self.handle_door_intersection(ox, oy, angle)
 
+            # DDA algorithm for walls
             wall_hit = False
             while not wall_hit:
                 if side_dist_x < side_dist_y:
@@ -143,6 +153,7 @@ class Raycaster:
                 if self.level.is_blocked(wx, wy):
                     wall_hit = True
 
+            # Calculate wall intersection
             if side == 'x':
                 wall_depth = abs((tile_x * TILE_SIZE - ox + (1 - dx) * TILE_SIZE / 2) / (cos_a + 1e-6))
                 hit_x = oy + wall_depth * sin_a
@@ -152,54 +163,56 @@ class Raycaster:
                 hit_x = ox + wall_depth * cos_a
                 tex_x = int(hit_x % TILE_SIZE)
 
+            # Choose between door and wall (closest wins)
             if door_obj and door_depth < wall_depth:
+                # Render door
                 depth = door_depth
                 tex_x = door_tex_x
                 side = door_side
-                wx, wy = door_obj.get_world_position()
-                gid = self.level.get_door_gid(door_obj, closed=not door_obj.is_visible())
 
-                # Flip door texture if player is behind the door
-                vec_to_player_x = ox - wx
-                vec_to_player_y = oy - wy
-                dot = vec_to_player_x * math.cos(angle) + vec_to_player_y * math.sin(angle)
+                # Get door texture
+                gid = self.level.get_door_gid(door_obj, closed=(door_obj.progress <= 0.1))
 
-                if dot < 0:
-                    tex_x = TILE_SIZE - tex_x - 1  # Flip texture X
+                # DUGA-style door thickness calculation
+                door_thickness = door_obj.get_door_thickness_px()
 
             else:
+                # Render wall
                 depth = wall_depth
                 wx = tile_x * TILE_SIZE + TILE_SIZE / 2
                 wy = tile_y * TILE_SIZE + TILE_SIZE / 2
                 gid = self.level.get_gid(wx, wy)
+                door_thickness = ray_width
 
+                # Texture flipping for walls
                 if (side == 'x' and dx < 0) or (side == 'y' and dy > 0):
                     tex_x = TILE_SIZE - tex_x - 1
 
+            # Apply fisheye correction
             depth *= math.cos(player.get_angle() - angle)
             wall_height = (40000 / (depth + 0.0001)) * WALL_HEIGHT_SCALE
 
-            # Store depth information in z-buffer for sprite rendering
+            # Store depth in z-buffer
             screen_x = ray * ray_width
             for x in range(screen_x, min(screen_x + ray_width, SCREEN_WIDTH)):
                 self.z_buffer[x] = depth
 
+            # Render the column
             tile_img = self.level.tmx_data.get_tile_image_by_gid(gid)
-            if gid and not tile_img:
-                print(f"Missing tile image for gid: {gid}")
-
             if tile_img:
                 texture = pg.transform.scale(tile_img, (TILE_SIZE, TILE_SIZE))
+
+                # Clamp tex_x to valid range
+                tex_x = max(0, min(tex_x, TILE_SIZE - 1))
                 texture_column = texture.subsurface(tex_x, 0, 1, TILE_SIZE)
+
                 height = screen.get_height()
                 safe_height = max(1, min(int(wall_height), height * 2))
 
-                # Adjust door thickness if it's a door
-                if door_obj and door_depth < wall_depth:
-                    door_width_px = max(1, int(door_obj.get_door_thickness_px()))
-                    column = pg.transform.scale(texture_column, (door_width_px, safe_height))
-                else:
-                    column = pg.transform.scale(texture_column, (ray_width, safe_height))
+                # Scale column with proper thickness
+                column = pg.transform.scale(texture_column,
+                                            (door_thickness if door_obj and door_depth < wall_depth else ray_width,
+                                             safe_height))
 
                 column_y = (height - safe_height) // 2
                 x = ray * ray_width

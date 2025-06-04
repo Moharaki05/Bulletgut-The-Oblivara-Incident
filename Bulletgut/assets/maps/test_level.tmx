@@ -123,7 +123,7 @@
   <object id="13" type="door" x="448" y="512.25" width="64" height="64">
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
-    <property name="axis" value="y"/>
+    <property name="axis" value="x"/>
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>

@@ -1,4 +1,4 @@
-simport pygame as pg
+import pygame as pg
 from pytmx.util_pygame import load_pygame
 from data.config import TILE_SIZE
 from entities.door import Door
