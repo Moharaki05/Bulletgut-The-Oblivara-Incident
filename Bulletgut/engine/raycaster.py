@@ -25,49 +25,65 @@ class Raycaster:
         pg.draw.rect(screen, color, (0, height // 2, SCREEN_WIDTH, height // 2))
 
     def handle_door_intersection(self, ox, oy, angle):
+        """Version améliorée inspirée de DUGA"""
         closest_door = None
         closest_depth = float("inf")
         tex_x = 0
         side = None
 
         for door in self.level.doors:
-            # CORRECTION: Ne plus vérifier is_visible(), toujours tester la collision
+            # Utiliser les bounds précis de la porte
             bounds = door.get_door_bounds()
+
+            # Vérifier si la porte est suffisamment ouverte pour être ignorée
+            if door.progress >= 0.98:
+                continue
 
             if door.axis == "x":
                 if abs(math.cos(angle)) < 1e-6:
                     continue
 
-                # Tester l'intersection avec les deux faces de la porte glissante
+                # Tester l'intersection with sliding door bounds
                 for face_x in [bounds["min_x"], bounds["max_x"]]:
                     t = (face_x - ox) / math.cos(angle)
                     if t <= 0:
                         continue
+
                     hit_y = oy + t * math.sin(angle)
 
                     if bounds["min_y"] <= hit_y <= bounds["max_y"] and t < closest_depth:
                         closest_door = door
                         closest_depth = t
+
+                        # Calcul de texture avec offset de glissement
                         rel_y = (hit_y - bounds["min_y"]) / (bounds["max_y"] - bounds["min_y"])
                         tex_x = int(rel_y * TILE_SIZE)
+
+                        # Appliquer l'offset de texture pour l'effet de glissement
+                        tex_x = (tex_x + door.get_texture_offset()) % TILE_SIZE
                         side = "x"
 
             else:  # door.axis == "y"
                 if abs(math.sin(angle)) < 1e-6:
                     continue
 
-                # Tester l'intersection avec les deux faces de la porte glissante
                 for face_y in [bounds["min_y"], bounds["max_y"]]:
                     t = (face_y - oy) / math.sin(angle)
                     if t <= 0:
                         continue
+
                     hit_x = ox + t * math.cos(angle)
 
                     if bounds["min_x"] <= hit_x <= bounds["max_x"] and t < closest_depth:
                         closest_door = door
                         closest_depth = t
+
+                        # Calcul de texture avec offset de glissement
                         rel_x = (hit_x - bounds["min_x"]) / (bounds["max_x"] - bounds["min_x"])
                         tex_x = int(rel_x * TILE_SIZE)
+
+                        # Appliquer l'offset de texture pour l'effet de glissement
+                        tex_x = (tex_x + door.get_texture_offset()) % TILE_SIZE
                         side = "y"
 
         return closest_door, closest_depth, tex_x, side

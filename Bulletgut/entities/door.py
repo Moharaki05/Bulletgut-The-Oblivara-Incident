@@ -9,16 +9,23 @@ class Door:
         self.timer = 0
         self.auto_close_time = auto_close_time
         self.progress = 0  # 0 = fully closed, 1 = fully open
-        self.speed = 0.5  # seconds to fully open/close (faster like Wolf3D)
+        self.speed = 0.5  # seconds to fully open/close
 
         # Properties for sliding door
-        self.thickness = thickness  # Door thickness as a fraction of tile size
-        self.axis = "x"  # Default - will be set properly in level.py
+        self.thickness = thickness
+        self.axis = "x"  # Will be set in level.py
 
-        # Door texture offset for rendering
+        # NOUVEAU: Offset pour le rendu de texture coulissante
         self.texture_offset = 0
+        self.open_distance = 0  # Distance d'ouverture (comme dans DUGA)
+
+        # NOUVEAU: Bounds précis pour la collision
+        self.collision_bounds = None
+        self.update_bounds()
 
     def update(self, dt):
+        old_progress = self.progress
+
         if self.state == "opening":
             self.progress += dt / self.speed
             if self.progress >= 1:
@@ -37,97 +44,56 @@ class Door:
                 self.progress = 0
                 self.state = "closed"
 
-        # Update texture offset for Wolf3D style door sliding visual
-        if self.axis == "x":
-            self.texture_offset = self.progress * TILE_SIZE
-        else:  # y-axis
-            self.texture_offset = self.progress * TILE_SIZE
+        # NOUVEAU: Mettre à jour les bounds seulement si le progrès a changé
+        if old_progress != self.progress:
+            self.update_bounds()
+            self.update_texture_offset()
 
-    def toggle(self):
-        if self.state in ("closed", "closing"):
-            self.state = "opening"
-        elif self.state in ("open", "opening"):
-            self.state = "closing"
+    def update_bounds(self):
+        """Met à jour les bounds de collision de la porte"""
+        base_x = self.grid_x * TILE_SIZE
+        base_y = self.grid_y * TILE_SIZE
+
+        # Inspiré de DUGA: calcul précis des bounds selon l'axe
+        if self.axis == "x":
+            # Porte horizontale - glisse vers la gauche/droite
+            slide_distance = self.progress * (TILE_SIZE * 0.5)
+            self.collision_bounds = {
+                "min_x": base_x + slide_distance,
+                "max_x": base_x + TILE_SIZE - slide_distance,
+                "min_y": base_y,
+                "max_y": base_y + TILE_SIZE
+            }
+        else:
+            # Porte verticale - glisse vers le haut/bas
+            slide_distance = self.progress * (TILE_SIZE * 0.5)
+            self.collision_bounds = {
+                "min_x": base_x,
+                "max_x": base_x + TILE_SIZE,
+                "min_y": base_y + slide_distance,
+                "max_y": base_y + TILE_SIZE - slide_distance
+            }
+
+    def update_texture_offset(self):
+        """Met à jour l'offset de texture pour l'effet de glissement"""
+        # Inspiré de DUGA: offset basé sur le progrès
+        self.texture_offset = int(self.progress * TILE_SIZE * 0.8)
+        self.open_distance = int(self.progress * (TILE_SIZE // 2))
 
     def is_blocking(self):
-        # Door blocks movement if it's not fully open
-        # Using 0.95 to add some leeway so player doesn't get stuck
-        return self.progress < 0.95
+        """Vérifie si la porte bloque le mouvement"""
+        # Plus strict que l'original pour éviter les glitches
+        return self.progress < 0.98
 
     def is_visible(self):
-        # CHANGEMENT PRINCIPAL: La porte reste toujours visible pendant l'animation
-        # Elle ne disparaît que quand elle est complètement ouverte
-        return self.progress < 1.0  # Changé de 0.95 à 1.0
-
-    def get_door_thickness_px(self):
-        # La largeur diminue progressivement selon le progrès d'ouverture
-        return TILE_SIZE * self.thickness * (1.0 - self.progress)
-
-    def get_world_position(self):
-        # Base position at center of tile
-        base_x = self.grid_x * TILE_SIZE + TILE_SIZE / 2
-        base_y = self.grid_y * TILE_SIZE + TILE_SIZE / 2
-
-        # AMÉLIORATION: Position de glissement plus progressive
-        slide_distance = self.progress * (TILE_SIZE * 0.5)  # Glisse sur la moitié de la tile
-
-        if self.axis == "x":
-            # Door slides horizontally (into the wall)
-            return (base_x - slide_distance, base_y)
-        else:
-            # Door slides vertically (into ceiling/floor)
-            return (base_x, base_y - slide_distance)
+        """Vérifie si la porte doit être rendue"""
+        # La porte reste visible tant qu'elle n'est pas complètement ouverte
+        return self.progress < 1.0
 
     def get_door_bounds(self):
-        x, y = self.get_world_position()
+        """Retourne les bounds actuels de la porte"""
+        return self.collision_bounds
 
-        # AMÉLIORATION: Calcul plus précis des bounds pour le glissement
-        # La partie visible de la porte rétrécit progressivement
-        visible_ratio = 1.0 - self.progress
-
-        if self.axis == "x":
-            # Horizontal sliding door
-            door_width = TILE_SIZE * visible_ratio
-            return {
-                "min_x": x - door_width / 2,
-                "max_x": x + door_width / 2,
-                "min_y": y - TILE_SIZE / 2,
-                "max_y": y + TILE_SIZE / 2
-            }
-        else:
-            # Vertical sliding door
-            door_height = TILE_SIZE * visible_ratio
-            return {
-                "min_x": x - TILE_SIZE / 2,
-                "max_x": x + TILE_SIZE / 2,
-                "min_y": y - door_height / 2,
-                "max_y": y + door_height / 2
-            }
-
-    def is_open(self):
-        return self.state == "open"
-
-    def get_texture_coordinates(self):
-        # AMÉLIORATION: Offset de texture plus fluide
-        offset = self.progress * TILE_SIZE * 0.8  # 80% pour un meilleur effet visuel
-
-        if self.axis == "x":
-            return offset, 0
-        else:
-            return 0, offset
-
-    def _check_collision(self):
-        # Vérifier collision avec les murs/obstacles
-        x, y = int(self.x), int(self.y)
-
-        # Utiliser la méthode is_blocked du niveau
-        if self.game.level.is_blocked(x, y):
-            return True
-
-        # Vérifier collision avec les portes
-        for door in self.game.level.doors:
-            if hasattr(door, 'is_blocking') and callable(getattr(door, 'is_blocking')):
-                if door.is_blocking(self.x, self.y):
-                    return True
-
-        return False
+    def get_texture_offset(self):
+        """Retourne l'offset de texture pour le rendu"""
+        return self.texture_offset

@@ -1,12 +1,12 @@
-import pygame as pg
+simport pygame as pg
 from pytmx.util_pygame import load_pygame
 from data.config import TILE_SIZE
 from entities.door import Door
-from entities.enemy_base import Enemy
+from entities.enemy_types import Gunner
+# (Gunner, Shotgunner, Serpentipede, Plutonworm)
 from entities.pickups.ammo_pickup import AmmoPickup
 from entities.pickups.item_pickup import ItemPickup
 from entities.pickups.weapon_pickup import WeaponPickup
-
 
 class Level:
     def __init__(self, filename):
@@ -49,21 +49,28 @@ class Level:
         return grid
 
     def is_blocked(self, x, y):
+        """Version améliorée de is_blocked inspirée de DUGA"""
         tx = int(x // TILE_SIZE)
         ty = int(y // TILE_SIZE)
 
-        if 0 <= tx < self.map_width and 0 <= ty < self.map_height:
-            # Check wall collision
-            if self.collision_map[ty][tx] == 1:
-                return True
+        if not (0 <= tx < self.map_width and 0 <= ty < self.map_height):
+            return True
 
-            # Check if there's a blocking door
-            for door in self.doors:
-                if door.grid_x == tx and door.grid_y == ty and door.is_blocking():
-                    return True
+        # Vérifier collision avec les murs
+        if self.collision_map[ty][tx] == 1:
+            return True
 
-            return False
-        return True
+        # Vérifier collision avec les portes de manière plus précise
+        for door in self.doors:
+            if door.grid_x == tx and door.grid_y == ty:
+                if door.is_blocking():
+                    # Vérification plus fine basée sur les bounds réels
+                    bounds = door.get_door_bounds()
+                    if (bounds["min_x"] <= x <= bounds["max_x"] and
+                            bounds["min_y"] <= y <= bounds["max_y"]):
+                        return True
+
+        return False
 
     def get_player_spawn(self):
         for obj in self.tmx_data.objects:
@@ -128,74 +135,49 @@ class Level:
         return door_gids
 
     def get_door_gid(self, door, closed=False):
+        """Version améliorée du rendu de porte inspirée de DUGA"""
         grid_x, grid_y = door.grid_x, door.grid_y
 
-        # CORRECTION: Pendant l'animation, toujours utiliser la texture de porte
-        # Seulement utiliser la texture de mur si la porte est complètement fermée
+        # Si la porte est complètement fermée, utiliser la texture de mur
         if closed and door.progress == 0:
-            # Porte complètement fermée - utiliser texture de mur
-            if door.axis == "x":  # Horizontal door
-                left_key = (grid_x, grid_y, "left")
-                right_key = (grid_x, grid_y, "right")
+            return self._get_wall_texture_for_door(door)
 
-                if left_key in self.closed_door_gids:
-                    return self.closed_door_gids[left_key]
-                elif right_key in self.closed_door_gids:
-                    return self.closed_door_gids[right_key]
-
-                # Vérifier les tuiles adjacentes
-                if 0 <= grid_x - 1 < self.map_width:
-                    left_tile = self.walls_layer.data[grid_y][grid_x - 1]
-                    left_gid = left_tile.gid if hasattr(left_tile, 'gid') else left_tile
-                    if left_gid != 0:
-                        return left_gid
-
-                if 0 <= grid_x + 1 < self.map_width:
-                    right_tile = self.walls_layer.data[grid_y][grid_x + 1]
-                    right_gid = right_tile.gid if hasattr(right_tile, 'gid') else right_tile
-                    if right_gid != 0:
-                        return right_gid
-            else:  # Vertical door
-                top_key = (grid_x, grid_y, "top")
-                bottom_key = (grid_x, grid_y, "bottom")
-
-                if top_key in self.closed_door_gids:
-                    return self.closed_door_gids[top_key]
-                elif bottom_key in self.closed_door_gids:
-                    return self.closed_door_gids[bottom_key]
-
-                # Vérifier les tuiles adjacentes
-                if 0 <= grid_y - 1 < self.map_height:
-                    top_tile = self.walls_layer.data[grid_y - 1][grid_x]
-                    top_gid = top_tile.gid if hasattr(top_tile, 'gid') else top_tile
-                    if top_gid != 0:
-                        return top_gid
-
-                if 0 <= grid_y + 1 < self.map_height:
-                    bottom_tile = self.walls_layer.data[grid_y + 1][grid_x]
-                    bottom_gid = bottom_tile.gid if hasattr(bottom_tile, 'gid') else bottom_tile
-                    if bottom_gid != 0:
-                        return bottom_gid
-
-            # Fallback pour porte fermée
-            for y in range(self.map_height):
-                for x in range(self.map_width):
-                    tile = self.walls_layer.data[y][x]
-                    gid = tile.gid if hasattr(tile, 'gid') else tile
-                    if gid != 0:
-                        return gid
-            return 1
-
-        # Pour les portes ouvertes/en mouvement, utiliser la texture de porte
+        # Si la porte est en mouvement ou ouverte, utiliser la texture de porte
         tile = self.doors_layer.data[grid_y][grid_x]
         door_gid = tile.gid if hasattr(tile, 'gid') else tile
 
-        # S'assurer qu'on a un GID valide pour la porte
+        # Fallback si pas de texture de porte
         if door_gid == 0:
-            # Si pas de texture de porte, utiliser une texture de mur comme fallback
-            return self.get_door_gid(door, closed=True)
+            return self._get_wall_texture_for_door(door)
 
         return door_gid
+
+    def _get_wall_texture_for_door(self, door):
+        """Trouve une texture de mur appropriée pour une porte fermée"""
+        grid_x, grid_y = door.grid_x, door.grid_y
+
+        # Chercher dans les tuiles adjacentes (comme DUGA)
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        for dx, dy in directions:
+            check_x, check_y = grid_x + dx, grid_y + dy
+
+            if (0 <= check_x < self.map_width and 0 <= check_y < self.map_height):
+                tile = self.walls_layer.data[check_y][check_x]
+                gid = tile.gid if hasattr(tile, 'gid') else tile
+
+                if gid != 0:
+                    return gid
+
+        # Fallback: première texture de mur trouvée
+        for y in range(self.map_height):
+            for x in range(self.map_width):
+                tile = self.walls_layer.data[y][x]
+                gid = tile.gid if hasattr(tile, 'gid') else tile
+                if gid != 0:
+                    return gid
+
+        return 1  # Ultimate fallback
 
     def load_doors(self):
         doors = []
@@ -218,17 +200,20 @@ class Level:
         enemies = []
         for obj in self.tmx_data.objects:
             if obj.type == "enemy":
-                enemy_type = obj.properties.get("enemy_type", "gunner")
+                enemy_type = obj.properties.get("enemy_type", "gunner").lower()
                 x = obj.x
                 y = obj.y
 
-                enemy_texture = pg.image.load("./assets/sprites/Enemy/Soldier/Movement/Walk1_Front.png").convert_alpha()
-                frame_width = 41
-                frame_height = 57
-                first_frame = enemy_texture.subsurface(pg.Rect(0, 0, frame_width, frame_height))
-
-                enemy = Enemy(x, y, first_frame)
-                enemies.append(enemy)
+                if enemy_type == "gunner":
+                    enemies.append(Gunner(x, y, self))
+                # elif enemy_type == "shotgunner":
+                #     enemies.append(Shotgunner(x, y, self))
+                # elif enemy_type == "serpentipede":
+                #     enemies.append(Serpentipede(x, y, self))
+                # elif enemy_type == "plutonworm":
+                #     enemies.append(Plutonworm(x, y, self))
+                # else:
+                    print(f"[Erreur] Type d'ennemi inconnu : {enemy_type}")
         return enemies
 
     def check_collision(self, position):
@@ -264,4 +249,6 @@ class Level:
                 pickups.append(ItemPickup(x, y, item_type, amount, sprite))
 
         return pickups
+
+
 
