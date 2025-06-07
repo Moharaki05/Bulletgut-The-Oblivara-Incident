@@ -58,7 +58,6 @@ class Fists(MeleeWeapon):
                 pg.image.load(f"{base_path}/punch2.png").convert_alpha(),
                 pg.image.load(f"{base_path}/punch3.png").convert_alpha()
             ]
-            print(f"Sprites des poings chargés : {len(self.sprites)} images")
         except Exception as e:
             print(f"ERREUR lors du chargement des sprites des poings : {e}")
             self.sprites = []

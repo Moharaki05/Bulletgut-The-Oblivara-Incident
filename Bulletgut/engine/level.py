@@ -72,6 +72,14 @@ class Level:
 
         return False
 
+    def is_rect_blocked(self, rect):
+        """Retourne True si n'importe quel point du rect est dans un mur."""
+        for x in range(rect.left, rect.right, TILE_SIZE // 2):
+            for y in range(rect.top, rect.bottom, TILE_SIZE // 2):
+                if self.is_blocked(x, y):
+                    return True
+        return False
+
     def get_player_spawn(self):
         for obj in self.tmx_data.objects:
             if obj.name == 'playerStart':
@@ -212,7 +220,7 @@ class Level:
                 #     enemies.append(Serpentipede(x, y, self))
                 # elif enemy_type == "plutonworm":
                 #     enemies.append(Plutonworm(x, y, self))
-                # else:
+                else:
                     print(f"[Erreur] Type d'ennemi inconnu : {enemy_type}")
         return enemies
 

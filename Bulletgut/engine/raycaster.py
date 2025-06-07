@@ -247,7 +247,7 @@ class Raycaster:
             screen_x = int((0.5 + delta / self.fov) * SCREEN_WIDTH)
             corrected_dist = dist * math.cos(delta)
 
-            enemy_img = enemy.get_sprite()
+            enemy_img = enemy.get_sprite(player.x, player.y)
             if not enemy_img:
                 continue
 

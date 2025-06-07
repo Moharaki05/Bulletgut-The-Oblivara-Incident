@@ -71,6 +71,7 @@ class Player:
             "rockets": 100
         }
         self.current_weapon_index = 0
+        self.rect = pg.Rect(self.x - 10, self.y - 10, 20, 20)
 
     def handle_inputs(self, keys, dt, mouse_dx=0, level=None):
         if not self.alive:
@@ -111,6 +112,7 @@ class Player:
         # Mouse rotation
         self.handle_mouse_movement(mouse_dx)
         self.angle %= 2 * math.pi # Keep an angle between 0 and 2pi
+        self.rect.center = (self.x, self.y)
 
 
     def handle_mouse_movement(self, dx):

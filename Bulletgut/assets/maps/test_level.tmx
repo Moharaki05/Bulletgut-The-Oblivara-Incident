@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="10" nextobjectid="44">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="10" nextobjectid="48">
  <properties>
   <property name="floor_color" value="#1e1e1e"/>
  </properties>
@@ -7,7 +7,7 @@
   <image source="textures/RetroFPSTileset.png" width="512" height="512"/>
  </tileset>
  <tileset firstgid="65" name="Walk1_Front" tilewidth="41" tileheight="57" tilecount="1" columns="1">
-  <image source="../sprites/Enemy/Gunner/Movement/Walk1_Front.png" width="41" height="57"/>
+  <image source="../sprites/enemies/gunner/move/Move_Front1.png" width="41" height="57"/>
  </tileset>
  <layer id="4" name="Floor" width="30" height="17">
   <data encoding="csv">
@@ -36,15 +36,15 @@
 0,0,0,0,0,0,0,42,42,43,42,45,42,9,42,42,42,42,42,42,42,42,42,42,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
-0,0,0,0,0,0,0,42,0,11,10,0,0,0,0,11,10,0,0,42,0,0,0,0,42,0,0,0,0,0,
-0,42,42,42,42,42,42,42,0,10,10,0,0,0,0,11,10,0,0,42,0,0,0,0,42,42,42,42,42,0,
+0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
+0,42,42,42,42,42,42,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,42,42,42,42,0,
 0,42,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,42,0,42,42,42,0,0,0,42,0,
 0,42,0,0,0,0,0,43,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,42,0,
 0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,
 0,42,0,0,0,0,0,43,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,42,0,
-0,42,0,0,0,0,0,42,0,0,11,10,0,0,0,0,0,0,0,42,42,0,42,42,42,0,0,0,42,0,
-0,42,42,42,42,42,42,42,0,0,11,11,0,0,0,0,10,10,0,42,0,0,0,0,42,0,0,0,42,0,
-0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,10,11,0,42,0,0,0,0,42,42,42,42,42,0,
+0,42,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,42,0,42,42,42,0,0,0,42,0,
+0,42,42,42,42,42,42,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,42,0,
+0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,42,42,42,42,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,42,42,42,42,44,45,44,42,42,42,42,42,42,42,42,42,42,0,0,0,0,0,
@@ -82,7 +82,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -129,7 +129,22 @@
   </object>
  </objectgroup>
  <objectgroup id="7" name="EnemySpawns">
-  <object id="20" type="enemy" x="1109.33" y="544">
+  <object id="20" type="enemy" x="1027.33" y="416">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="45" type="enemy" x="1025" y="667">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="47" type="enemy" x="1040" y="538">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
    <point/>
   </object>
  </objectgroup>
@@ -184,7 +199,7 @@
    </properties>
    <point/>
   </object>
-  <object id="36" name="chainsaw" type="Weapon" x="842" y="904">
+  <object id="36" name="chainsaw" type="Weapon" x="1130" y="895">
    <properties>
     <property name="ammo_type" value=""/>
     <property name="amount" type="int" value="10"/>
@@ -220,7 +235,7 @@
    </properties>
    <point/>
   </object>
-  <object id="41" name="medikit" type="Item" x="590" y="882">
+  <object id="41" name="medikit" type="Item" x="584" y="897">
    <properties>
     <property name="amount" type="int" value="25"/>
     <property name="item_type" value="item_medikit"/>
@@ -228,7 +243,7 @@
    </properties>
    <point/>
   </object>
-  <object id="42" name="armor" type="Item" x="608" y="228">
+  <object id="42" name="armor" type="Item" x="595" y="195">
    <properties>
     <property name="amount" type="int" value="100"/>
     <property name="item_type" value="item_armor"/>
@@ -236,7 +251,7 @@
    </properties>
    <point/>
   </object>
-  <object id="43" name="megaarmor" type="Item" x="1132" y="234">
+  <object id="43" name="megaarmor" type="Item" x="1125" y="197">
    <properties>
     <property name="amount" type="int" value="200"/>
     <property name="item_type" value="item_megaarmor"/>

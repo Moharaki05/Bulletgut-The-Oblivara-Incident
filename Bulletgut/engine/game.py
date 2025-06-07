@@ -94,6 +94,7 @@ class Game:
                 # if event.key == pg.K_p:
                 #     self.player.take_damage(10)
 
+
     def is_near_door(self, door):
         px, py = self.player.get_position()
         dx = px - (door.grid_x + 0.5) * TILE_SIZE
@@ -144,8 +145,8 @@ class Game:
         self.screen.fill((0, 0, 0))
 
         self.raycaster.cast_rays(self.render_surface, self.player, self.level.floor_color)
-        self.raycaster.render_enemies(self.render_surface, self.player, self.level.enemies)
         self.raycaster.render_pickups(self.render_surface, self.player, self.level.pickups)
+        self.raycaster.render_enemies(self.render_surface, self.player, self.level.enemies)
 
         if self.player.weapon:
             self.player.weapon.render(self.render_surface)
