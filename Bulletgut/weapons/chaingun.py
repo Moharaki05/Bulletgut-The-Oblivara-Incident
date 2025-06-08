@@ -218,6 +218,18 @@ class Chaingun(HitscanWeapon):
                 dx * sin_offset + dy * cos_offset
             )
 
+        end_x = start_x + direction[0] * self.range
+        end_y = start_y + direction[1] * self.range
+
+        # Détection d'ennemi
+        for enemy in self.game.level.enemies:
+            if enemy.alive and self._line_intersects_enemy(start_x, start_y, end_x, end_y, enemy):
+                print(f"[HIT] Enemy hit by chaingun: {enemy}")
+                enemy.health -= self.damage
+                if enemy.health <= 0:
+                    enemy.die()
+                break  # Une seule cible touchée par tir
+
         # TODO: Implémenter le raycast pour détecter les impacts
         print(f"Tir de la mitrailleuse depuis ({start_x}, {start_y}) dans la direction {direction}")
         print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")

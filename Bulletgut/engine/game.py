@@ -96,6 +96,8 @@ class Game:
                         debug_state = getattr(self.player.weapon, 'debug_render', False)
                         self.player.weapon.enable_debug_render(not debug_state)
                         print(f"[DEBUG] Line detection rendering: {'ON' if not debug_state else 'OFF'}")
+                if event.key == pg.K_t:  # T for Test damage
+                    self.debug_damage_test()
                 # if event.key == pg.K_p:
                 #     self.player.take_damage(10)
 
@@ -258,3 +260,12 @@ class Game:
         """Call this to enable debug line rendering for weapons"""
         if self.player.weapon and hasattr(self.player.weapon, 'enable_debug_render'):
             self.player.weapon.enable_debug_render(True)
+
+    def debug_damage_test(self):
+        """Call this method to test damage on all enemies"""
+        print(f"[DEBUG] Testing damage on {len(self.level.enemies)} enemies")
+        for i, enemy in enumerate(self.level.enemies):
+            if enemy.alive:
+                print(
+                    f"[DEBUG] Enemy {i}: {type(enemy).__name__} at ({enemy.x:.1f}, {enemy.y:.1f}) with {enemy.health}/{enemy.max_health} HP")
+                enemy.take_damage(10)  # Test with 10 damage

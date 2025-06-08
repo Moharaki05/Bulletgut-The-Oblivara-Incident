@@ -72,7 +72,6 @@ class Pistol(HitscanWeapon):
         start_x, start_y = player.x, player.y
         direction = player.get_direction_vector()
 
-
         # Calculer un angle aléatoire dans la limite du spread
         if hasattr(self, 'spread'):
             angle_offset = random.uniform(-self.spread, self.spread)
@@ -85,10 +84,24 @@ class Pistol(HitscanWeapon):
                 dx * sin_offset + dy * cos_offset
             )
 
+            # Point de fin de la ligne (portée max)
+        end_x = start_x + dx * self.range
+        end_y = start_y + dy * self.range
+
+        # Vérification des ennemis touchés
+        for enemy in self.game.level.enemies:
+            if enemy.alive and self._line_intersects_enemy(start_x, start_y, end_x, end_y, enemy):
+                print(f"[HIT] Ennemi touché : {enemy}")
+                enemy.health -= self.damage
+                if enemy.health <= 0:
+                    enemy.die()
+                break  # un seul ennemi touché
+
         # TODO: Implémenter le raycast pour détecter les impacts
         # Pour l'instant, simplement afficher un message de débogage
         print(f"Tir du pistolet depuis ({start_x}, {start_y}) dans la direction {direction}")
         print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")
+
 
         # Si vous avez un système de particules ou d'effets visuels, vous pouvez l'utiliser ici
         # self.game.add_effect('muzzle_flash', start_x, start_y)

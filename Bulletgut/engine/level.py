@@ -2,11 +2,13 @@ import pygame as pg
 from pytmx.util_pygame import load_pygame
 from data.config import TILE_SIZE
 from entities.door import Door
-from entities.enemy_types import Gunner
+from entities.gunner import Gunner
+from entities.shotgunner import Shotgunner
 # (Gunner, Shotgunner, Serpentipede, Plutonworm)
 from entities.pickups.ammo_pickup import AmmoPickup
 from entities.pickups.item_pickup import ItemPickup
 from entities.pickups.weapon_pickup import WeaponPickup
+
 
 class Level:
     def __init__(self, filename):
@@ -252,8 +254,8 @@ class Level:
 
                 if enemy_type == "gunner":
                     enemies.append(Gunner(x, y, self))
-                # elif enemy_type == "shotgunner":
-                #     enemies.append(Shotgunner(x, y, self))
+                elif enemy_type == "shotgunner":
+                    enemies.append(Shotgunner(x, y, self))
                 # elif enemy_type == "serpentipede":
                 #     enemies.append(Serpentipede(x, y, self))
                 # elif enemy_type == "plutonworm":

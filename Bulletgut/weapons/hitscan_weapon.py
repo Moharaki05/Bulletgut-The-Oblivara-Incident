@@ -179,7 +179,7 @@ class HitscanWeapon(WeaponBase, ABC):
         return None
 
     def _fire_effect(self):
-        """Enhanced fire effect that uses the line detection for actual shooting"""
+        """Enhanced fire effect that deals damage to enemies when shooting"""
         player = self.game.player
         enemies = self.game.level.enemies
 
@@ -187,8 +187,18 @@ class HitscanWeapon(WeaponBase, ABC):
         px, py = player.get_position()
         angle = player.get_angle()
 
+        print(f"[SHOT] Firing weapon from ({px:.1f}, {py:.1f}) at angle {math.degrees(angle):.1f}°")
+        print(f"[WEAPON] Damage per hit: {self.damage}, Pellets: {self.pellets}")
+
+        # Find all alive enemies for debugging
+        alive_enemies = [e for e in enemies if e.alive]
+        print(f"[DEBUG] {len(alive_enemies)} alive enemies in level")
+
         # Tire plusieurs pellets (pour fusil à pompe) ou un seul (pour pistolet/mitraillette)
-        for _ in range(self.pellets):
+        hits_this_shot = 0
+        enemies_hit = set()  # Track unique enemies hit this shot
+
+        for pellet_num in range(self.pellets):
             # Applique une dispersion aléatoire
             shot_angle = angle
             if self.spread > 0:
@@ -200,30 +210,61 @@ class HitscanWeapon(WeaponBase, ABC):
 
             # Get line end point considering walls
             end_x, end_y = self._get_line_end_point(px, py, dx, dy)
+            print(f"[TRACE] Pellet {pellet_num + 1}: Line from ({px:.1f}, {py:.1f}) to ({end_x:.1f}, {end_y:.1f})")
 
             # Check for enemy hits along the line
             hit_enemy = None
             closest_distance = float('inf')
 
+            # Check each enemy
             for enemy in enemies:
-                if enemy.alive and self._line_intersects_enemy(px, py, end_x, end_y, enemy):
-                    # Calculate distance to find closest enemy
-                    distance = math.hypot(enemy.x - px, enemy.y - py)
-                    if distance < closest_distance:
-                        closest_distance = distance
+                if not enemy.alive:
+                    continue
+
+                enemy_distance = math.hypot(enemy.x - px, enemy.y - py)
+                print(f"[CHECK] Checking enemy at ({enemy.x:.1f}, {enemy.y:.1f}), distance: {enemy_distance:.1f}")
+
+                if self._line_intersects_enemy(px, py, end_x, end_y, enemy):
+                    print(f"[INTERSECT] Line intersects with enemy at {enemy_distance:.1f}px")
+                    if enemy_distance < closest_distance:
+                        closest_distance = enemy_distance
                         hit_enemy = enemy
+                else:
+                    print(f"[NO_INTERSECT] Line does not intersect enemy")
 
             # Damage the closest enemy hit
             if hit_enemy:
-                print(f"[HIT] Enemy hit at {closest_distance:.1f} px")
-                hit_enemy.take_damage(self.damage)
+                hits_this_shot += 1
+                enemies_hit.add(id(hit_enemy))
+                print(
+                    f"[HIT] Pellet {pellet_num + 1} hit {type(hit_enemy).__name__} at {closest_distance:.1f}px distance")
+
+                # Actually deal the damage
+                damage_to_deal = self.damage
+                print(f"[DAMAGE] Dealing {damage_to_deal} damage to enemy")
+                hit_enemy.take_damage(damage_to_deal)
+
                 self._create_hit_effect(hit_enemy.x, hit_enemy.y, is_enemy=True)
             else:
                 # Hit wall or nothing
+                print(f"[MISS] Pellet {pellet_num + 1} hit wall/nothing at ({end_x:.1f}, {end_y:.1f})")
                 self._create_hit_effect(end_x, end_y)
 
             # Create tracer effect
             self._create_tracer_effect(px, py, end_x, end_y)
+
+        if hits_this_shot > 0:
+            print(f"[SHOT RESULT] {hits_this_shot}/{self.pellets} pellets hit {len(enemies_hit)} unique enemies")
+        else:
+            print(f"[SHOT RESULT] No hits - all {self.pellets} pellets missed")
+
+        # Extra debug: Show all enemy states after shot
+        print("[POST_SHOT] Enemy health status:")
+        for i, enemy in enumerate(enemies):
+            if enemy.alive:
+                print(f"  Enemy {i}: {type(enemy).__name__} - {enemy.health}/{enemy.max_health} HP")
+            else:
+                print(f"  Enemy {i}: {type(enemy).__name__} - DEAD")
 
     def _create_hit_effect(self, x, y, is_enemy=False):
         """Crée un effet visuel d'impact"""

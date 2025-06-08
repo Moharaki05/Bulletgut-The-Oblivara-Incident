@@ -101,4 +101,6 @@ def load_animation_set(folder):
                     animations[state.lower()][direction].append(image)
                 continue
 
+    print("Frames HIT =", animations.get("hit"))
+
     return animations

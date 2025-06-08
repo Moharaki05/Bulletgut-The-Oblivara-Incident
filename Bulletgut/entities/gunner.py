@@ -244,8 +244,7 @@ class Gunner(EnemyBase):
             if dist > 400:
                 base_damage = int(base_damage * 0.85)  # 15% damage reduction at long range
 
-            # self.target.take_damage(base_damage)
-            self.target.take_damage(0)
+            self.target.take_damage(base_damage)
 
         # Play attack sound
         if self.sfx_attack:
@@ -565,6 +564,6 @@ class Gunner(EnemyBase):
         """Drop ammo when killed (like Doom Zombieman drops clip)"""
         # Zombieman drops 1 clip (10 bullets) in Doom
         self.level.pickups.append(
-            AmmoPickup(self.x, self.y, ammo_type="bullet", amount=10,
-                       sprite_path="assets/pickups/ammo/ammo_bullet.png")
+            AmmoPickup(self.x, self.y, ammo_type="bullets", amount=10,
+                       sprite_path="assets/pickups/ammo/ammo_bullets.png")
         )

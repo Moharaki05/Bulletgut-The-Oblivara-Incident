@@ -169,6 +169,19 @@ class Shotgun(HitscanWeapon):
                 dx * sin_offset + dy * cos_offset
             )
 
+            # Calcul du point de fin (portée max)
+            end_x = start_x + pellet_direction[0] * self.range
+            end_y = start_y + pellet_direction[1] * self.range
+
+            # Détection d'ennemis
+            for enemy in self.game.level.enemies:
+                if enemy.alive and self._line_intersects_enemy(start_x, start_y, end_x, end_y, enemy):
+                    print(f"[HIT] Ennemi touché par un plomb : {enemy}")
+                    enemy.health -= self.damage
+                    if enemy.health <= 0:
+                        enemy.die()
+                    break  # un seul ennemi touché par plomb
+
         # TODO: Implémenter le raycast pour détecter les impacts
         print(f"Plomb de fusil tiré depuis ({start_x}, {start_y}) dans la direction {pellet_direction}")
         print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")

@@ -38,6 +38,7 @@ class EnemyBase:
 
         # AI
         self.last_seen_player_pos = None
+        self.previous_state = "idle"
         self.patrol_timer = 0
         self.patrol_dir = pygame.Vector2(random.choice([-1, 1]), random.choice([-1, 1])).normalize()
         self.vision_range = 200
@@ -54,6 +55,8 @@ class EnemyBase:
         self.frame_index = 0
         self.frame_timer = 0
         self.frame_duration = 0.15  # Durée entre chaque frame (à ajuster si besoin)
+        self.hit_timer = 0.0
+        self.hit_duration = 0.75
 
         # Sons
         try:
@@ -105,6 +108,12 @@ class EnemyBase:
                 self.facing_direction_override = None
 
             self.patrol(dt)
+
+        if self.state == "hit":
+            self.hit_timer += dt
+            if self.hit_timer >= self.hit_duration:
+                self.hit_timer = 0.0
+                self.state = "idle"  # ou "chase", "search", etc. selon logique IA
 
         if self.attack_cooldown > 0:
             self.attack_cooldown -= dt
@@ -332,12 +341,20 @@ class EnemyBase:
         if splash and not direct_hit:
             amount *= 0.5
 
+        old_health = self.health
         self.health -= amount
+        print(f"[DAMAGE] {type(self).__name__} lost {amount} HP ({old_health} -> {self.health})")
 
-        # Wake up when taking damage
+        # Sauvegarder l'état actuel et déclencher l'état de hit
+        self.previous_state = self.state
+        self.state = "hit"
+        self.hit_timer = 0.0
+
         self.is_awake = True
+        self.is_alerted = True
 
         if self.health <= 0:
+            print(f"[DEATH] {type(self).__name__} died!")
             self.die()
 
     def die(self):
@@ -353,34 +370,6 @@ class EnemyBase:
         pass
 
     def update_animation(self, dt):
-        # # Détermine l'état de l'animation en fonction du comportement
-        # state = self.state
-        #
-        # # Choix de la direction à afficher
-        # direction = self.facing_direction_override if self.facing_direction_override is not None else 0
-        #
-        # # Récupère les frames pour cet état et cette direction
-        # if state not in self.animations:
-        #     print(f"[ANIM] État inconnu : {state}")
-        #     return
-        #
-        # frames = self.animations[state].get(direction)
-        # if not frames:
-        #     print(f"[ANIM] Aucune frame pour état '{state}' direction {direction}")
-        #     return
-        #
-        # # Réinitialisation de l'index si nécessaire
-        # if self.frame_index >= len(frames):
-        #     self.frame_index = 0
-        #
-        # # Avance l’animation
-        # self.frame_timer += dt
-        # if self.frame_timer >= self.frame_duration:
-        #     self.frame_timer = 0
-        #     self.frame_index = (self.frame_index + 1) % len(frames)
-        #
-        # # Met à jour l’image actuelle
-        # self.image = frames[self.frame_index]
         self.frame_timer += dt
 
     def get_direction_index_towards_player(self):
