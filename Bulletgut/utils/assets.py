@@ -66,8 +66,6 @@ def load_animation_set(folder):
         "FrontLeft": 7
     }
 
-    # print(f"[DEBUG] → load_animation_set appelé avec {folder}")
-
     for root, _, files in os.walk(folder):
         for filename in sorted(files):
             if not filename.endswith(".png"):

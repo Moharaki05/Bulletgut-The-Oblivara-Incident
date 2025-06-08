@@ -5,7 +5,6 @@ from entities.enemy_base import EnemyBase
 from entities.pickups.ammo_pickup import AmmoPickup
 from utils.assets import load_sound
 
-
 class Gunner(EnemyBase):
     def __init__(self, x, y, level):
         super().__init__(x, y, level, "assets/sprites/enemies/gunner")
@@ -83,9 +82,6 @@ class Gunner(EnemyBase):
         dy = player.y - self.y
         dist = math.hypot(dx, dy)
 
-        print(
-            f"[DEBUG] Gunner update: attack_cooldown={self.attack_cooldown:.1f}, is_in_attack_sequence={self.is_in_attack_sequence}, state={self.state}")
-
         # Update cooldowns and attack sequence timing
         if self.attack_cooldown > 0:
             self.attack_cooldown -= dt * 1000
@@ -110,32 +106,27 @@ class Gunner(EnemyBase):
         # Check if player is visible (line of sight)
         can_see_player = self.can_see_target() and dist <= self.vision_range
 
-        print(f"[DEBUG] can_see_target(): {self.can_see_target()}, dist: {dist:.1f}, vision_range: {self.vision_range}")
-        print(f"[DEBUG] can_see_player: {can_see_player}, is_alerted: {self.is_alerted}")
-
         # Wake up behavior - once alerted, stay alerted
         if can_see_player and not self.is_alerted:
             self.is_alerted = True
             # Add random delay when first spotting player to prevent mass simultaneous alert
             spot_delay = random.randint(0, 500)  # 0-500ms delay when first spotting
             self.attack_cooldown = max(self.attack_cooldown, spot_delay)
-            print(f"[DEBUG] Gunner at ({int(self.x)}, {int(self.y)}) spotted player! Delay: {spot_delay}ms")
 
         # Simple state machine - clear and predictable
         if self.is_alerted and can_see_player:
             # Player is visible and we're alerted
-            print(f"[DEBUG] Player visible, checking attack conditions...")
+            if not self.is_in_attack_sequence:
+                self.facing_direction_override = self.get_facing_direction(player.x, player.y)
             if self.attack_cooldown <= 0:
                 # Add additional random delay to prevent synchronized attacks
                 # This creates natural staggering even when multiple enemies see player simultaneously
                 additional_delay = random.randint(0, 800)  # 0-800ms extra delay
 
                 if additional_delay > 600:  # 25% chance of immediate attack
-                    print(f"[DEBUG] Gunner starting attack sequence! Distance: {dist:.1f}")
                     self.start_attack_sequence()
                 else:
                     # Add the extra delay and wait
-                    print(f"[DEBUG] Gunner adding delay: {additional_delay}ms before attacking")
                     self.attack_cooldown = additional_delay
 
                     # Move closer while waiting for the delay
@@ -147,11 +138,9 @@ class Gunner(EnemyBase):
             else:
                 # On cooldown - move closer or wait
                 if dist > self.alert_distance:
-                    print(f"[DEBUG] Gunner moving closer (cooldown: {self.attack_cooldown:.1f})")
                     self.move_towards_player(player, dt)
                     self.state = "move"
                 else:
-                    print(f"[DEBUG] Gunner waiting to attack (cooldown: {self.attack_cooldown:.1f})")
                     self.state = "idle"
 
             # Update last known position
@@ -160,36 +149,34 @@ class Gunner(EnemyBase):
 
         elif self.is_alerted and self.last_seen_player_pos:
             # Player not visible but we know where they were
-            print(f"[DEBUG] Player not visible, chasing last position...")
             chase_dist = math.hypot(self.last_seen_player_pos.x - self.x,
                                     self.last_seen_player_pos.y - self.y)
             if chase_dist > 32 and self.chase_timer > 0:
-                print(f"[DEBUG] Gunner chasing to last position")
+                self.facing_direction_override = self.get_facing_direction(player.x, player.y)
                 self.move_towards(self.last_seen_player_pos.x, self.last_seen_player_pos.y, dt)
                 self.state = "move"
                 self.chase_timer -= dt
             else:
-                print(f"[DEBUG] Gunner lost player, patrolling")
                 self.last_seen_player_pos = None
                 self.patrol(dt)
         elif not self.is_alerted:
             # Not alerted - patrol and only alert if we can actually see the player
-            print(f"[DEBUG] Not alerted, distance: {dist:.1f}")
             if can_see_player:  # Only alert if we can actually see them (not through walls)
-                print(f"[DEBUG] Can see player - alerting!")
                 self.is_alerted = True
             else:
                 self.patrol(dt)
         else:
             # Fallback - patrol
-            print(f"[DEBUG] Fallback - patrolling")
             self.patrol(dt)
 
         self.update_animation(dt)
 
     def start_attack_sequence(self):
         """Start the attack animation sequence - like Doom Zombieman"""
-        print(f"[DEBUG] Starting attack sequence")
+
+        if self.target:
+            self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
+
         self.is_in_attack_sequence = True
         self.attack_frame_timer = 0
         self.has_fired_shot = False
@@ -197,18 +184,20 @@ class Gunner(EnemyBase):
 
         # Set the attack cooldown for after this attack completes with more variation
         base_cooldown = self.attack_delay
-        variation = random.randint(-400, 600)  # Larger variation: -400ms to +600ms
+        variation = random.randint(-400, 600)
         self.attack_cooldown = base_cooldown + variation
-        self.attack_cooldown = max(self.attack_cooldown, 800)  # Minimum cooldown increased
+        self.attack_cooldown = max(self.attack_cooldown, 800)
 
-        # Also randomize the windup time slightly to further desync
-        windup_variation = random.randint(-50, 100)  # ±50-100ms variation in windup
-        self.attack_windup_time = max(350, 400 + windup_variation)  # 350-500ms windup
+        windup_variation = random.randint(-50, 100)
+        self.attack_windup_time = max(350, 400 + windup_variation)
 
     def fire_shot(self):
         """Fire the actual shot during the attack animation"""
         if not self.target:
             return
+
+        # Set facing direction towards target when firing
+        self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
 
         dx = self.target.x - self.x
         dy = self.target.y - self.y
@@ -247,8 +236,6 @@ class Gunner(EnemyBase):
         # Ensure minimum accuracy
         accuracy = max(accuracy, 0.25)  # At least 25% chance to hit even at worst
 
-        print(f"[DEBUG] Gunner firing shot at distance {dist:.1f}, accuracy: {accuracy:.2f}")
-
         if random.random() < accuracy:
             # Hit - calculate damage with slight variation
             base_damage = random.randint(8, 15)  # More consistent damage
@@ -259,9 +246,6 @@ class Gunner(EnemyBase):
 
             # self.target.take_damage(base_damage)
             self.target.take_damage(0)
-            print(f"[DEBUG] Gunner hits for {base_damage} damage!")
-        else:
-            print(f"[DEBUG] Gunner misses!")
 
         # Play attack sound
         if self.sfx_attack:
@@ -269,11 +253,17 @@ class Gunner(EnemyBase):
 
     def end_attack_sequence(self):
         """End the attack sequence and return to normal behavior"""
-        print(f"[DEBUG] Ending attack sequence, cooldown: {self.attack_cooldown:.1f}ms")
+
+        # IMMEDIATELY face the player when attack ends (if we still have a target)
+        if self.target:
+            self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
+        else:
+            self.facing_direction_override = None
+
         self.is_in_attack_sequence = False
         self.attack_frame_timer = 0
         self.has_fired_shot = False
-        self.state = "idle"  # Return to idle state
+        self.state = "idle"
 
     def move_towards_player(self, player, dt):
         """Move towards player using Doom-style AI with strafing and tactical movement"""
@@ -373,7 +363,6 @@ class Gunner(EnemyBase):
         elif self.movement_mode == "zigzag":
             self.strafe_direction = random.choice([-1, 1])
 
-        print(f"[DEBUG] Enemy choosing movement mode: {self.movement_mode}, duration: {self.movement_duration}")
 
     def calculate_movement_direction(self, base_dx, base_dy, dist, player_moved, dt):
         """Calculate movement direction based on current movement mode"""
@@ -505,7 +494,6 @@ class Gunner(EnemyBase):
     def can_see_target(self):
         """Proper line of sight check - enemies can't see through walls"""
         if not self.target:
-            print(f"[DEBUG] can_see_target: No target")
             return False
 
         # Check basic distance first
@@ -513,15 +501,11 @@ class Gunner(EnemyBase):
         dy = self.target.y - self.y
         dist = math.hypot(dx, dy)
 
-        print(f"[DEBUG] can_see_target: distance={dist:.1f}, vision_range={self.vision_range}")
-
         if dist > self.vision_range:
-            print(f"[DEBUG] can_see_target: Too far")
             return False
 
         # Use proper line of sight raycast - this should block vision through walls
         has_los = self.has_line_of_sight(self.target)
-        print(f"[DEBUG] can_see_target: line_of_sight={has_los}")
         return has_los
 
     def patrol(self, dt):
@@ -568,7 +552,6 @@ class Gunner(EnemyBase):
             amount *= 0.5
 
         self.health -= amount
-        print(f"[DEBUG] Gunner takes {amount} damage, {self.health} HP remaining")
 
         if self.health <= 0:
             self.die()

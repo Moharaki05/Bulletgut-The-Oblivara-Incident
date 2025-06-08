@@ -14,7 +14,7 @@ class HitscanWeapon(WeaponBase, ABC):
     def _fire_effect(self):
         """Effet de tir hitscan (instantané)"""
         player = self.game.player
-        enemies = self.game.enemies  # Supposons que vous avez une liste d'ennemis dans game
+        enemies = self.game.level.enemies  # Supposons que vous avez une liste d'ennemis dans game
         walls = self.game.level.walls  # Et une liste de murs
 
         # Position et angle du joueur
@@ -53,10 +53,12 @@ class HitscanWeapon(WeaponBase, ABC):
                 # Vérification de collision avec les ennemis
                 hit_enemy = self._check_enemy_collision(x, y, enemies)
                 if hit_enemy:
+                    print(f"[HIT] Ennemi touché à {distance:.1f} px")
                     hit_enemy.take_damage(self.damage)
                     # Effet de sang ou autre
                     self._create_hit_effect(x, y, is_enemy=True)
                     break
+
 
             # Créer un effet de tracer temporaire si désiré
             self._create_tracer_effect(px, py, px + dx * distance, py + dy * distance)
@@ -67,13 +69,14 @@ class HitscanWeapon(WeaponBase, ABC):
         grid_x, grid_y = int(x // 64), int(y // 64)  # Supposant des cases de 64x64
         return (grid_x, grid_y) in walls
 
-    def _check_enemy_collision(self, x, y, enemies):
-        """Vérifie si la position (x, y) touche un ennemi"""
+    @staticmethod
+    def _check_enemy_collision(x, y, enemies):
         for enemy in enemies:
             ex, ey = enemy.x, enemy.y
             distance = math.hypot(x - ex, y - ey)
-            # Supposons que enemy.size est la taille de collision de l'ennemi
-            if distance < enemy.size:
+            print(
+                f"[DEBUG COLLISION] Tir à ({x:.1f}, {y:.1f}), Ennemi à ({ex:.1f}, {ey:.1f}) → dist: {distance:.1f}, hitbox: {enemy.size}")
+            if distance < max(enemy.size, 32):
                 return enemy
         return None
 

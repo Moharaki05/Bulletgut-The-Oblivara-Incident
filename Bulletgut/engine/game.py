@@ -25,7 +25,7 @@ class Game:
         spawn_x, spawn_y = self.level.spawn_point
         self.player = Player(spawn_x, spawn_y)
         self.raycaster = Raycaster(self.level, self.player)
-        self.enemies = []
+        self.enemies = self.level.enemies
         self.mouse_dx = 0
 
         self.crosshair_enabled = True

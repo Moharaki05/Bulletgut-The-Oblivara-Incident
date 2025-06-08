@@ -36,6 +36,7 @@ class Level:
 
         # Store closed door GIDs for rendering
         self.closed_door_gids = self.find_closed_door_gids()
+        print(f"[DEBUG] Ennemis visibles : {[enemy for enemy in self.enemies if enemy.alive]}")
 
     def build_collision_map(self):
         grid = []
@@ -73,11 +74,48 @@ class Level:
         return False
 
     def is_rect_blocked(self, rect):
-        """Retourne True si n'importe quel point du rect est dans un mur."""
-        for x in range(rect.left, rect.right, TILE_SIZE // 2):
-            for y in range(rect.top, rect.bottom, TILE_SIZE // 2):
-                if self.is_blocked(x, y):
-                    return True
+        """Check if any part of the rectangle collides with walls"""
+        # Sample points around the rectangle perimeter
+        sample_points = []
+
+        # Corner points
+        sample_points.extend([
+            (rect.left, rect.top),
+            (rect.right - 1, rect.top),
+            (rect.left, rect.bottom - 1),
+            (rect.right - 1, rect.bottom - 1)
+        ])
+
+        # Edge midpoints
+        sample_points.extend([
+            (rect.centerx, rect.top),
+            (rect.centerx, rect.bottom - 1),
+            (rect.left, rect.centery),
+            (rect.right - 1, rect.centery)
+        ])
+
+        # Additional samples for larger rectangles
+        if rect.width > TILE_SIZE:
+            step = TILE_SIZE // 2
+            for x in range(rect.left + step, rect.right, step):
+                sample_points.extend([
+                    (x, rect.top),
+                    (x, rect.bottom - 1)
+                ])
+
+        if rect.height > TILE_SIZE:
+            step = TILE_SIZE // 2
+            for y in range(rect.top + step, rect.bottom, step):
+                sample_points.extend([
+                    (rect.left, y),
+                    (rect.right - 1, y)
+                ])
+
+        # Check all sample points
+        for point_x, point_y in sample_points:
+            if self.is_blocked(point_x, point_y):
+                return True
+
         return False
 
     def get_player_spawn(self):
