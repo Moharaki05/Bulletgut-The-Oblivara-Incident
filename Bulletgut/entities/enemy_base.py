@@ -299,6 +299,15 @@ class EnemyBase:
         self.health -= amount
         print(f"[DAMAGE] {type(self).__name__} lost {amount} HP ({old_health} -> {self.health})")
 
+        self.is_awake = True
+        self.is_alerted = True
+
+        # ⚠️ Vérifie si l'ennemi est mort AVANT de faire quoi que ce soit d'autre
+        if self.health <= 0:
+            print(f"[DEATH] {type(self).__name__} died!")
+            self.die()
+            return  # ⬅️ TRÈS IMPORTANT pour éviter que l'état "hit" ne s'active après la mort
+
         print("[DEBUG] Checking hit animation:", self.animations.get('hit'))
 
         # Only enter hit state if we have hit animations
@@ -319,15 +328,6 @@ class EnemyBase:
             self.frame_timer = 0
         else:
             print(f"[DEBUG] No hit animations available, skipping hit state")
-            # Just flash or some other visual indicator instead
-            # Could add a red tint or screen shake here
-
-        self.is_awake = True
-        self.is_alerted = True
-
-        if self.health <= 0:
-            print(f"[DEATH] {type(self).__name__} died!")
-            self.die()
 
     def die(self):
         self.alive = False

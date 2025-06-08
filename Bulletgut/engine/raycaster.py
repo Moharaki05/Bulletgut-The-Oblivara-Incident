@@ -25,51 +25,59 @@ class Raycaster:
         pg.draw.rect(screen, color, (0, height // 2, SCREEN_WIDTH, height // 2))
 
     def handle_door_intersection(self, ox, oy, angle):
-        """DUGA-style door intersection handling with proper texture sliding"""
+        """FIXED: Door intersection that works for all door states"""
         closest_door = None
         closest_depth = float("inf")
         tex_x = 0
         side = None
 
         for door in self.level.doors:
-            # Skip doors that are fully open (like DUGA)
-            if door.progress >= 0.95:
+            # CRITICAL FIX: Check doors in ALL states except completely invisible
+            # Don't skip closed doors!
+            if door.progress >= 0.95:  # Only skip when almost fully open
                 continue
 
-            bounds = door.get_door_bounds()
+            # Use door's grid position directly for closed doors
+            door_world_x = door.grid_x * TILE_SIZE
+            door_world_y = door.grid_y * TILE_SIZE
 
-            # Check bounds validity
+            # For closed doors, use full tile bounds
+            if door.progress <= 0.05:  # Fully closed
+                bounds = {
+                    "min_x": door_world_x,
+                    "max_x": door_world_x + TILE_SIZE,
+                    "min_y": door_world_y,
+                    "max_y": door_world_y + TILE_SIZE
+                }
+            else:
+                # Use calculated bounds for opening doors
+                bounds = door.get_door_bounds()
+
             if not bounds:
                 continue
 
+            # Test intersection with door bounds
             if door.axis == "x":
-                # Horizontal sliding door
+                # Horizontal door
                 if abs(math.cos(angle)) < 1e-6:
                     continue
 
-                # Test both faces of the door
                 for face_x in [bounds["min_x"], bounds["max_x"]]:
                     t = (face_x - ox) / math.cos(angle)
                     if t <= 0:
                         continue
 
                     hit_y = oy + t * math.sin(angle)
-
                     if bounds["min_y"] <= hit_y <= bounds["max_y"] and t < closest_depth:
                         closest_door = door
                         closest_depth = t
                         side = "x"
 
-                        # DUGA-style texture calculation with sliding offset
-                        rel_y = (hit_y - bounds["min_y"]) / (bounds["max_y"] - bounds["min_y"])
-                        base_tex_x = int(rel_y * TILE_SIZE)
+                        # Simple texture calculation
+                        rel_y = (hit_y - bounds["min_y"]) / max(1, bounds["max_y"] - bounds["min_y"])
+                        tex_x = int(rel_y * TILE_SIZE) % TILE_SIZE
 
-                        # Apply sliding offset (this creates the sliding texture effect)
-                        offset = door.get_texture_offset()
-                        tex_x = (base_tex_x + offset) % TILE_SIZE
-
-            else:  # door.axis == "y"
-                # Vertical sliding door
+            else:  # Vertical door
                 if abs(math.sin(angle)) < 1e-6:
                     continue
 
@@ -79,24 +87,19 @@ class Raycaster:
                         continue
 
                     hit_x = ox + t * math.cos(angle)
-
                     if bounds["min_x"] <= hit_x <= bounds["max_x"] and t < closest_depth:
                         closest_door = door
                         closest_depth = t
                         side = "y"
 
-                        # DUGA-style texture calculation with sliding offset
-                        rel_x = (hit_x - bounds["min_x"]) / (bounds["max_x"] - bounds["min_x"])
-                        base_tex_x = int(rel_x * TILE_SIZE)
-
-                        # Apply sliding offset
-                        offset = door.get_texture_offset()
-                        tex_x = (base_tex_x + offset) % TILE_SIZE
+                        # Simple texture calculation
+                        rel_x = (hit_x - bounds["min_x"]) / max(1, bounds["max_x"] - bounds["min_x"])
+                        tex_x = int(rel_x * TILE_SIZE) % TILE_SIZE
 
         return closest_door, closest_depth, tex_x, side
 
     def render_walls(self, screen, player):
-        """Updated wall rendering with DUGA-style door handling"""
+        """Simplified wall rendering that properly handles doors"""
         ox, oy = player.get_position()
         map_x = int(ox // TILE_SIZE)
         map_y = int(oy // TILE_SIZE)
@@ -132,10 +135,10 @@ class Raycaster:
             tile_x, tile_y = map_x, map_y
             side = None
 
-            # Check for door intersection first (DUGA style)
+            # Check for door intersection FIRST
             door_obj, door_depth, door_tex_x, door_side = self.handle_door_intersection(ox, oy, angle)
 
-            # DDA algorithm for walls
+            # DDA for walls
             wall_hit = False
             while not wall_hit:
                 if side_dist_x < side_dist_y:
@@ -153,72 +156,97 @@ class Raycaster:
                 if self.level.is_blocked(wx, wy):
                     wall_hit = True
 
-            # Calculate wall intersection
+            # Calculate wall distance and texture
             if side == 'x':
                 wall_depth = abs((tile_x * TILE_SIZE - ox + (1 - dx) * TILE_SIZE / 2) / (cos_a + 1e-6))
                 hit_x = oy + wall_depth * sin_a
-                tex_x = int(hit_x % TILE_SIZE)
+                wall_tex_x = int(hit_x % TILE_SIZE)
             else:
                 wall_depth = abs((tile_y * TILE_SIZE - oy + (1 - dy) * TILE_SIZE / 2) / (sin_a + 1e-6))
                 hit_x = ox + wall_depth * cos_a
-                tex_x = int(hit_x % TILE_SIZE)
+                wall_tex_x = int(hit_x % TILE_SIZE)
 
-            # Choose between door and wall (closest wins)
+            # Decide what to render
             if door_obj and door_depth < wall_depth:
-                # Render door
+                # DOOR IS CLOSER - render door
                 depth = door_depth
                 tex_x = door_tex_x
-                side = door_side
+                render_width = max(1, door_obj.get_door_thickness_px())
 
-                # Get door texture
-                gid = self.level.get_door_gid(door_obj, closed=(door_obj.progress <= 0.1))
-
-                # DUGA-style door thickness calculation
-                door_thickness = door_obj.get_door_thickness_px()
+                # SIMPLE door texture lookup - no complex fallbacks
+                door_wx = door_obj.grid_x * TILE_SIZE + TILE_SIZE // 2
+                door_wy = door_obj.grid_y * TILE_SIZE + TILE_SIZE // 2
+                gid = self.level.get_gid(door_wx, door_wy)
 
             else:
-                # Render wall
+                # WALL IS CLOSER - render wall
                 depth = wall_depth
-                wx = tile_x * TILE_SIZE + TILE_SIZE / 2
-                wy = tile_y * TILE_SIZE + TILE_SIZE / 2
-                gid = self.level.get_gid(wx, wy)
-                door_thickness = ray_width
+                tex_x = wall_tex_x
+                render_width = ray_width
 
-                # Texture flipping for walls
+                wall_wx = tile_x * TILE_SIZE + TILE_SIZE / 2
+                wall_wy = tile_y * TILE_SIZE + TILE_SIZE / 2
+                gid = self.level.get_gid(wall_wx, wall_wy)
+
+                # Texture flipping
                 if (side == 'x' and dx < 0) or (side == 'y' and dy > 0):
                     tex_x = TILE_SIZE - tex_x - 1
 
-            # Apply fisheye correction
+            # Fisheye correction
             depth *= math.cos(player.get_angle() - angle)
             wall_height = (40000 / (depth + 0.0001)) * WALL_HEIGHT_SCALE
 
-            # Store depth in z-buffer
+            # Z-buffer
             screen_x = ray * ray_width
             for x in range(screen_x, min(screen_x + ray_width, SCREEN_WIDTH)):
                 self.z_buffer[x] = depth
 
-            # Render the column
+            # Render
             tile_img = self.level.tmx_data.get_tile_image_by_gid(gid)
             if tile_img:
                 texture = pg.transform.scale(tile_img, (TILE_SIZE, TILE_SIZE))
-
-                # Clamp tex_x to valid range
                 tex_x = max(0, min(tex_x, TILE_SIZE - 1))
                 texture_column = texture.subsurface(tex_x, 0, 1, TILE_SIZE)
 
                 height = screen.get_height()
                 safe_height = max(1, min(int(wall_height), height * 2))
-
-                # Scale column with proper thickness
-                column = pg.transform.scale(texture_column,
-                                            (door_thickness if door_obj and door_depth < wall_depth else ray_width,
-                                             safe_height))
+                column = pg.transform.scale(texture_column, (render_width, safe_height))
 
                 column_y = (height - safe_height) // 2
                 x = ray * ray_width
                 screen.blit(column, (x, column_y))
 
             angle += delta_angle
+
+    def get_door_at_position(self, wx, wy):
+        """Get door object at world position"""
+        grid_x = int(wx // TILE_SIZE)
+        grid_y = int(wy // TILE_SIZE)
+
+        for door in self.level.doors:
+            if door.grid_x == grid_x and door.grid_y == grid_y:
+                return door
+        return None
+
+    def get_door_texture_gid(self, door):
+        """Get appropriate texture GID for door"""
+        # Try to get door-specific texture
+        is_closed = door.progress <= 0.1
+        gid = self.level.get_door_gid(door, closed=is_closed)
+
+        if gid and gid > 0:
+            return gid
+
+        # Fallback: use door's original tile texture
+        door_wx = door.grid_x * TILE_SIZE + TILE_SIZE // 2
+        door_wy = door.grid_y * TILE_SIZE + TILE_SIZE // 2
+        base_gid = self.level.get_gid(door_wx, door_wy)
+
+        if base_gid and base_gid > 0:
+            return base_gid
+
+        # Last fallback: use a default door texture (you may need to adjust this)
+        return 1  # Replace with your default door texture GID
 
     def render_enemies(self, screen, player, enemies):
         ox, oy = player.get_position()

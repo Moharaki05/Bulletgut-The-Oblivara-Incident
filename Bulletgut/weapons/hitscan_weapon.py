@@ -233,7 +233,7 @@ class HitscanWeapon(WeaponBase, ABC):
                     print(f"[NO_INTERSECT] Line does not intersect enemy")
 
             # Damage the closest enemy hit
-            if hit_enemy:
+            if hit_enemy and id(hit_enemy) not in enemies_hit:
                 hits_this_shot += 1
                 enemies_hit.add(id(hit_enemy))
                 print(
