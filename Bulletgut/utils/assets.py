@@ -14,14 +14,31 @@ state_aliases = {
     "death": "death"
 }
 
+
 def load_image(path):
-    """Charge une image avec cache. Retourne une surface vide en cas d’erreur."""
+    """Charge une image avec cache. Retourne une surface vide en cas d'erreur."""
     if path not in _image_cache:
         try:
-            _image_cache[path] = pygame.image.load(path).convert_alpha()
+            # FIXED: Load and convert properly without changing size
+            loaded_image = pygame.image.load(path)
+            original_size = loaded_image.get_size()
+
+            # Convert to proper format for better performance
+            converted_image = loaded_image.convert_alpha()
+
+            # CRITICAL CHECK: Ensure conversion didn't change size
+            if converted_image.get_size() != original_size:
+                print(f"[ERROR] Size mismatch after conversion for {path}")
+                print(f"  Original: {original_size}, Converted: {converted_image.get_size()}")
+                # Use original if size changed
+                _image_cache[path] = loaded_image
+            else:
+                _image_cache[path] = converted_image
+
         except Exception as e:
             print(f"[Erreur image] {path} : {e}")
             _image_cache[path] = pygame.Surface((16, 16), pygame.SRCALPHA)  # fallback vide
+
     return _image_cache[path]
 
 def load_sound(path):
@@ -51,6 +68,7 @@ def load_images(folder_path):
         print(f"[Avertissement] Aucune image dans : {folder_path}")
     return images
 
+
 def load_animation_set(folder):
     from collections import defaultdict
     animations = defaultdict(lambda: defaultdict(list))
@@ -73,14 +91,33 @@ def load_animation_set(folder):
 
             full_path = os.path.join(root, filename)
             print(f"[DEBUG] Analyse de {full_path}")
+
+            # FIXED: Load image without any modifications
             image = load_image(full_path)
+
+            # CRITICAL FIX: Ensure the image is properly converted and not scaled
+            # Make sure we're working with the original sprite dimensions
+            if image:
+                # Convert to display format but preserve original size
+                original_size = image.get_size()
+                image = image.convert_alpha()
+                # Verify size wasn't changed during conversion
+                if image.get_size() != original_size:
+                    print(f"[WARNING] Image size changed during conversion: {filename}")
+                    print(f"  Original: {original_size}, New: {image.get_size()}")
 
             # 1. Death_RegularX.png, Death_BerserkX.png
             match_death = re.match(r"Death_(Regular|Berserk)(\d+)\.png", filename, re.IGNORECASE)
             if match_death:
                 subtype, frame = match_death.groups()
                 if subtype.lower() == "regular":
-                    animations["death"][-1].append(image)
+                    # FIXED: Store death frames with frame number for proper ordering
+                    frame_num = int(frame)
+                    # Ensure we have enough slots in the list
+                    while len(animations["death"][-1]) <= frame_num:
+                        animations["death"][-1].append(None)
+                    animations["death"][-1][frame_num] = image
+                    print(f"[DEATH FRAME] Added frame {frame_num} for death animation")
                 continue
 
             # 2. Move_Front1.png etc.
@@ -89,7 +126,11 @@ def load_animation_set(folder):
                 state, direction_str, frame_num = match_move.groups()
                 direction = direction_map.get(direction_str)
                 if direction is not None:
-                    animations[state.lower()][direction].append(image)
+                    frame_idx = int(frame_num) - 1  # Convert to 0-based index
+                    # Ensure we have enough slots
+                    while len(animations[state.lower()][direction]) <= frame_idx:
+                        animations[state.lower()][direction].append(None)
+                    animations[state.lower()][direction][frame_idx] = image
                 continue
 
             # 3. Idle_Front.png etc.
@@ -101,6 +142,17 @@ def load_animation_set(folder):
                     animations[state.lower()][direction].append(image)
                 continue
 
-    print("Frames HIT =", animations.get("hit"))
+    # CRITICAL FIX: Clean up death animation list by removing None entries
+    if "death" in animations and -1 in animations["death"]:
+        # Remove None entries and ensure proper ordering
+        death_frames = [frame for frame in animations["death"][-1] if frame is not None]
+        animations["death"][-1] = death_frames
+        print(f"[DEATH CLEANUP] Final death frames count: {len(death_frames)}")
 
+        # Debug: Print size of each death frame to detect scaling issues
+        for i, frame in enumerate(death_frames):
+            if frame:
+                print(f"[DEATH FRAME {i}] Size: {frame.get_size()}")
+
+    print("Frames HIT =", animations.get("hit"))
     return animations

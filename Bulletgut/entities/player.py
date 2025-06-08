@@ -10,7 +10,7 @@ from weapons.chaingun import Chaingun
 from weapons.chainsaw import Chainsaw
 from weapons.bfg import BFG
 from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, \
-    MOUSE_SENSITIVITY, MOUSE_DEADZONE, WEAPON_SLOTS
+    MOUSE_SENSITIVITY, MOUSE_DEADZONE, WEAPON_SLOTS, MOUSE_SENSITIVITY_EXPONENT
 
 
 class Player:
@@ -114,15 +114,10 @@ class Player:
         self.angle %= 2 * math.pi # Keep an angle between 0 and 2pi
         self.rect.center = (self.x, self.y)
 
-
     def handle_mouse_movement(self, dx):
-        # Ignorer les micro-mouvements
-        if abs(dx) < MOUSE_DEADZONE:
-            dx = 0
-
-        # Appliquer la rotation
+        dx = math.copysign(abs(dx) ** MOUSE_SENSITIVITY_EXPONENT, dx)
         self.angle += dx * MOUSE_SENSITIVITY
-        self.angle %= 2 * math.pi  # Garde l'angle entre 0 et 2pi
+        self.angle %= 2 * math.pi
 
     def check_collision(self, level, x, y):
         # Check surrounding tiles

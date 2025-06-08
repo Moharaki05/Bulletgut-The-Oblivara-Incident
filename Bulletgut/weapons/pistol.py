@@ -84,18 +84,7 @@ class Pistol(HitscanWeapon):
                 dx * sin_offset + dy * cos_offset
             )
 
-            # Point de fin de la ligne (portée max)
-        end_x = start_x + dx * self.range
-        end_y = start_y + dy * self.range
-
-        # Vérification des ennemis touchés
-        for enemy in self.game.level.enemies:
-            if enemy.alive and self._line_intersects_enemy(start_x, start_y, end_x, end_y, enemy):
-                print(f"[HIT] Ennemi touché : {enemy}")
-                enemy.health -= self.damage
-                if enemy.health <= 0:
-                    enemy.die()
-                break  # un seul ennemi touché
+        super()._fire_effect()
 
         # TODO: Implémenter le raycast pour détecter les impacts
         # Pour l'instant, simplement afficher un message de débogage

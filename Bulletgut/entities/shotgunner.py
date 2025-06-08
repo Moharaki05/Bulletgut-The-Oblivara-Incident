@@ -9,12 +9,12 @@ class Shotgunner(EnemyBase):
     def __init__(self, x, y, level):
         super().__init__(x, y, level, "assets/sprites/enemies/shotgunner")
 
-        # Gunner-specific stats (like Doom Zombieman)
+        # Gunner-specific stats
         self.max_health = 30  # Zombieman has 20 HP
         self.health = self.max_health
-        self.damage = random.randint(9, 45)  # 1-5 * 3 damage range like Doom
+        self.damage = random.randint(9, 45)  #
         self.speed = 1.0
-        self.attack_delay = 3500  # Zombieman attack delay in Doom
+        self.attack_delay = 3500
         self.attack_cooldown = 0
 
         # Vision and detection
@@ -68,7 +68,7 @@ class Shotgunner(EnemyBase):
         self.spread_factor = random.uniform(0.8, 1.2)  # How much to spread out from others
 
         try:
-            self.sfx_attack = load_sound("assets/sounds/enemies/gunner_shoot.wav")
+            self.sfx_attack = load_sound("assets/sounds/enemies/shotgunner_shoot.wav")
         except:
             self.sfx_attack = None
 
@@ -103,52 +103,53 @@ class Shotgunner(EnemyBase):
             self.update_animation(dt)
             return
 
-        # Check if player is visible (line of sight)
+        # IMPORTANT: Handle hit state FIRST and exit early if in hit state
+        if self.state == "hit":
+            self.hit_timer += dt
+            if self.hit_timer >= self.hit_duration:
+                print(f"[DEBUG] Hit state ended, returning to previous state: {self.previous_state}")
+                self.hit_timer = 0.0
+                self.state = self.previous_state or "idle"
+
+            # Don't do any other logic while in hit state
+            self.update_animation(dt)
+            return
+
+        # Rest of the normal AI logic only runs if NOT in hit state
         can_see_player = self.can_see_target() and dist <= self.vision_range
 
         # Wake up behavior - once alerted, stay alerted
         if can_see_player and not self.is_alerted:
             self.is_alerted = True
-            # Add random delay when first spotting player to prevent mass simultaneous alert
-            spot_delay = random.randint(0, 500)  # 0-500ms delay when first spotting
+            spot_delay = random.randint(0, 500)
             self.attack_cooldown = max(self.attack_cooldown, spot_delay)
 
-        # Simple state machine - clear and predictable
+        # Normal AI behavior continues...
         if self.is_alerted and can_see_player:
-            # Player is visible and we're alerted
             if not self.is_in_attack_sequence:
                 self.facing_direction_override = self.get_facing_direction(player.x, player.y)
             if self.attack_cooldown <= 0:
-                # Add additional random delay to prevent synchronized attacks
-                # This creates natural staggering even when multiple enemies see player simultaneously
-                additional_delay = random.randint(0, 800)  # 0-800ms extra delay
-
-                if additional_delay > 600:  # 25% chance of immediate attack
+                additional_delay = random.randint(0, 800)
+                if additional_delay > 600:
                     self.start_attack_sequence()
                 else:
-                    # Add the extra delay and wait
                     self.attack_cooldown = additional_delay
-
-                    # Move closer while waiting for the delay
                     if dist > self.alert_distance:
                         self.move_towards_player(player, dt)
                         self.state = "move"
                     else:
                         self.state = "idle"
             else:
-                # On cooldown - move closer or wait
                 if dist > self.alert_distance:
                     self.move_towards_player(player, dt)
                     self.state = "move"
                 else:
                     self.state = "idle"
 
-            # Update last known position
             self.last_seen_player_pos = pg.Vector2(player.x, player.y)
             self.chase_timer = 5000
 
         elif self.is_alerted and self.last_seen_player_pos:
-            # Player not visible but we know where they were
             chase_dist = math.hypot(self.last_seen_player_pos.x - self.x,
                                     self.last_seen_player_pos.y - self.y)
             if chase_dist > 32 and self.chase_timer > 0:
@@ -160,13 +161,11 @@ class Shotgunner(EnemyBase):
                 self.last_seen_player_pos = None
                 self.patrol(dt)
         elif not self.is_alerted:
-            # Not alerted - patrol and only alert if we can actually see the player
-            if can_see_player:  # Only alert if we can actually see them (not through walls)
+            if can_see_player:
                 self.is_alerted = True
             else:
                 self.patrol(dt)
         else:
-            # Fallback - patrol
             self.patrol(dt)
 
         self.update_animation(dt)
@@ -538,32 +537,27 @@ class Shotgunner(EnemyBase):
             self.patrol_timer = 4000
             self.state = "idle"
 
+    def drop_loot(self):
+        """Drop ammo when killed (like Doom Zombieman drops clip)"""
+        # Zombieman drops 1 clip (10 bullets) in Doom
+        self.level.pickups.append(
+            AmmoPickup(self.x, self.y, ammo_type="shells", amount=4,
+                       sprite_path="assets/pickups/ammo/ammo_fourshells.png", label="4 SHELLS")
+        )
+
     def take_damage(self, amount, splash=False, direct_hit=True):
         """Override to implement pain/alert behavior"""
         if not self.alive:
+            print("hello")
             return
 
         # Taking damage always alerts the enemy (like Doom)
         self.is_alerted = True
 
-        # Apply damage
-        if splash and not direct_hit:
-            amount *= 0.5
+        # Brief pain state - interrupt current action
+        if self.is_in_attack_sequence:
+            # Pain can interrupt attack sequence (like in Doom)
+            self.end_attack_sequence()
 
-        self.health -= amount
-
-        if self.health <= 0:
-            self.die()
-        else:
-            # Brief pain state - interrupt current action
-            if self.is_in_attack_sequence:
-                # Pain can interrupt attack sequence (like in Doom)
-                self.end_attack_sequence()
-
-    def drop_loot(self):
-        """Drop ammo when killed (like Doom Zombieman drops clip)"""
-        # Zombieman drops 1 clip (10 bullets) in Doom
-        self.level.pickups.append(
-            AmmoPickup(self.x, self.y, ammo_type="bullets", amount=10,
-                       sprite_path="assets/pickups/ammo/ammo_bullets.png")
-        )
+        # Call the parent's take_damage method to handle hit state and animation
+        super().take_damage(amount, splash, direct_hit)

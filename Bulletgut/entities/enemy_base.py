@@ -1,3 +1,5 @@
+import os
+
 import pygame
 import math
 import random
@@ -9,6 +11,7 @@ class EnemyBase:
     def __init__(self, x, y, level, asset_folder):
         self.x = x
         self.y = y
+        self.position = (self.x, self.y)
         self.level = level
         self.rect = pygame.Rect(x - 10, y - 10, 20, 20)
 
@@ -54,9 +57,9 @@ class EnemyBase:
         self.image = None  # Pour que self.image soit bien défini
         self.frame_index = 0
         self.frame_timer = 0
-        self.frame_duration = 0.15  # Durée entre chaque frame (à ajuster si besoin)
+        self.frame_duration = 0.25  # Durée entre chaque frame (à ajuster si besoin)
         self.hit_timer = 0.0
-        self.hit_duration = 0.75
+        self.hit_duration = 0.25
 
         # Sons
         try:
@@ -69,7 +72,7 @@ class EnemyBase:
             self.sfx_death = None
 
         self.update_rect()
-        self.size = 32
+        self.size = 16
 
     def update(self, player, dt):
         if not self.alive:
@@ -110,10 +113,14 @@ class EnemyBase:
             self.patrol(dt)
 
         if self.state == "hit":
+            print(f"[DEBUG] In hit state - Timer: {self.hit_timer:.2f}/{self.hit_duration}")
+
+        if self.state == "hit":
             self.hit_timer += dt
             if self.hit_timer >= self.hit_duration:
+                print(f"[DEBUG] Hit state ended, returning to previous state: {self.previous_state}")
                 self.hit_timer = 0.0
-                self.state = "idle"  # ou "chase", "search", etc. selon logique IA
+                self.state = self.previous_state or "idle"  # Fallback to idle if no previous state
 
         if self.attack_cooldown > 0:
             self.attack_cooldown -= dt
@@ -190,60 +197,6 @@ class EnemyBase:
                 return False
 
         return True
-
-    def get_safe_sprite_position(self, base_x, base_y, sprite, camera):
-        """Find safe position for sprite rendering that doesn't clip through walls"""
-        if not sprite:
-            return base_x, base_y
-
-        sprite_width, sprite_height = sprite.get_size()
-
-        # Create a test rectangle for the sprite bounds
-        sprite_rect = pygame.Rect(base_x, base_y, sprite_width, sprite_height)
-
-        # Convert screen coordinates to world coordinates
-        world_rect = pygame.Rect(
-            sprite_rect.x + camera.x,
-            sprite_rect.y + camera.y,
-            sprite_rect.width,
-            sprite_rect.height
-        )
-
-        # If sprite doesn't clip through walls, use original position
-        if not self.level.is_rect_blocked_improved(world_rect):
-            return base_x, base_y
-
-        # Try to find a better position by moving the sprite away from walls
-        entity_screen_x = self.x - camera.x
-        entity_screen_y = self.y - camera.y
-
-        # Try positions closer to the entity center (pulling sprite away from walls)
-        search_offsets = [
-            (0, 0),
-            (8, 0), (-8, 0), (0, 8), (0, -8),
-            (16, 0), (-16, 0), (0, 16), (0, -16),
-            (8, 8), (-8, 8), (8, -8), (-8, -8),
-            (16, 16), (-16, 16), (16, -16), (-16, -16)
-        ]
-
-        for offset_x, offset_y in search_offsets:
-            test_x = entity_screen_x - sprite_width // 2 + offset_x
-            test_y = entity_screen_y - sprite_height + offset_y
-
-            test_sprite_rect = pygame.Rect(test_x, test_y, sprite_width, sprite_height)
-            test_world_rect = pygame.Rect(
-                test_sprite_rect.x + camera.x,
-                test_sprite_rect.y + camera.y,
-                test_sprite_rect.width,
-                test_sprite_rect.height
-            )
-
-            if not self.level.is_rect_blocked_improved(test_world_rect):
-                return test_x, test_y
-
-        # Fallback: position sprite centered on entity (might still clip but better than original)
-        return (entity_screen_x - sprite_width // 2,
-                entity_screen_y - sprite_height // 2)
 
     # Updated move() method in enemy_base.py
     def move(self, dx, dy):
@@ -336,6 +289,7 @@ class EnemyBase:
 
     def take_damage(self, amount, splash=False, direct_hit=True):
         if not self.alive:
+            print("hello")
             return
 
         if splash and not direct_hit:
@@ -345,10 +299,28 @@ class EnemyBase:
         self.health -= amount
         print(f"[DAMAGE] {type(self).__name__} lost {amount} HP ({old_health} -> {self.health})")
 
-        # Sauvegarder l'état actuel et déclencher l'état de hit
-        self.previous_state = self.state
-        self.state = "hit"
-        self.hit_timer = 0.0
+        print("[DEBUG] Checking hit animation:", self.animations.get('hit'))
+
+        # Only enter hit state if we have hit animations
+        if 'hit' in self.animations and self.animations['hit']:
+            print(f"[DEBUG] Entering hit state - has hit animations")
+
+            # Preserve current facing direction when hit
+            if self.facing_direction_override is None and self.target:
+                self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
+
+            # Save the current state and trigger hit state
+            self.previous_state = self.state
+            self.state = "hit"
+            self.hit_timer = 0.0
+
+            # Reset animation for hit state
+            self.frame_index = 0
+            self.frame_timer = 0
+        else:
+            print(f"[DEBUG] No hit animations available, skipping hit state")
+            # Just flash or some other visual indicator instead
+            # Could add a red tint or screen shake here
 
         self.is_awake = True
         self.is_alerted = True
@@ -360,41 +332,35 @@ class EnemyBase:
     def die(self):
         self.alive = False
         self.state = "death"
-        self.animation_frame = 0
+
+        # IMPORTANT: Reset animation properly for death
+        self.frame_index = 0
+        self.frame_timer = 0
+
+        # Set facing direction for death animation (usually front-facing)
+        self.facing_direction_override = 0  # Face front when dying
+
         if self.sfx_death:
             self.sfx_death.play()
         self.drop_loot()
+
+        print(f"[DEATH] {type(self).__name__} died - starting death animation")
 
     def drop_loot(self):
         """Override in subclasses"""
         pass
 
     def update_animation(self, dt):
-        self.frame_timer += dt
+        if self.state == "death":
+            if not hasattr(self, 'death_timer'):
+                self.death_timer = 0
+            self.death_timer += dt
 
     def get_direction_index_towards_player(self):
             dx = self.target.x - self.x
             dy = self.target.y - self.y
             angle = (math.degrees(math.atan2(-dy, dx)) + 360) % 360
             return int((angle + 22.5) // 45) % 8  # Découpe en 8 directions (0=Front, etc.)
-
-    def draw(self, screen, camera):
-        if not self.alive and self.state != "death":
-            return
-
-        sprite = self.get_sprite(camera.x + screen.get_width() // 2, camera.y + screen.get_height() // 2)
-        if sprite:
-            # Calculate base sprite position (centered on entity with bottom alignment)
-            sprite_width, sprite_height = sprite.get_size()
-
-            # Center horizontally on the entity, align bottom with entity's collision rect bottom
-            base_sprite_x = self.rect.centerx - sprite_width // 2 - camera.x
-            base_sprite_y = self.rect.bottom - sprite_height - camera.y
-
-            # Get safe position that won't clip through walls
-            safe_x, safe_y = self.get_safe_sprite_position(base_sprite_x, base_sprite_y, sprite, camera)
-
-            screen.blit(sprite, (safe_x, safe_y))
 
     def get_facing_direction(self, viewer_x, viewer_y):
         """Retourne la direction du sprite à afficher selon l'état d'éveil de l'ennemi."""
@@ -406,32 +372,207 @@ class EnemyBase:
         angle = math.degrees(math.atan2(-dy, dx)) % 360
         return int((angle + 22.5) // 45) % 8
 
+    # Fixed sections of enemy_base.py to prevent death sprite scaling
+
+    def draw(self, screen, camera):
+        if not self.alive and self.state != "death":
+            return
+
+        sprite = self.get_sprite(camera.x + screen.get_width() // 2, camera.y + screen.get_height() // 2)
+        if sprite:
+            # Get original sprite dimensions - NEVER scale sprites
+            original_sprite = sprite
+            sprite_width, sprite_height = original_sprite.get_size()
+
+            # Calculate base sprite position (centered on entity with bottom alignment)
+            # Use the entity's collision rect for positioning
+            base_sprite_x = self.rect.centerx - sprite_width // 2 - camera.x
+            base_sprite_y = self.rect.bottom - sprite_height - camera.y
+
+            # FIXED: For death state, use simple positioning without collision checks
+            if self.state == "death":
+                # Death sprites should always render at the basic position without modification
+                # This prevents any scaling or distortion that might occur in safe positioning
+                screen.blit(original_sprite, (base_sprite_x, base_sprite_y))
+            elif self.state == "hit":
+                # Hit state also uses simple positioning to avoid visual glitches
+                screen.blit(original_sprite, (base_sprite_x, base_sprite_y))
+            else:
+                # For other states, use the safe position system only if needed
+                # But first try the simple position
+                screen.blit(original_sprite, (base_sprite_x, base_sprite_y))
+
+    def get_safe_sprite_position(self, base_x, base_y, sprite, camera):
+        """Find safe position for sprite rendering that doesn't clip through walls"""
+        if not sprite:
+            return base_x, base_y
+
+        # FIXED: Skip safe positioning for death and hit states to prevent scaling issues
+        if self.state in ["death", "hit"]:
+            return base_x, base_y
+
+        sprite_width, sprite_height = sprite.get_size()
+
+        # Create a test rectangle for the sprite bounds
+        sprite_rect = pygame.Rect(base_x, base_y, sprite_width, sprite_height)
+
+        # Convert screen coordinates to world coordinates
+        world_rect = pygame.Rect(
+            sprite_rect.x + camera.x,
+            sprite_rect.y + camera.y,
+            sprite_rect.width,
+            sprite_rect.height
+        )
+
+        # If sprite doesn't clip through walls, use original position
+        if not self.level.is_rect_blocked_improved(world_rect):
+            return base_x, base_y
+
+        # For non-death/hit states, try to find a better position
+        entity_screen_x = self.x - camera.x
+        entity_screen_y = self.y - camera.y
+
+        # Try positions closer to the entity center (pulling sprite away from walls)
+        search_offsets = [
+            (0, 0),
+            (8, 0), (-8, 0), (0, 8), (0, -8),
+            (16, 0), (-16, 0), (0, 16), (0, -16),
+            (8, 8), (-8, 8), (8, -8), (-8, -8),
+            (16, 16), (-16, 16), (16, -16), (-16, -16)
+        ]
+
+        for offset_x, offset_y in search_offsets:
+            test_x = entity_screen_x - sprite_width // 2 + offset_x
+            test_y = entity_screen_y - sprite_height + offset_y
+
+            test_sprite_rect = pygame.Rect(test_x, test_y, sprite_width, sprite_height)
+            test_world_rect = pygame.Rect(
+                test_sprite_rect.x + camera.x,
+                test_sprite_rect.y + camera.y,
+                test_sprite_rect.width,
+                test_sprite_rect.height
+            )
+
+            if not self.level.is_rect_blocked_improved(test_world_rect):
+                return test_x, test_y
+
+        # Fallback: position sprite centered on entity (might still clip but better than scaling)
+        return (entity_screen_x - sprite_width // 2,
+                entity_screen_y - sprite_height // 2)
+
     def get_sprite(self, viewer_x, viewer_y):
         if not self.alive and self.state != "death":
             return None
 
-        # 🔄 Toujours recalculer la direction vers le joueur
-        direction = self.get_facing_direction(viewer_x, viewer_y)
+        # Use facing direction override if set, otherwise calculate direction
+        if self.facing_direction_override is not None:
+            direction = self.facing_direction_override
+        else:
+            direction = self.get_facing_direction(viewer_x, viewer_y)
+
         state = self.state.lower()
 
+        # Get frames for the current state and direction
         frames_by_dir = self.animations.get(state)
         if not frames_by_dir:
+            print(f"[DEBUG] No animations found for state '{state}'")
             return None
 
+        # FIXED: Special handling for death animations
+        if state == "death":
+            # Death animations use direction -1
+            direction = -1
+            if direction not in frames_by_dir:
+                print(f"[ERROR] No death animation frames found!")
+                return None
+
+            frames = frames_by_dir[direction]
+            if not frames:
+                print(f"[ERROR] Death frames list is empty!")
+                return None
+
+            # CRITICAL FIX: Ensure frame index is valid and doesn't cause issues
+            if self.frame_index >= len(frames):
+                self.frame_index = len(frames) - 1  # Stay on last frame
+
+            # FIXED: Slower death animation with proper frame advancement
+            frame_advance_speed = 15  # Slower animation
+            self.frame_timer += 1
+
+            if self.frame_timer >= frame_advance_speed:
+                self.frame_timer = 0
+                # Only advance if not on last frame
+                if self.frame_index < len(frames) - 1:
+                    self.frame_index += 1
+                    print(f"[DEATH ANIM] Advanced to frame {self.frame_index}/{len(frames)}")
+
+            current_frame = frames[self.frame_index]
+            if current_frame:
+                # CRITICAL: Return the frame WITHOUT any modifications
+                print(f"[DEATH SPRITE] Returning frame {self.frame_index}, size: {current_frame.get_size()}")
+                return current_frame
+            else:
+                print(f"[ERROR] Death frame {self.frame_index} is None!")
+                return None
+
+        if state == "hit":
+            if direction not in frames_by_dir:
+                direction = 0 if 0 in frames_by_dir else list(frames_by_dir.keys())[0]
+
+            frames = frames_by_dir[direction]
+            if not frames:
+                print("[ERROR] No frames found for hit animation!")
+                return None
+
+            # Timing pour hit
+            frame_advance_speed = 12
+            self.frame_timer += 1
+            if self.frame_timer >= frame_advance_speed:
+                self.frame_timer = 0
+                if self.frame_index < len(frames) - 1:
+                    self.frame_index += 1
+
+            current_frame = frames[self.frame_index]
+            if current_frame:
+                print(f"[HIT SPRITE] Returning frame {self.frame_index}, size: {current_frame.get_size()}")
+                return current_frame
+            else:
+                print(f"[ERROR] Hit frame {self.frame_index} is None!")
+                return None
+
+        # Handle other states normally...
         if direction not in frames_by_dir:
-            direction = 0
+            if 0 in frames_by_dir:
+                direction = 0
+            elif frames_by_dir:
+                direction = list(frames_by_dir.keys())[0]
+            else:
+                return None
 
         frames = frames_by_dir[direction]
         if not frames:
             return None
 
+        # Ensure frame index is valid
         if self.frame_index >= len(frames):
-            self.frame_index = 0
+            self.frame_index = 0 if state != "death" else len(frames) - 1
 
-        self.frame_timer += 1
-        if self.frame_timer >= 10:
-            self.frame_timer = 0
-            self.frame_index = (self.frame_index + 1) % len(frames)
+        # Animation timing for non-death states
+        if state != "death":
+            frame_advance_speed = 8
+            if state == "hit":
+                frame_advance_speed = 12
+            elif state == "attack":
+                frame_advance_speed = 5
+
+            self.frame_timer += 1
+            if self.frame_timer >= frame_advance_speed:
+                self.frame_timer = 0
+                if state == "hit":
+                    if self.frame_index < len(frames) - 1:
+                        self.frame_index += 1
+                else:
+                    self.frame_index = (self.frame_index + 1) % len(frames)
 
         return frames[self.frame_index]
 

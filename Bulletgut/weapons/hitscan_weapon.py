@@ -275,8 +275,3 @@ class HitscanWeapon(WeaponBase, ABC):
         """Crée un effet de traçante pour visualiser le tir"""
         # For machine guns for example
         pass
-
-    # Enable debug rendering (call this to show detection lines)
-    def enable_debug_render(self, enabled=True):
-        """Enable/disable debug line rendering"""
-        self.debug_render = enabled
