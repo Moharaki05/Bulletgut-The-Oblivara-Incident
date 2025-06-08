@@ -91,6 +91,11 @@ class Game:
                 # Debug events
                 if event.key == pg.K_ESCAPE:
                     self.running = False
+                if event.key == pg.K_p:
+                    if self.player.weapon and hasattr(self.player.weapon, 'enable_debug_render'):
+                        debug_state = getattr(self.player.weapon, 'debug_render', False)
+                        self.player.weapon.enable_debug_render(not debug_state)
+                        print(f"[DEBUG] Line detection rendering: {'ON' if not debug_state else 'OFF'}")
                 # if event.key == pg.K_p:
                 #     self.player.take_damage(10)
 
@@ -138,6 +143,9 @@ class Game:
         if self.player.weapon:
             self.player.weapon.update(dt)
 
+            if hasattr(self.player.weapon, 'update_line_detection'):
+                self.player.weapon.update_line_detection()
+
         self.projectiles = [p for p in self.projectiles if p.update(dt)]
         self.effects = [e for e in self.effects if e.update()]
 
@@ -150,6 +158,9 @@ class Game:
 
         if self.player.weapon:
             self.player.weapon.render(self.render_surface)
+
+            if hasattr(self.player.weapon, 'render_detection_line'):
+                self.player.weapon.render_detection_line(self.render_surface)
 
         self._render_projectiles()
 
@@ -242,3 +253,8 @@ class Game:
         self.draw_restart_transition()
         if self.restart_anim_done and not self.has_restarted:
            self.has_restarted = True
+
+    def initialize_weapon_debug(self):
+        """Call this to enable debug line rendering for weapons"""
+        if self.player.weapon and hasattr(self.player.weapon, 'enable_debug_render'):
+            self.player.weapon.enable_debug_render(True)
