@@ -29,6 +29,13 @@ class Rocket(Projectile):
             return False
 
         self.position.update(self.x, self.y)
+
+        # Collision avec les ennemis
+        for enemy in self.game.enemies:
+            if enemy.alive and self._collides_with_entity(enemy):
+                self.on_impact()
+                return False
+
         return True  # Toujours en vie
 
     def render(self, screen, raycaster):
@@ -83,14 +90,14 @@ class Rocket(Projectile):
             damage_factor = 1 - (player_dist / self.splash_radius)
             damage_to_player = self.damage * damage_factor
             self.game.player.take_damage(damage_to_player)
-    #
-    #     for enemy in self.game.enemies:
-    #         if enemy.is_alive:
-    #             enemy_dist = (enemy.position - self.position).length()
-    #             if enemy_dist < self.splash_radius:
-    #                 damage_factor = 1 - (enemy_dist / self.splash_radius)
-    #                 damage_to_enemy = self.damage * damage_factor
-    #                 enemy.take_damage(damage_to_enemy)
+
+        for enemy in self.game.enemies:
+            if enemy.alive:
+                enemy_dist = (enemy.position - self.position).length()
+                if enemy_dist < self.splash_radius:
+                    damage_factor = 1 - (enemy_dist / self.splash_radius)
+                    damage_to_enemy = self.damage * damage_factor
+                    enemy.take_damage(damage_to_enemy)
 
     def _collides_with_entity(self, entity):
         # Récupérer la position de l'entité

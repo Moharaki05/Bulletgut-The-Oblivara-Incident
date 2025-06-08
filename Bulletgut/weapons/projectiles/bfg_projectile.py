@@ -106,8 +106,23 @@ class BFGProjectile(Projectile):
         self.game.effects.append(Explosion(self.x, self.y, frames, duration=0.3))
 
         # Dégâts directs
+        hit_enemy = None
         for enemy in self.game.enemies:
             dist = math.hypot(self.x - enemy.x, self.y - enemy.y)
             if dist < enemy.size + self.size:
                 enemy.take_damage(self.damage)
+                hit_enemy = enemy
                 break
+
+        for enemy in self.game.enemies:
+            if enemy is not hit_enemy and enemy.alive:
+                dist = math.hypot(self.x - enemy.x, self.y - enemy.y)
+                if dist < self.splash_radius:
+                    factor = 1 - (dist / self.splash_radius)
+                    splash_damage = self.damage * 0.5 * factor  # Exemple : 50% max
+                    enemy.take_damage(splash_damage)
+
+                    # Crée une explosion visuelle à la position de l'ennemi
+                    self.game.effects.append(
+                        Explosion(enemy.x, enemy.y, frames, duration=0.3)
+                    )

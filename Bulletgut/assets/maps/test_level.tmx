@@ -129,7 +129,7 @@
   </object>
  </objectgroup>
  <objectgroup id="7" name="EnemySpawns">
-  <object id="20" type="enemy" x="960.663" y="394.788">
+  <object id="20" type="enemy" x="962.663" y="326.788">
    <properties>
     <property name="enemy_type" value="gunner"/>
    </properties>
@@ -141,7 +141,7 @@
    </properties>
    <point/>
   </object>
-  <object id="51" type="enemy" x="939.394" y="624.242">
+  <object id="51" type="enemy" x="975.394" y="698.242">
    <properties>
     <property name="enemy_type" value="gunner"/>
    </properties>
@@ -190,7 +190,7 @@
    </properties>
    <point/>
   </object>
-  <object id="34" name="rocketlauncher" type="Weapon" x="210" y="650">
+  <object id="34" name="rocketlauncher" type="Weapon" x="1484" y="886">
    <properties>
     <property name="ammo_type" value="rockets"/>
     <property name="amount" type="int" value="10"/>
@@ -217,7 +217,7 @@
    </properties>
    <point/>
   </object>
-  <object id="38" name="bfg" type="Weapon" x="1346" y="252">
+  <object id="38" name="bfg" type="Weapon" x="228" y="656">
    <properties>
     <property name="ammo_type" value="cells"/>
     <property name="amount" type="int" value="40"/>
@@ -226,7 +226,7 @@
    </properties>
    <point/>
   </object>
-  <object id="39" name="plasmagun" type="Weapon" x="1492" y="316">
+  <object id="39" name="plasmagun" type="Weapon" x="1470" y="332">
    <properties>
     <property name="ammo_type" value="cells"/>
     <property name="amount" type="int" value="40"/>

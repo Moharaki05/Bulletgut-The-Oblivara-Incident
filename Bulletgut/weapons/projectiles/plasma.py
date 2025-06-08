@@ -8,6 +8,12 @@ class Plasma(Projectile):
         super().__init__(game, x, y, angle, speed, damage, lifetime, splash_damage, splash_radius, sprite)
 
     def update(self, delta_time):
+        for enemy in self.game.enemies:
+            if enemy.alive and self._collides_with_entity(enemy):
+                enemy.take_damage(self.damage)
+                self._explode()
+                return False
+
         # Vérification de collision
         if self._check_collision():
             self._explode()
@@ -62,3 +68,12 @@ class Plasma(Projectile):
             scaled = pg.transform.scale(self.sprite, (size, size))
             screen_y = screen.get_height() // 2 - size // 2
             screen.blit(scaled, (screen_x - size // 2, screen_y))
+
+    def _collides_with_entity(self, entity):
+        if hasattr(entity, 'position'):
+            ex, ey = entity.position
+        else:
+            ex, ey = entity.x, entity.y
+        dx, dy = self.x - ex, self.y - ey
+        dist = math.hypot(dx, dy)
+        return dist < (getattr(entity, 'size', 20) + getattr(self, 'size', 5))
