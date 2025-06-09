@@ -2,19 +2,19 @@ import math
 import random
 import pygame as pg
 from entities.enemy_base import EnemyBase
-from entities.pickups.ammo_pickup import AmmoPickup
 from utils.assets import load_sound
+from weapons.projectiles.serpentipede_fireball import SerpentipedeFireball
 
-class Shotgunner(EnemyBase):
+
+class Serpentipede(EnemyBase):
     def __init__(self, x, y, level):
-        super().__init__(x, y, level, "assets/sprites/enemies/shotgunner")
+        super().__init__(x, y, level, "assets/sprites/enemies/serpentipede")
 
-        # Gunner-specific stats
-        self.max_health = 30  # Zombieman has 20 HP
+        self.max_health = 60  # Zombieman has 20 HP
         self.health = self.max_health
-        self.damage = random.randint(9, 45)  #
+        self.damage = random.randint(1, 15)  # 1-5 * 3 damage range like Doom
         self.speed = 1.0
-        self.attack_delay = 3500
+        self.attack_delay = 2500  # Zombieman attack delay in Doom
         self.attack_cooldown = 0
 
         # Vision and detection
@@ -34,12 +34,17 @@ class Shotgunner(EnemyBase):
         # IMPORTANT: Randomize initial attack cooldown to prevent synchronized attacks
         self.attack_cooldown = random.randint(0, self.attack_delay)  # Random initial cooldown
 
-        # Attack animation timing - like Doom Zombieman
+        # Attack animation timing
         self.attack_animation_duration = 800  # Total attack animation time (ms)
         self.attack_frame_timer = 0
         self.attack_windup_time = 400  # Time before actually firing (ms)
         self.has_fired_shot = False  # Whether we've fired during this attack
         self.is_in_attack_sequence = False  # Whether we're in the middle of an attack animation
+
+        self.melee_range = 32  # Distance de mêlée
+        self.melee_damage = 10
+        self.last_melee_time = 0
+        self.melee_cooldown = 1000  # 1 seconde
 
         # IMPROVED: Unique movement AI per enemy instance
         self.movement_timer = 0
@@ -68,7 +73,8 @@ class Shotgunner(EnemyBase):
         self.spread_factor = random.uniform(0.8, 1.2)  # How much to spread out from others
 
         try:
-            self.sfx_attack = load_sound("assets/sounds/enemies/shotgunner_shoot.wav")
+            self.sfx_attack_melee = load_sound("assets/sounds/enemies/serpentipede_attack_near.wav")
+            self.sfx_attack_ranged = load_sound("assets/sounds/enemies/serpentipede_shoot.wav")
         except:
             self.sfx_attack = None
 
@@ -128,6 +134,17 @@ class Shotgunner(EnemyBase):
         if self.is_alerted and can_see_player:
             if not self.is_in_attack_sequence:
                 self.facing_direction_override = self.get_facing_direction(player.x, player.y)
+
+            now = pg.time.get_ticks()
+            if dist <= self.melee_range and (now - self.last_melee_time >= self.melee_cooldown):
+                self.facing_direction_override = self.get_facing_direction(player.x, player.y)
+                self.state = "attack"
+                self.last_melee_time = now
+                player.take_damage(self.melee_damage)
+                if self.sfx_attack:
+                    self.sfx_attack.play()
+                return
+
             if self.attack_cooldown <= 0:
                 additional_delay = random.randint(0, 800)
                 if additional_delay > 600:
@@ -195,59 +212,23 @@ class Shotgunner(EnemyBase):
         if not self.target:
             return
 
-        # Set facing direction towards target when firing
         self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
 
         dx = self.target.x - self.x
         dy = self.target.y - self.y
-        dist = math.hypot(dx, dy)
+        angle = math.atan2(dy, dx)
 
-        # Improved accuracy system - more forgiving but still distance-based
-        base_accuracy = 0.85  # High base accuracy
+        projectile = SerpentipedeFireball(
+            game=self.level.game,
+            x=self.x,
+            y=self.y,
+            angle=angle
+        )
 
-        # More gradual distance penalty
-        if dist <= 150:
-            # Very close range - almost always hit
-            distance_penalty = 0.0
-        elif dist <= 300:
-            # Close range - small penalty
-            distance_penalty = 0.1
-        elif dist <= 500:
-            # Medium range - moderate penalty
-            distance_penalty = 0.25
-        else:
-            # Long range - larger penalty but not too harsh
-            distance_penalty = min((dist - 500) / 800.0, 0.4)  # Max 40% penalty
+        self.level.game.projectiles.append(projectile)
 
-        accuracy = base_accuracy - distance_penalty
-
-        # Player movement penalty - if player is moving fast, harder to hit
-        if hasattr(self.target, 'velocity'):
-            player_speed = math.hypot(getattr(self.target.velocity, 'x', 0),
-                                      getattr(self.target.velocity, 'y', 0))
-            if player_speed > 100:  # Player moving fast
-                accuracy -= 0.15
-
-        # Small random miss chance (reduced from 10% to 5%)
-        if random.random() < 0.05:
-            accuracy *= 0.3  # Reduce accuracy significantly but don't make it 0
-
-        # Ensure minimum accuracy
-        accuracy = max(accuracy, 0.25)  # At least 25% chance to hit even at worst
-
-        if random.random() < accuracy:
-            # Hit - calculate damage with slight variation
-            base_damage = random.randint(8, 15)  # More consistent damage
-
-            # Distance-based damage falloff (slight)
-            if dist > 400:
-                base_damage = int(base_damage * 0.85)  # 15% damage reduction at long range
-
-            self.target.take_damage(base_damage)
-
-        # Play attack sound
-        if self.sfx_attack:
-            self.sfx_attack.play()
+        if self.sfx_attack_ranged:
+            self.sfx_attack_ranged.play()
 
     def end_attack_sequence(self):
         """End the attack sequence and return to normal behavior"""
@@ -538,14 +519,11 @@ class Shotgunner(EnemyBase):
             self.state = "idle"
 
     def drop_loot(self):
-        self.level.pickups.append(
-            AmmoPickup(self.x, self.y, ammo_type="shells", amount=4,
-                       sprite_path="assets/pickups/ammo/ammo_fourshells.png", label="4 SHELLS")
-        )
+        pass
 
     def take_damage(self, amount, splash=False, direct_hit=True):
+        """Override to implement pain/alert behavior"""
         if not self.alive:
-            print("hello")
             return
 
         # Taking damage always alerts the enemy (like Doom)

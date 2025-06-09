@@ -156,3 +156,7 @@ def load_animation_set(folder):
 
     print("Frames HIT =", animations.get("hit"))
     return animations
+
+
+def load_animation():
+    return None
