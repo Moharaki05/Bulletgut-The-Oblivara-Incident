@@ -7,11 +7,10 @@ from entities.pickups.key_pickup import KeyPickup
 from entities.shotgunner import Shotgunner
 from entities.serpentipede import Serpentipede
 from entities.plutonworm import PlutonWorm
-# (Gunner, Shotgunner, Serpentipede, Plutonworm)
 from entities.pickups.ammo_pickup import AmmoPickup
 from entities.pickups.item_pickup import ItemPickup
 from entities.pickups.weapon_pickup import WeaponPickup
-
+from entities.level_exit import LevelExit
 
 class Level:
     def __init__(self, filename):
@@ -37,6 +36,8 @@ class Level:
         self.spawn_point = self.get_player_spawn()
         self.doors = self.load_doors()
         self.pickups = self.load_pickups()
+
+        self.level_exits = self.load_level_exits()
 
 
         # Store closed door GIDs for rendering
@@ -358,5 +359,21 @@ class Level:
         # Aucun mouvement possible
         return current_x, current_y
 
+    def load_level_exits(self):
+        """Charge les sorties de niveau depuis la carte Tiled"""
+        level_exits = []
+        for obj in self.tmx_data.objects:
+            if obj.type == "level_exit" or (hasattr(obj, 'name') and obj.name == "level_exit"):
+                x = obj.x
+                y = obj.y
+
+                # Récupérer le chemin du niveau suivant depuis les propriétés
+                next_level = obj.properties.get("next_level", None)
+
+                level_exit = LevelExit(x, y, next_level)
+                level_exits.append(level_exit)
+                print(f"[DEBUG] Level exit loaded at ({x}, {y}) -> {next_level}")
+
+        return level_exits
 
 

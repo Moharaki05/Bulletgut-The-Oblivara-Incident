@@ -15,6 +15,7 @@ class AmmoPickup(Pickup):
         self.ammo_type = ammo_type
         self.amount = amount
         self.label = label
+        self.pickup_type = "ammo"
 
     def on_pickup(self, player, game):
         current = player.ammo[self.ammo_type]

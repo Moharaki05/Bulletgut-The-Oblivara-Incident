@@ -7,6 +7,7 @@ class ItemPickup(Pickup):
         super().__init__(x, y, image)
         self.item_type = item_type
         self.amount = amount
+        self.pickup_type = "item"
 
     def on_pickup(self, player, game):
         pickup_messages = {

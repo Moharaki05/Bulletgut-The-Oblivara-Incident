@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="11" nextobjectid="72">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="11" nextobjectid="73">
  <properties>
   <property name="floor_color" value="#1e1e1e"/>
  </properties>
@@ -30,7 +30,7 @@
  <layer id="2" name="Walls" width="30" height="17">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,42,42,43,42,45,42,9,42,42,42,42,42,42,42,42,42,42,42,0,0,0,0,0,
+0,0,0,0,0,0,0,42,42,43,42,45,42,42,42,42,42,42,42,42,42,42,42,42,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
@@ -56,11 +56,11 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,51,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -75,15 +75,15 @@
   </object>
  </objectgroup>
  <objectgroup id="6" name="DoorsObj">
-  <object id="10" type="door" x="1344.33" y="384.167" width="64" height="64">
+  <object id="10" type="door" x="1536.03" y="512.228" width="64" height="64">
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
-    <property name="axis" value="x"/>
+    <property name="axis" value="y"/>
     <property name="required_key" value="red"/>
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>
-  <object id="14" type="door" x="1344.09" y="640.288" width="64" height="64">
+  <object id="14" type="door" x="1344.33" y="384.227" width="64" height="64">
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
     <property name="axis" value="x"/>
@@ -91,19 +91,19 @@
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>
-  <object id="12" type="door" x="1536.5" y="512" width="64" height="64">
-   <properties>
-    <property name="auto_close_time" type="float" value="3"/>
-    <property name="axis" value="y"/>
-    <property name="required_key" value="yellow"/>
-    <property name="thickness" type="float" value="1"/>
-   </properties>
-  </object>
   <object id="13" type="door" x="448" y="512.25" width="64" height="64">
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
     <property name="axis" value="y"/>
     <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="0.2"/>
+   </properties>
+  </object>
+  <object id="72" type="door" x="1344.33" y="640" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="x"/>
+    <property name="required_key" value="yellow"/>
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>
@@ -233,7 +233,7 @@
    </properties>
    <point/>
   </object>
-  <object id="68" name="key_red" type="Item" x="676" y="334">
+  <object id="68" name="key_red" type="Item" x="1324" y="223.333">
    <properties>
     <property name="amount" type="int" value="0"/>
     <property name="item_type" value="item"/>
@@ -241,7 +241,7 @@
    </properties>
    <point/>
   </object>
-  <object id="69" name="key_yellow" type="Item" x="1371.33" y="563.333">
+  <object id="69" name="key_yellow" type="Item" x="636.667" y="355.333">
    <properties>
     <property name="amount" type="int" value="0"/>
     <property name="item_type" value="item"/>
@@ -249,7 +249,7 @@
    </properties>
    <point/>
   </object>
-  <object id="70" name="key_blue" type="Item" x="1694" y="732">
+  <object id="70" name="key_blue" type="Item" x="1450" y="776">
    <properties>
     <property name="amount" type="int" value="0"/>
     <property name="item_type" value="item"/>
@@ -258,7 +258,11 @@
    <point/>
   </object>
  </objectgroup>
- <objectgroup id="10" name="LevelExit">
-  <object id="71" name="level_exit" type="level_exit" x="1785.33" y="512.104" width="71.3333" height="63.8958"/>
+ <objectgroup id="10" name="EndLevel">
+  <object id="71" x="1792" y="512.5" width="63.5" height="64.75">
+   <properties>
+    <property name="end_level" type="bool" value="true"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

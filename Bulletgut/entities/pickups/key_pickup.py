@@ -4,6 +4,7 @@ class KeyPickup(ItemPickup):
     def __init__(self, x, y, color):
         self.color = color
         self.suppress_message = True
+        self.pickup_type = "key"
         item_type = f"key_{color}"
         amount = 0
         sprite_path = f"assets/pickups/keys/key_{color}.png"

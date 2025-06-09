@@ -9,6 +9,7 @@ class WeaponPickup(Pickup):
         self.weapon_name = weapon_name
         self.ammo_type = ammo_type
         self.amount = amount
+        self.pickup_type = "weapon"
 
     def on_pickup(self, player, game):
         slot = WEAPON_SLOTS.get(self.weapon_name)

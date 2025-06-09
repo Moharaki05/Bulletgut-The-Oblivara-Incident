@@ -6,7 +6,8 @@ from engine.raycaster import Raycaster
 from entities.player import Player
 from engine.level import Level
 from ui.hud import HUD
-
+from ui.level_stats import LevelStats
+from entities.level_exit import LevelExit
 
 class Game:
     def __init__(self):
@@ -51,9 +52,23 @@ class Game:
         self.take_restart_screenshot = False
         self.pending_restart = False
         self.has_restarted = False
+        self.pending_level_change = False
 
         # UI
         self.hud = HUD(self.screen)
+
+        # Système de transition entre niveaux
+        self.level_stats = LevelStats()
+        self.level_complete = False
+        self.show_level_stats = False
+        self.next_level_path = None
+
+        # Statistiques de niveau
+        self.enemies_killed = 0
+        self.initial_enemy_count = len(self.enemies)
+        self.items_collected = 0
+        self.initial_item_count = len([pickup for pickup in self.level.pickups
+                                       if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo'])
 
     def handle_events(self):
         self.mouse_dx = 0
@@ -86,9 +101,28 @@ class Game:
                         self.player.weapon.release_trigger()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_e:
+                    # Vérifier les portes
                     for door in self.level.doors:
                         if self.is_near_door(door):
                             door.toggle(self)
+                            break
+                    else:
+                        # Si aucune porte n'est proche, vérifier les sorties de niveau
+                        for level_exit in self.level.level_exits:
+                            if level_exit.is_player_near(self.player):
+                                if level_exit.activate():
+                                    self.trigger_level_complete(level_exit.next_level)
+                                break
+
+                if event.key == pg.K_RETURN:
+                    if self.show_level_stats and not self.restart_anim_in_progress:
+                        # Commencer la transition vers le niveau suivant
+                        self.hud.render(self.player, self)
+                        self.restart_anim_surface = self.screen.copy()
+                        self.restart_anim_in_progress = True
+                        self.restart_anim_done = False
+                        self.has_restarted = False
+                        self.pending_level_change = True
                 # Debug events
                 if event.key == pg.K_ESCAPE:
                     self.running = False
@@ -112,8 +146,11 @@ class Game:
             self.update_restart_transition()
 
         if self.has_restarted:
-            self.reload_level()
-            self.pending_restart = False
+            if self.pending_level_change:
+                self.load_next_level()
+                self.pending_level_change = False
+            else:
+                self.reload_level()
             self.restart_anim_in_progress = False
             return
 
@@ -123,14 +160,27 @@ class Game:
         if self.player.damage_flash_timer > 0:
             self.player.damage_flash_timer = max(0.0, self.player.damage_flash_timer - dt)
 
+        collected_items_this_frame = 0
         for pickup in self.level.pickups:
+            was_picked_up = pickup.picked_up
             pickup.update(self.player, self)
+            if not was_picked_up and pickup.picked_up:
+                if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo':
+                    collected_items_this_frame += 1
+
+        self.items_collected += collected_items_this_frame
 
         for door in self.level.doors:
             door.update(dt)
 
+        dead_enemies_this_frame = 0
         for enemy in self.level.enemies:
+            was_alive = enemy.alive
             enemy.update(self.player, dt)
+            if was_alive and not enemy.alive:
+                dead_enemies_this_frame += 1
+
+        self.enemies_killed += dead_enemies_this_frame
 
         if not self.player.alive and not self.hud.messages.has_death_message:
             self.hud.messages.add("YOU DIED. CLICK TO RESTART.", (255, 0, 0))
@@ -178,6 +228,10 @@ class Game:
         self.hud.render(self.player, self)
         self.draw_restart_transition()
 
+        if self.show_level_stats:
+            self.level_stats.render(self.screen, self.enemies_killed, self.initial_enemy_count,
+                                    self.items_collected, self.initial_item_count)
+
         pg.display.flip()
 
     def run(self):
@@ -222,6 +276,19 @@ class Game:
         self.has_restarted = False
         self.restart_anim_in_progress = False
 
+        # Réinitialiser les états de transition de niveau
+        self.level_complete = False
+        self.show_level_stats = False
+        self.next_level_path = None
+        self.pending_level_change = False
+
+        # Réinitialiser les statistiques
+        self.enemies_killed = 0
+        self.initial_enemy_count = len(self.enemies)
+        self.items_collected = 0
+        self.initial_item_count = len([pickup for pickup in self.level.pickups
+                                       if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo'])
+
     def draw_restart_transition(self):
         if not self.restart_anim_surface:
             return
@@ -250,3 +317,47 @@ class Game:
         self.draw_restart_transition()
         if self.restart_anim_done and not self.has_restarted:
            self.has_restarted = True
+
+    def trigger_level_complete(self, next_level_path):
+        """Déclenche la fin de niveau et affiche les statistiques"""
+        if not self.level_complete:
+            self.level_complete = True
+            self.show_level_stats = True
+            self.next_level_path = next_level_path
+            print(f"[LEVEL] Level completed! Next: {next_level_path}")
+
+    def load_next_level(self):
+        """Charge le niveau suivant"""
+        if self.next_level_path:
+            try:
+                self.level = Level(self.next_level_path)
+                self.level.game = self
+                spawn_x, spawn_y = self.level.spawn_point
+                self.player = Player(spawn_x, spawn_y)
+                self.player.initialize_weapons(self)
+                self.raycaster = Raycaster(self.level, self.player)
+                self.projectiles.clear()
+                self.effects.clear()
+                self.enemies.clear()
+
+                # Réinitialiser les statistiques
+                self.enemies_killed = 0
+                self.initial_enemy_count = len(self.level.enemies)
+                self.items_collected = 0
+                self.initial_item_count = len([pickup for pickup in self.level.pickups
+                                               if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo'])
+
+                # Réinitialiser les états
+                self.level_complete = False
+                self.show_level_stats = False
+                self.next_level_path = None
+                self.has_restarted = False
+                self.restart_anim_in_progress = False
+
+                print(f"[LEVEL] Successfully loaded: {self.next_level_path}")
+            except Exception as e:
+                print(f"[ERROR] Failed to load next level: {e}")
+                self.reload_level()  # Fallback sur le niveau actuel
+        else:
+            print("[LEVEL] No next level specified, reloading current level")
+            self.reload_level()
