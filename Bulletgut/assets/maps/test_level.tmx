@@ -60,7 +60,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,51,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -87,7 +87,7 @@
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
     <property name="axis" value="x"/>
-    <property name="required_key" value="None"/>
+    <property name="required_key" value="blue"/>
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>
@@ -140,7 +140,7 @@
    </properties>
    <point/>
   </object>
-  <object id="29" name="bullets" type="Ammo" x="1680" y="666">
+  <object id="29" name="bullets" type="Ammo" x="1720" y="600">
    <properties>
     <property name="ammo_type" value="bullets"/>
     <property name="amount" type="int" value="50"/>
@@ -249,7 +249,7 @@
    </properties>
    <point/>
   </object>
-  <object id="70" name="key_blue" type="Item" x="772" y="308">
+  <object id="70" name="key_blue" type="Item" x="1694" y="732">
    <properties>
     <property name="amount" type="int" value="0"/>
     <property name="item_type" value="item"/>

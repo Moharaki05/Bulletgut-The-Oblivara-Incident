@@ -75,8 +75,6 @@ class HUD:
         if not game.player.alive:
             self.last_rendered_surface = self.screen.subsurface(pg.Rect(0, 720, 1280, 128)).copy()
 
-        self.messages.render(self.screen)
-
         # Affichage des clés dans les emplacements DOOM
         base_x = 890  # ajuster selon ton image StatsBar
         base_y = 775  # 720 + 18 pour le centre du slot
@@ -87,4 +85,7 @@ class HUD:
             self.screen.blit(self.key_icons["blue"], (base_x, base_y))  # milieu
         if "yellow" in player.keys:
             self.screen.blit(self.key_icons["yellow"], (base_x, base_y + 40))  # bas
+
+        self.messages.render(self.screen)
+
 
