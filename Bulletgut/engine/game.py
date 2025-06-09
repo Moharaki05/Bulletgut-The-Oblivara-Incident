@@ -10,6 +10,7 @@ from ui.level_stats import LevelStats
 from entities.level_exit import LevelExit
 from ui.intermission import IntermissionScreen
 
+
 class Game:
     def __init__(self):
         pg.init()
@@ -22,7 +23,7 @@ class Game:
         pg.event.set_grab(True)
         pg.mouse.set_visible(False)
 
-        #TODO : Add player, levels, HUD, etc.
+        # TODO : Add player, levels, HUD, etc.
         self.level = Level("assets/maps/test_level.tmx")
         self.level.game = self
         spawn_x, spawn_y = self.level.spawn_point
@@ -37,7 +38,7 @@ class Game:
 
         # Système d'armes
         self.projectiles = []
-        self.effects=[]
+        self.effects = []
 
         # Initialiser les armes
         self.player.initialize_weapons(self)
@@ -58,11 +59,12 @@ class Game:
         # UI
         self.hud = HUD(self.screen)
 
-        # Système de transition entre niveaux - NOUVEAU
+        # Système de transition entre niveaux
         self.intermission_screen = IntermissionScreen()
         self.level_complete = False
-        self.show_intermission = False  # Remplace show_level_stats
+        self.show_intermission = False
         self.next_level_path = None
+        self.intermission_transition_started = False  # NOUVEAU
 
         # Statistiques de niveau
         self.enemies_killed = 0
@@ -89,8 +91,6 @@ class Game:
                         self.restart_anim_in_progress = True
                         self.restart_anim_done = False
                         self.has_restarted = False
-                        # self.restart_anim_columns = [0] * (SCREEN_WIDTH // self.restart_anim_col_width)
-                        # self.restart_anim_speeds = [random.randint(8, 20) for _ in self.restart_anim_columns]
                 if event.button == 4:  # Molette vers le haut
                     self.player.switch_weapon(-1)
                 elif event.button == 5:  # Molette vers le bas
@@ -116,7 +116,10 @@ class Game:
                                 break
 
                 if event.key == pg.K_RETURN:
-                    if self.show_intermission and not self.restart_anim_in_progress:
+                    # Seulement si l'intermission est affichée ET que la transition est terminée
+                    if (self.show_intermission and
+                            self.intermission_screen.is_transition_complete() and
+                            not self.restart_anim_in_progress):
                         # Commencer la transition vers le niveau suivant
                         self.hud.render(self.player, self)
                         self.restart_anim_surface = self.screen.copy()
@@ -124,12 +127,10 @@ class Game:
                         self.restart_anim_done = False
                         self.has_restarted = False
                         self.pending_level_change = True
+
                 # Debug events
                 if event.key == pg.K_ESCAPE:
                     self.running = False
-                # if event.key == pg.K_p:
-                #     self.player.take_damage(10)
-
 
     def is_near_door(self, door):
         px, py = self.player.get_position()
@@ -139,8 +140,8 @@ class Game:
         return dist_squared <= (TILE_SIZE * 2.1) ** 2  # Adjust 1.1 as needed
 
     def update(self):
-        #later: update player, enemies, projectiles, etc.
-        dt = self.clock.tick(FPS) / 1000 # Delta time in seconds
+        # later: update player, enemies, projectiles, etc.
+        dt = self.clock.tick(FPS) / 1000  # Delta time in seconds
         pg.display.set_caption(f"Bulletgut : The Oblivara Incident - FPS: {self.clock.get_fps():.2f}")
 
         if self.restart_anim_in_progress:
@@ -154,6 +155,14 @@ class Game:
                 self.reload_level()
             self.restart_anim_in_progress = False
             return
+
+        # NOUVEAU: Gérer la transition vers l'intermission
+        if self.level_complete and not self.intermission_transition_started:
+            # Capturer l'écran actuel pour la transition rideau
+            self.render_game_without_intermission()  # Rendre le jeu une dernière fois
+            self.intermission_screen.start_transition(self.screen)
+            self.intermission_transition_started = True
+            self.show_intermission = True
 
         if self.show_intermission:
             # Seule l'animation de l'écran d'intermission est autorisée
@@ -202,6 +211,19 @@ class Game:
         self.effects = [e for e in self.effects if e.update()]
 
     def render(self):
+        if self.show_intermission:
+            # Afficher l'écran d'intermission avec sa transition
+            self.intermission_screen.render(self.screen, self.enemies_killed, self.initial_enemy_count,
+                                            self.items_collected, self.initial_item_count)
+        else:
+            # Rendu normal du jeu
+            self.render_game_without_intermission()
+
+        self.draw_restart_transition()
+        pg.display.flip()
+
+    def render_game_without_intermission(self):
+        """Rend le jeu normal sans l'écran d'intermission"""
         self.screen.fill((0, 0, 0))
 
         self.raycaster.cast_rays(self.render_surface, self.player, self.level.floor_color)
@@ -232,13 +254,6 @@ class Game:
             self.screen.blit(flash_surface, (0, 0))
 
         self.hud.render(self.player, self)
-        self.draw_restart_transition()
-
-        if self.show_intermission:
-            self.intermission_screen.render(self.screen, self.enemies_killed, self.initial_enemy_count,
-                                            self.items_collected, self.initial_item_count)
-
-        pg.display.flip()
 
     def run(self):
         while self.running:
@@ -283,9 +298,10 @@ class Game:
         self.restart_anim_in_progress = False
 
         self.level_complete = False
-        self.show_intermission = False  # Remplace show_level_stats
+        self.show_intermission = False
         self.next_level_path = None
         self.pending_level_change = False
+        self.intermission_transition_started = False  # NOUVEAU
 
         # Réinitialiser les statistiques
         self.enemies_killed = 0
@@ -321,14 +337,15 @@ class Game:
     def update_restart_transition(self):
         self.draw_restart_transition()
         if self.restart_anim_done and not self.has_restarted:
-           self.has_restarted = True
+            self.has_restarted = True
 
     def trigger_level_complete(self, next_level_path):
-        """Déclenche la fin de niveau et affiche l'écran d'intermission"""
+        """Déclenche la fin de niveau et prépare l'écran d'intermission"""
         if not self.level_complete:
             self.level_complete = True
-            self.show_intermission = True  # Remplace show_level_stats
             self.next_level_path = next_level_path
+            # Ne pas afficher immédiatement l'intermission,
+            # elle sera affichée avec transition dans update()
             print(f"[LEVEL] Level completed! Next: {next_level_path}")
 
     def load_next_level(self):
@@ -353,10 +370,11 @@ class Game:
                                                if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo'])
 
                 self.level_complete = False
-                self.show_intermission = False  # Remplace show_level_stats
+                self.show_intermission = False
                 self.next_level_path = None
                 self.has_restarted = False
                 self.restart_anim_in_progress = False
+                self.intermission_transition_started = False  # NOUVEAU
 
                 print(f"[LEVEL] Successfully loaded: {self.next_level_path}")
             except Exception as e:
