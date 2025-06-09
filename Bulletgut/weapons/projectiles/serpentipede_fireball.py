@@ -1,6 +1,5 @@
 import math
 import pygame as pg
-
 from utils.assets import load_image
 from weapons.projectiles.projectile import Projectile
 from effects.explosion import Explosion

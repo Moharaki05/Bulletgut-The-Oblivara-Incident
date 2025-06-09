@@ -5,6 +5,7 @@ from entities.door import Door
 from entities.gunner import Gunner
 from entities.shotgunner import Shotgunner
 from entities.serpentipede import Serpentipede
+from entities.plutonworm import PlutonWorm
 # (Gunner, Shotgunner, Serpentipede, Plutonworm)
 from entities.pickups.ammo_pickup import AmmoPickup
 from entities.pickups.item_pickup import ItemPickup
@@ -54,10 +55,12 @@ class Level:
         return grid
 
     def is_blocked(self, x, y):
-        """Version améliorée de is_blocked inspirée de DUGA"""
+        """Version corrigée de is_blocked avec gestion robuste des collisions"""
+        # Conversion en coordonnées de grille avec gestion des cas limites
         tx = int(x // TILE_SIZE)
         ty = int(y // TILE_SIZE)
 
+        # Vérifier les limites de la carte
         if not (0 <= tx < self.map_width and 0 <= ty < self.map_height):
             return True
 
@@ -65,58 +68,53 @@ class Level:
         if self.collision_map[ty][tx] == 1:
             return True
 
-        # Vérifier collision avec les portes de manière plus précise
+        # Vérifier collision avec les portes
         for door in self.doors:
-            if door.grid_x == tx and door.grid_y == ty:
-                if door.is_blocking():
-                    # Vérification plus fine basée sur les bounds réels
-                    bounds = door.get_door_bounds()
-                    if (bounds["min_x"] <= x <= bounds["max_x"] and
-                            bounds["min_y"] <= y <= bounds["max_y"]):
-                        return True
+            if door.grid_x == tx and door.grid_y == ty and door.is_blocking():
+                return True
 
         return False
 
     def is_rect_blocked(self, rect):
-        """Check if any part of the rectangle collides with walls"""
-        # Sample points around the rectangle perimeter
-        sample_points = []
+        """Version améliorée de is_rect_blocked avec plus de points de test"""
+        # Points de test plus nombreux pour une détection précise
+        test_points = []
 
-        # Corner points
-        sample_points.extend([
+        # Points aux coins
+        test_points.extend([
             (rect.left, rect.top),
             (rect.right - 1, rect.top),
             (rect.left, rect.bottom - 1),
             (rect.right - 1, rect.bottom - 1)
         ])
 
-        # Edge midpoints
-        sample_points.extend([
+        # Points au centre des bords
+        test_points.extend([
             (rect.centerx, rect.top),
             (rect.centerx, rect.bottom - 1),
             (rect.left, rect.centery),
             (rect.right - 1, rect.centery)
         ])
 
-        # Additional samples for larger rectangles
-        if rect.width > TILE_SIZE:
-            step = TILE_SIZE // 2
-            for x in range(rect.left + step, rect.right, step):
-                sample_points.extend([
-                    (x, rect.top),
-                    (x, rect.bottom - 1)
-                ])
+        # Points supplémentaires pour les grandes entités
+        step_size = min(TILE_SIZE // 4, 8)  # Pas plus petit mais suffisant
 
-        if rect.height > TILE_SIZE:
-            step = TILE_SIZE // 2
-            for y in range(rect.top + step, rect.bottom, step):
-                sample_points.extend([
-                    (rect.left, y),
-                    (rect.right - 1, y)
-                ])
+        # Échantillonnage horizontal
+        for x in range(rect.left + step_size, rect.right, step_size):
+            test_points.extend([
+                (x, rect.top),
+                (x, rect.bottom - 1)
+            ])
 
-        # Check all sample points
-        for point_x, point_y in sample_points:
+        # Échantillonnage vertical
+        for y in range(rect.top + step_size, rect.bottom, step_size):
+            test_points.extend([
+                (rect.left, y),
+                (rect.right - 1, y)
+            ])
+
+        # Tester tous les points
+        for point_x, point_y in test_points:
             if self.is_blocked(point_x, point_y):
                 return True
 
@@ -262,8 +260,8 @@ class Level:
                     serpent = Serpentipede(x, y, self)
                     serpent.game = self.game  # ← Ajout ici
                     enemies.append(serpent)
-                # elif enemy_type == "plutonworm":
-                #     enemies.append(Plutonworm(x, y, self))
+                elif enemy_type == "plutonworm":
+                    enemies.append(PlutonWorm(x, y, self))
                 else:
                     print(f"[Erreur] Type d'ennemi inconnu : {enemy_type}")
         return enemies
@@ -301,6 +299,47 @@ class Level:
                 pickups.append(ItemPickup(x, y, item_type, amount, sprite))
 
         return pickups
+
+    def check_movement_collision(self, current_rect, new_x, new_y):
+        """Méthode pour vérifier les collisions lors du mouvement"""
+        # Créer le nouveau rectangle à la position proposée
+        new_rect = pg.Rect(new_x, new_y, current_rect.width, current_rect.height)
+
+        # Vérifier si le nouveau rectangle entre en collision
+        return self.is_rect_blocked(new_rect)
+
+    def get_valid_position(self, current_rect, target_x, target_y):
+        """Version qui réduit le glissement contre les murs"""
+        current_x, current_y = current_rect.x, current_rect.y
+
+        # Essayer la position exacte d'abord
+        new_rect = pg.Rect(target_x, target_y, current_rect.width, current_rect.height)
+        if not self.is_rect_blocked(new_rect):
+            return target_x, target_y
+
+        # Calculer les deltas de mouvement
+        dx = target_x - current_x
+        dy = target_y - current_y
+
+        # Facteur de réduction du glissement (0.0 = pas de glissement, 1.0 = glissement complet)
+        slide_factor = 0.3  # Réduit le glissement à 30% du mouvement original
+
+        # Tester le mouvement horizontal avec réduction
+        if abs(dx) > 0.1:
+            reduced_target_x = current_x + (dx * slide_factor)
+            x_only_rect = pg.Rect(reduced_target_x, current_y, current_rect.width, current_rect.height)
+            if not self.is_rect_blocked_improved(x_only_rect):
+                return reduced_target_x, current_y
+
+        # Tester le mouvement vertical avec réduction
+        if abs(dy) > 0.1:
+            reduced_target_y = current_y + (dy * slide_factor)
+            y_only_rect = pg.Rect(current_x, reduced_target_y, current_rect.width, current_rect.height)
+            if not self.is_rect_blocked_improved(y_only_rect):
+                return current_x, reduced_target_y
+
+        # Aucun mouvement possible
+        return current_x, current_y
 
 
 

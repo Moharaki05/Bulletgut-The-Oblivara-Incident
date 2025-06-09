@@ -104,7 +104,7 @@ class Player:
         if keys[pg.K_w] or keys[pg.K_s] or keys[pg.K_a] or keys[pg.K_d]:
             self.moving = True
 
-            # Apply movement with improved collision detection
+        # NOUVELLE VERSION : Utiliser les méthodes améliorées du level
         if level:
             self.x, self.y = self.get_safe_position(level, original_x, original_y, new_x, new_y)
         else:
@@ -112,7 +112,7 @@ class Player:
 
         # Mouse rotation
         self.handle_mouse_movement(mouse_dx)
-        self.angle %= 2 * math.pi # Keep an angle between 0 and 2pi
+        self.angle %= 2 * math.pi
         self.rect.center = (self.x, self.y)
 
         if hasattr(game, "enemies"):
@@ -157,19 +157,37 @@ class Player:
         return False
 
     def get_safe_position(self, level, old_x, old_y, new_x, new_y):
-        # If no collision, return the new position
-        if not self.check_collision(level, new_x, new_y):
+        """Version qui réduit le glissement contre les murs"""
+        # Créer un rectangle de collision centré sur le joueur
+        collision_rect = pg.Rect(0, 0, self.collision_radius * 2, self.collision_radius * 2)
+
+        # Tester la nouvelle position
+        collision_rect.center = (new_x, new_y)
+        if not level.is_rect_blocked(collision_rect):
             return new_x, new_y
 
-        # Try moving along x-axis only
-        if not self.check_collision(level, new_x, old_y):
-            return new_x, old_y
+        # Calculer les deltas de mouvement
+        dx = new_x - old_x
+        dy = new_y - old_y
 
-        # Try moving along y-axis only
-        if not self.check_collision(level, old_x, new_y):
-            return old_x, new_y
+        # Facteur de réduction du glissement (ajustable)
+        slide_factor = 0.25  # 25% du mouvement original pour le glissement
 
-        # Can't move, return original position
+        # Tester mouvement horizontal réduit
+        if abs(dx) > 0.1:
+            reduced_x = old_x + (dx * slide_factor)
+            collision_rect.center = (reduced_x, old_y)
+            if not level.is_rect_blocked(collision_rect):
+                return reduced_x, old_y
+
+        # Tester mouvement vertical réduit
+        if abs(dy) > 0.1:
+            reduced_y = old_y + (dy * slide_factor)
+            collision_rect.center = (old_x, reduced_y)
+            if not level.is_rect_blocked(collision_rect):
+                return old_x, reduced_y
+
+        # Aucun mouvement possible
         return old_x, old_y
 
     def get_position(self):

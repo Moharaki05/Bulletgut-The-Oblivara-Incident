@@ -202,6 +202,7 @@ class EnemyBase:
 
     # Updated move() method in enemy_base.py
     def move(self, dx, dy):
+        moved = False
         old_x, old_y = self.x, self.y
         self.x += dx
         self.y += dy
