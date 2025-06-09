@@ -75,11 +75,9 @@ class Serpentipede(EnemyBase):
         try:
             self.sfx_attack_melee = load_sound("assets/sounds/enemies/serpentipede_attack_near.wav")
             self.sfx_attack_ranged = load_sound("assets/sounds/enemies/serpentipede_shoot.wav")
-            self.sfx_sight = load_sound("assets/sounds/enemies/serpentipede_sight.wav")  # Alert sound
         except:
             self.sfx_attack_melee = None
             self.sfx_attack_ranged = None
-            self.sfx_sight = None
 
     def update(self, player, dt):
         if not self.alive:
@@ -127,9 +125,6 @@ class Serpentipede(EnemyBase):
         # Alert behavior - once seen, stay alerted
         if can_see_player and not self.is_alerted:
             self.is_alerted = True
-            # Play sight sound like Doom Imp
-            if self.sfx_sight:
-                self.sfx_sight.play()
             # Add some delay before first attack
             spot_delay = random.randint(200, 800)
             self.attack_cooldown = max(self.attack_cooldown, spot_delay)
@@ -191,8 +186,6 @@ class Serpentipede(EnemyBase):
             # Not alerted, patrol normally
             if can_see_player:
                 self.is_alerted = True
-                if self.sfx_sight:
-                    self.sfx_sight.play()
             else:
                 self.patrol(dt)
 
@@ -247,38 +240,25 @@ class Serpentipede(EnemyBase):
         self.attack_cooldown = max(self.attack_cooldown, 1000)  # Minimum 1 second
 
     def fire_projectile(self):
-        """Fire the actual fireball projectile"""
-        if not self.target:
-            return
-
-        # Ensure we're facing the target
-        self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
-
-        # Calculate direction to target
-        dx = self.target.x - self.x
-        dy = self.target.y - self.y
+        self.sfx_attack_ranged.play()
+        player = self.level.game.player
+        dx, dy = player.x - self.x, player.y - self.y
         angle = math.atan2(dy, dx)
 
-        # Add slight random inaccuracy (like Doom)
-        accuracy_variance = 0.1  # radians
-        angle += random.uniform(-accuracy_variance, accuracy_variance)
+        # Décalage pour éviter que le projectile naisse dans l'ennemi
+        offset = 0.5
+        start_x = self.x + math.cos(angle) * offset
+        start_y = self.y + math.sin(angle) * offset
 
-        # Create and fire the projectile
-        try:
-            projectile = SerpentipedeFireball(
-                game=self.level.game,
-                x=self.x,
-                y=self.y,
-                angle=angle
-            )
-            self.level.game.projectiles.append(projectile)
+        projectile = SerpentipedeFireball(
+            game=self.level.game,
+            x=start_x,
+            y=start_y,
+            angle=angle,
+            owner=self
+        )
 
-            # Play ranged attack sound
-            if self.sfx_attack_ranged:
-                self.sfx_attack_ranged.play()
-
-        except Exception as e:
-            print(f"Error creating Serpentipede fireball: {e}")
+        self.level.game.projectiles.append(projectile)
 
     def end_attack_sequence(self):
         """End the attack sequence and return to normal behavior"""
