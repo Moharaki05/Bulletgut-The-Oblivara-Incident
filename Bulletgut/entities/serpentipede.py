@@ -10,73 +10,76 @@ class Serpentipede(EnemyBase):
     def __init__(self, x, y, level):
         super().__init__(x, y, level, "assets/sprites/enemies/serpentipede")
 
-        self.max_health = 60  # Zombieman has 20 HP
+        # Health and damage - similar to Doom Imp
+        self.max_health = 60
         self.health = self.max_health
-        self.damage = random.randint(1, 15)  # 1-5 * 3 damage range like Doom
-        self.speed = 1.0
-        self.attack_delay = 2500  # Zombieman attack delay in Doom
+        self.damage = random.randint(3, 24)  # Doom Imp damage range (3 * 1-8)
+        self.speed = 1.2  # Slightly faster than base
+        self.attack_delay = 1800  # Base attack delay (1.8 seconds)
         self.attack_cooldown = 0
 
-        # Vision and detection
-        self.vision_range = 800  # Very long range like Doom
-        self.wake_up_distance = 800  # Wake up when player is visible
-        self.alert_distance = 64  # Close combat distance
+        # Vision and detection - like Doom Imp
+        self.vision_range = 1024  # Long range vision
+        self.wake_up_distance = 1024  # Wake up when player is visible
+        self.alert_distance = 80  # Close combat distance
 
         # Attack behavior
-        self.min_attack_range = 0
-        self.max_attack_range = 1024  # Can attack at any visible range
+        self.min_attack_range = 64  # Minimum range for ranged attacks
+        self.max_attack_range = 1024  # Maximum attack range
+        self.melee_range = 48  # Melee attack range
+        self.melee_damage = 12  # Melee damage
+        self.melee_cooldown = 1200  # Melee attack cooldown
 
         # AI states
-        self.is_alerted = False  # Whether enemy has seen player
+        self.is_alerted = False
         self.chase_timer = 0
         self.last_attack_time = 0
-
-        # IMPORTANT: Randomize initial attack cooldown to prevent synchronized attacks
-        self.attack_cooldown = random.randint(0, self.attack_delay)  # Random initial cooldown
-
-        # Attack animation timing
-        self.attack_animation_duration = 800  # Total attack animation time (ms)
-        self.attack_frame_timer = 0
-        self.attack_windup_time = 400  # Time before actually firing (ms)
-        self.has_fired_shot = False  # Whether we've fired during this attack
-        self.is_in_attack_sequence = False  # Whether we're in the middle of an attack animation
-
-        self.melee_range = 32  # Distance de mêlée
-        self.melee_damage = 10
         self.last_melee_time = 0
-        self.melee_cooldown = 1000  # 1 seconde
 
-        # IMPROVED: Unique movement AI per enemy instance
+        # Attack animation system (like Doom)
+        self.attack_animation_duration = 1000  # 1 second total attack animation
+        self.attack_frame_timer = 0
+        self.attack_windup_time = 600  # Time before firing (wind-up)
+        self.has_fired_shot = False
+        self.is_in_attack_sequence = False
+
+        # Randomize initial attack cooldown to prevent sync
+        self.attack_cooldown = random.randint(0, self.attack_delay)
+
+        # Improved movement AI
         self.movement_timer = 0
-        self.movement_duration = random.randint(500, 1500)  # How long to move in current direction
-        self.current_movement_angle = 0  # Current movement direction
-        self.strafe_direction = random.choice([-1, 1])  # -1 for left, 1 for right
-        self.movement_mode = "direct"  # "direct", "strafe", "zigzag", "circle"
-        self.preferred_distance = random.randint(150, 300)  # Preferred distance from player
+        self.movement_duration = random.randint(800, 2000)
+        self.current_movement_angle = 0
+        self.strafe_direction = random.choice([-1, 1])
+        self.movement_mode = "direct"  # "direct", "strafe", "circle", "zigzag"
+        self.preferred_distance = random.randint(180, 320)
         self.dodge_timer = 0
         self.last_player_pos = None
 
-        # FIXED: Unique zigzag parameters per enemy to prevent clustering
-        self.zigzag_amplitude = random.uniform(0.6, 1.0)  # How wide the zigzag is
-        self.zigzag_frequency = random.uniform(1.5, 3.0)  # How fast to zigzag (Hz)
-        self.zigzag_phase_offset = random.uniform(0, 2 * math.pi)  # Phase offset for desync
-        self.zigzag_approach_bias = random.uniform(0.3, 0.7)  # How much to approach vs pure zigzag
+        # Unique movement parameters per enemy
+        self.zigzag_amplitude = random.uniform(0.7, 1.2)
+        self.zigzag_frequency = random.uniform(1.8, 2.8)
+        self.zigzag_phase_offset = random.uniform(0, 2 * math.pi)
+        self.zigzag_approach_bias = random.uniform(0.4, 0.8)
 
-        # FIXED: Unique circular movement parameters
-        self.circle_radius_preference = random.uniform(0.8, 1.3)  # Preferred radius multiplier
-        self.circle_rotation_speed = random.uniform(1.5, 2.5)  # Rotation speed (rad/s)
-        self.circle_phase_offset = random.uniform(0, 2 * math.pi)  # Starting angle
+        self.circle_radius_preference = random.uniform(0.9, 1.4)
+        self.circle_rotation_speed = random.uniform(1.8, 2.8)
+        self.circle_phase_offset = random.uniform(0, 2 * math.pi)
 
-        # FIXED: Individual positioning preferences to reduce clustering
-        self.personal_space_radius = random.randint(80, 120)  # How close to allow other enemies
-        self.formation_angle_preference = random.uniform(0, 2 * math.pi)  # Preferred angle around player
-        self.spread_factor = random.uniform(0.8, 1.2)  # How much to spread out from others
+        # Formation and spacing
+        self.personal_space_radius = random.randint(90, 140)
+        self.formation_angle_preference = random.uniform(0, 2 * math.pi)
+        self.spread_factor = random.uniform(0.9, 1.3)
 
+        # Sound effects
         try:
             self.sfx_attack_melee = load_sound("assets/sounds/enemies/serpentipede_attack_near.wav")
             self.sfx_attack_ranged = load_sound("assets/sounds/enemies/serpentipede_shoot.wav")
+            self.sfx_sight = load_sound("assets/sounds/enemies/serpentipede_sight.wav")  # Alert sound
         except:
-            self.sfx_attack = None
+            self.sfx_attack_melee = None
+            self.sfx_attack_ranged = None
+            self.sfx_sight = None
 
     def update(self, player, dt):
         if not self.alive:
@@ -88,7 +91,7 @@ class Serpentipede(EnemyBase):
         dy = player.y - self.y
         dist = math.hypot(dx, dy)
 
-        # Update cooldowns and attack sequence timing
+        # Update cooldowns and timers
         if self.attack_cooldown > 0:
             self.attack_cooldown -= dt * 1000
 
@@ -98,98 +101,129 @@ class Serpentipede(EnemyBase):
 
             # Fire the shot at the right moment in the animation
             if not self.has_fired_shot and self.attack_frame_timer >= self.attack_windup_time:
-                self.fire_shot()
+                self.fire_projectile()
                 self.has_fired_shot = True
 
             # Check if attack animation is complete
             if self.attack_frame_timer >= self.attack_animation_duration:
                 self.end_attack_sequence()
 
-            # During attack sequence, don't move or change state
+            # During attack sequence, maintain facing direction but don't move
             self.update_animation(dt)
             return
 
-        # IMPORTANT: Handle hit state FIRST and exit early if in hit state
+        # Handle hit state FIRST
         if self.state == "hit":
             self.hit_timer += dt
             if self.hit_timer >= self.hit_duration:
-                print(f"[DEBUG] Hit state ended, returning to previous state: {self.previous_state}")
                 self.hit_timer = 0.0
                 self.state = self.previous_state or "idle"
-
-            # Don't do any other logic while in hit state
             self.update_animation(dt)
             return
 
-        # Rest of the normal AI logic only runs if NOT in hit state
+        # AI Logic
         can_see_player = self.can_see_target() and dist <= self.vision_range
 
-        # Wake up behavior - once alerted, stay alerted
+        # Alert behavior - once seen, stay alerted
         if can_see_player and not self.is_alerted:
             self.is_alerted = True
-            spot_delay = random.randint(0, 500)
+            # Play sight sound like Doom Imp
+            if self.sfx_sight:
+                self.sfx_sight.play()
+            # Add some delay before first attack
+            spot_delay = random.randint(200, 800)
             self.attack_cooldown = max(self.attack_cooldown, spot_delay)
 
-        # Normal AI behavior continues...
+        # Main AI behavior
         if self.is_alerted and can_see_player:
+            # Always face the player when we can see them
             if not self.is_in_attack_sequence:
                 self.facing_direction_override = self.get_facing_direction(player.x, player.y)
 
-            now = pg.time.get_ticks()
-            if dist <= self.melee_range and (now - self.last_melee_time >= self.melee_cooldown):
-                self.facing_direction_override = self.get_facing_direction(player.x, player.y)
-                self.state = "attack"
-                self.last_melee_time = now
-                player.take_damage(self.melee_damage)
-                if self.sfx_attack:
-                    self.sfx_attack.play()
+            current_time = pg.time.get_ticks()
+
+            # Melee attack if very close
+            if dist <= self.melee_range and (current_time - self.last_melee_time >= self.melee_cooldown):
+                self.perform_melee_attack(player, current_time)
                 return
 
-            if self.attack_cooldown <= 0:
-                additional_delay = random.randint(0, 800)
-                if additional_delay > 600:
-                    self.start_attack_sequence()
+            # Ranged attack logic
+            if (dist >= self.min_attack_range and
+                    dist <= self.max_attack_range and
+                    self.attack_cooldown <= 0):
+
+                # Random chance to attack vs move (like Doom AI)
+                attack_chance = self.calculate_attack_chance(dist)
+                if random.random() < attack_chance:
+                    self.start_ranged_attack()
                 else:
-                    self.attack_cooldown = additional_delay
-                    if dist > self.alert_distance:
-                        self.move_towards_player(player, dt)
-                        self.state = "move"
-                    else:
-                        self.state = "idle"
+                    # Decide to move instead
+                    self.set_next_attack_delay()
+                    self.move_towards_player(player, dt)
+                    self.state = "move"
             else:
+                # Move towards or around player
                 if dist > self.alert_distance:
                     self.move_towards_player(player, dt)
                     self.state = "move"
                 else:
                     self.state = "idle"
 
+            # Update last seen position
             self.last_seen_player_pos = pg.Vector2(player.x, player.y)
-            self.chase_timer = 5000
+            self.chase_timer = 6000  # Chase for 6 seconds after losing sight
 
         elif self.is_alerted and self.last_seen_player_pos:
+            # Chase last known position
             chase_dist = math.hypot(self.last_seen_player_pos.x - self.x,
                                     self.last_seen_player_pos.y - self.y)
-            if chase_dist > 32 and self.chase_timer > 0:
-                self.facing_direction_override = self.get_facing_direction(player.x, player.y)
+            if chase_dist > 48 and self.chase_timer > 0:
+                self.facing_direction_override = self.get_facing_direction(
+                    self.last_seen_player_pos.x, self.last_seen_player_pos.y)
                 self.move_towards(self.last_seen_player_pos.x, self.last_seen_player_pos.y, dt)
                 self.state = "move"
-                self.chase_timer -= dt
+                self.chase_timer -= dt * 1000
             else:
+                # Lost the trail, return to patrol
                 self.last_seen_player_pos = None
                 self.patrol(dt)
-        elif not self.is_alerted:
+        else:
+            # Not alerted, patrol normally
             if can_see_player:
                 self.is_alerted = True
+                if self.sfx_sight:
+                    self.sfx_sight.play()
             else:
                 self.patrol(dt)
-        else:
-            self.patrol(dt)
 
         self.update_animation(dt)
 
-    def start_attack_sequence(self):
-        """Start the attack animation sequence - like Doom Zombieman"""
+    def calculate_attack_chance(self, distance):
+        """Calculate probability of attacking based on distance (like Doom AI)"""
+        if distance < 150:
+            return 0.8  # High chance at close range
+        elif distance < 300:
+            return 0.6  # Medium chance at medium range
+        elif distance < 500:
+            return 0.4  # Lower chance at long range
+        else:
+            return 0.2  # Very low chance at extreme range
 
+    def perform_melee_attack(self, player, current_time):
+        """Perform melee attack when very close to player"""
+        self.facing_direction_override = self.get_facing_direction(player.x, player.y)
+        self.state = "attack"
+        self.last_melee_time = current_time
+
+        # Deal damage to player
+        player.take_damage(self.melee_damage)
+
+        # Play melee attack sound
+        if self.sfx_attack_melee:
+            self.sfx_attack_melee.play()
+
+    def start_ranged_attack(self):
+        """Start the ranged attack sequence (like Doom Imp)"""
         if self.target:
             self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
 
@@ -198,42 +232,57 @@ class Serpentipede(EnemyBase):
         self.has_fired_shot = False
         self.state = "attack"
 
-        # Set the attack cooldown for after this attack completes with more variation
+        # Set next attack cooldown with variation
+        self.set_next_attack_delay()
+
+        # Vary wind-up time slightly
+        windup_variation = random.randint(-100, 150)
+        self.attack_windup_time = max(400, 600 + windup_variation)
+
+    def set_next_attack_delay(self):
+        """Set the next attack delay with random variation"""
         base_cooldown = self.attack_delay
-        variation = random.randint(-400, 600)
+        variation = random.randint(-400, 800)
         self.attack_cooldown = base_cooldown + variation
-        self.attack_cooldown = max(self.attack_cooldown, 800)
+        self.attack_cooldown = max(self.attack_cooldown, 1000)  # Minimum 1 second
 
-        windup_variation = random.randint(-50, 100)
-        self.attack_windup_time = max(350, 400 + windup_variation)
-
-    def fire_shot(self):
-        """Fire the actual shot during the attack animation"""
+    def fire_projectile(self):
+        """Fire the actual fireball projectile"""
         if not self.target:
             return
 
+        # Ensure we're facing the target
         self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
 
+        # Calculate direction to target
         dx = self.target.x - self.x
         dy = self.target.y - self.y
         angle = math.atan2(dy, dx)
 
-        projectile = SerpentipedeFireball(
-            game=self.level.game,
-            x=self.x,
-            y=self.y,
-            angle=angle
-        )
+        # Add slight random inaccuracy (like Doom)
+        accuracy_variance = 0.1  # radians
+        angle += random.uniform(-accuracy_variance, accuracy_variance)
 
-        self.level.game.projectiles.append(projectile)
+        # Create and fire the projectile
+        try:
+            projectile = SerpentipedeFireball(
+                game=self.level.game,
+                x=self.x,
+                y=self.y,
+                angle=angle
+            )
+            self.level.game.projectiles.append(projectile)
 
-        if self.sfx_attack_ranged:
-            self.sfx_attack_ranged.play()
+            # Play ranged attack sound
+            if self.sfx_attack_ranged:
+                self.sfx_attack_ranged.play()
+
+        except Exception as e:
+            print(f"Error creating Serpentipede fireball: {e}")
 
     def end_attack_sequence(self):
         """End the attack sequence and return to normal behavior"""
-
-        # IMMEDIATELY face the player when attack ends (if we still have a target)
+        # Face the player when attack ends (if we still have a target)
         if self.target:
             self.facing_direction_override = self.get_facing_direction(self.target.x, self.target.y)
         else:
@@ -245,8 +294,7 @@ class Serpentipede(EnemyBase):
         self.state = "idle"
 
     def move_towards_player(self, player, dt):
-        """Move towards player using Doom-style AI with strafing and tactical movement"""
-        # Don't move if we're in an attack sequence
+        """Improved movement AI with tactical behavior"""
         if self.is_in_attack_sequence:
             return
 
@@ -260,14 +308,14 @@ class Serpentipede(EnemyBase):
         # Update movement timer
         self.movement_timer += dt * 1000
 
-        # Detect if player has moved significantly (for dodging behavior)
+        # Detect player movement for dodging
         player_moved = False
         if self.last_player_pos:
             player_move_dist = math.hypot(player.x - self.last_player_pos[0],
                                           player.y - self.last_player_pos[1])
-            if player_move_dist > 32:  # Player moved significantly
+            if player_move_dist > 40:
                 player_moved = True
-                self.dodge_timer = 500  # Start dodging for 500ms
+                self.dodge_timer = 600
 
         self.last_player_pos = (player.x, player.y)
 
@@ -275,264 +323,242 @@ class Serpentipede(EnemyBase):
         if self.dodge_timer > 0:
             self.dodge_timer -= dt * 1000
 
-        # Change movement mode periodically or when reaching destination
+        # Change movement mode periodically
         if (self.movement_timer >= self.movement_duration or
-                (self.movement_mode == "direct" and dist < 80)):
-            self.choose_new_movement_mode(dist)
+                (self.movement_mode == "direct" and dist < 100)):
+            self.choose_movement_mode(dist)
             self.movement_timer = 0
 
-        # Calculate base direction to player
+        # Calculate movement direction
         base_dx = dx / dist
         base_dy = dy / dist
+        move_dx, move_dy = self.calculate_movement_vector(base_dx, base_dy, dist, player_moved, dt)
 
-        # Choose movement based on current mode
-        move_dx, move_dy = self.calculate_movement_direction(base_dx, base_dy, dist, player_moved, dt)
-
-        # Apply movement
+        # Apply movement with speed scaling
         move_speed = self.speed * dt * 60
 
-        # Vary speed based on movement mode
+        # Adjust speed based on mode and situation
         if self.movement_mode == "strafe":
-            move_speed *= 0.8  # Slightly slower when strafing
+            move_speed *= 0.85
         elif self.movement_mode == "circle":
             move_speed *= 0.9
         elif self.dodge_timer > 0:
-            move_speed *= 1.2  # Faster when dodging
+            move_speed *= 1.3  # Faster when dodging
 
         move_x = move_dx * move_speed
         move_y = move_dy * move_speed
 
-        # Try movement with fallback if blocked
-        old_x, old_y = self.x, self.y
+        # Attempt movement with fallback
+        old_pos = (self.x, self.y)
         self.move(move_x, move_y)
 
-        # If movement was blocked, try a different approach
-        if self.x == old_x and self.y == old_y and move_speed > 0:
-            # Try strafing instead
-            self.movement_mode = "strafe"
-            self.strafe_direction *= -1  # Change strafe direction
-            self.movement_timer = 0
+        # If blocked, try alternative movement
+        if (self.x, self.y) == old_pos and move_speed > 0:
+            self.handle_movement_blocked(base_dx, base_dy, move_speed)
 
-            # Try perpendicular movement
-            perp_dx = -base_dy * self.strafe_direction
-            perp_dy = base_dx * self.strafe_direction
-            self.move(perp_dx * move_speed, perp_dy * move_speed)
-
-    def choose_new_movement_mode(self, dist):
-        """Choose a new movement mode based on distance and situation"""
-        # Closer enemies tend to strafe more, distant ones approach more directly
-        if dist > 400:
-            # Far away - mostly direct approach with some variation
-            modes = ["direct"] * 4 + ["strafe"] * 2 + ["zigzag"] * 1
-        elif dist > 200:
-            # Medium distance - mix of approaches
-            modes = ["direct"] * 2 + ["strafe"] * 3 + ["zigzag"] * 2 + ["circle"] * 1
+    def choose_movement_mode(self, distance):
+        """Choose movement mode based on distance and situation"""
+        if distance > 400:
+            # Long range - mostly direct approach
+            modes = ["direct"] * 5 + ["strafe"] * 2 + ["zigzag"] * 1
+        elif distance > 200:
+            # Medium range - mixed tactics
+            modes = ["direct"] * 2 + ["strafe"] * 4 + ["zigzag"] * 2 + ["circle"] * 1
         else:
-            # Close distance - mostly strafing and circling
+            # Close range - more evasive
             modes = ["direct"] * 1 + ["strafe"] * 4 + ["circle"] * 3 + ["zigzag"] * 2
 
         self.movement_mode = random.choice(modes)
-        self.movement_duration = random.randint(500, 1500)
+        self.movement_duration = random.randint(700, 1800)
 
-        # Update parameters for new mode
+        # Initialize mode-specific parameters
         if self.movement_mode == "strafe":
             self.strafe_direction = random.choice([-1, 1])
         elif self.movement_mode == "circle":
             self.current_movement_angle = random.uniform(0, 2 * math.pi)
-        elif self.movement_mode == "zigzag":
-            self.strafe_direction = random.choice([-1, 1])
 
-
-    def calculate_movement_direction(self, base_dx, base_dy, dist, player_moved, dt):
-        """Calculate movement direction based on current movement mode"""
-
-        # If player just moved and we're close, try to dodge
-        if player_moved and self.dodge_timer > 0 and dist < 200:
-            # Dodge perpendicular to player movement
+    def calculate_movement_vector(self, base_dx, base_dy, distance, player_moved, dt):
+        """Calculate movement direction based on current mode"""
+        # Priority: dodge if player moved and we're close
+        if player_moved and self.dodge_timer > 0 and distance < 250:
             dodge_dx = -base_dy * random.choice([-1, 1])
             dodge_dy = base_dx * random.choice([-1, 1])
             return dodge_dx, dodge_dy
 
         if self.movement_mode == "direct":
-            # Direct approach but with some randomness
-            noise_factor = 0.2
-            noise_dx = (random.random() - 0.5) * noise_factor
-            noise_dy = (random.random() - 0.5) * noise_factor
-
-            # Maintain preferred distance
-            if dist < self.preferred_distance * 0.8:
-                # Too close, back away slightly while maintaining some forward pressure
-                return (base_dx * 0.3 + noise_dx, base_dy * 0.3 + noise_dy)
-            else:
-                return (base_dx + noise_dx, base_dy + noise_dy)
-
+            return self.calculate_direct_movement(base_dx, base_dy, distance)
         elif self.movement_mode == "strafe":
-            # Move perpendicular to player while slowly approaching
-            perp_dx = -base_dy * self.strafe_direction
-            perp_dy = base_dx * self.strafe_direction
-
-            # Mix strafe with slight approach
-            approach_factor = 0.3 if dist > self.preferred_distance else -0.2
-            final_dx = perp_dx * 0.8 + base_dx * approach_factor
-            final_dy = perp_dy * 0.8 + base_dy * approach_factor
-
-            # Normalize
-            final_dist = math.hypot(final_dx, final_dy)
-            if final_dist > 0:
-                return (final_dx / final_dist, final_dy / final_dist)
-            return (perp_dx, perp_dy)
-
+            return self.calculate_strafe_movement(base_dx, base_dy, distance)
         elif self.movement_mode == "zigzag":
-            # FIXED: Improved zigzag pattern with unique parameters per enemy
-            # Use a continuous sine wave based on time and unique frequency/phase
-            time_seconds = self.movement_timer / 1000.0
-
-            # Create a sine wave for the zigzag pattern
-            zigzag_phase = (time_seconds * self.zigzag_frequency * 2 * math.pi +
-                            self.zigzag_phase_offset)
-            zigzag_intensity = math.sin(zigzag_phase) * self.zigzag_amplitude
-
-            # Calculate perpendicular direction for zigzag
-            perp_dx = -base_dy  # Perpendicular to player direction
-            perp_dy = base_dx
-
-            # Combine approach with zigzag movement
-            final_dx = (base_dx * self.zigzag_approach_bias +
-                        perp_dx * zigzag_intensity * (1 - self.zigzag_approach_bias))
-            final_dy = (base_dy * self.zigzag_approach_bias +
-                        perp_dy * zigzag_intensity * (1 - self.zigzag_approach_bias))
-
-            # Add small random component to prevent perfect synchronization
-            noise_factor = 0.1
-            final_dx += (random.random() - 0.5) * noise_factor
-            final_dy += (random.random() - 0.5) * noise_factor
-
-            # Normalize the final direction
-            final_dist = math.hypot(final_dx, final_dy)
-            if final_dist > 0:
-                return (final_dx / final_dist, final_dy / final_dist)
-            return (base_dx, base_dy)
-
+            return self.calculate_zigzag_movement(base_dx, base_dy, distance)
         elif self.movement_mode == "circle":
-            # FIXED: Improved circular movement with unique parameters
-            # Update angle based on individual rotation speed and phase offset
-            angle_increment = self.circle_rotation_speed * dt
-            self.current_movement_angle += angle_increment
+            return self.calculate_circle_movement(base_dx, base_dy, distance, dt)
 
-            # Apply phase offset for desynchronization
-            actual_angle = self.current_movement_angle + self.circle_phase_offset
+        return base_dx, base_dy
 
-            # Calculate circular movement
-            circle_dx = math.cos(actual_angle)
-            circle_dy = math.sin(actual_angle)
+    def calculate_direct_movement(self, base_dx, base_dy, distance):
+        """Direct movement with noise and distance management"""
+        noise_factor = 0.15
+        noise_dx = (random.random() - 0.5) * noise_factor
+        noise_dy = (random.random() - 0.5) * noise_factor
 
-            # Dynamic radius based on distance and personal preference
-            target_radius = self.preferred_distance * self.circle_radius_preference
+        if distance < self.preferred_distance * 0.7:
+            # Too close, back away while maintaining some approach
+            return (base_dx * 0.2 + noise_dx, base_dy * 0.2 + noise_dy)
+        elif distance > self.preferred_distance * 1.3:
+            # Too far, approach more aggressively
+            return (base_dx * 1.2 + noise_dx, base_dy * 1.2 + noise_dy)
+        else:
+            return (base_dx * 0.8 + noise_dx, base_dy * 0.8 + noise_dy)
 
-            # Mix with approach/retreat based on distance to maintain preferred radius
-            if dist > target_radius * 1.3:
-                # Too far, approach while circling
-                mix_factor = 0.6
-                final_dx = circle_dx * (1 - mix_factor) + base_dx * mix_factor
-                final_dy = circle_dy * (1 - mix_factor) + base_dy * mix_factor
-            elif dist < target_radius * 0.7:
-                # Too close, retreat while circling
-                mix_factor = 0.4
-                final_dx = circle_dx * (1 - mix_factor) - base_dx * mix_factor
-                final_dy = circle_dy * (1 - mix_factor) - base_dy * mix_factor
-            else:
-                # Good distance, just circle with slight approach bias
-                approach_bias = 0.1
-                final_dx = circle_dx * (1 - approach_bias) + base_dx * approach_bias
-                final_dy = circle_dy * (1 - approach_bias) + base_dy * approach_bias
+    def calculate_strafe_movement(self, base_dx, base_dy, distance):
+        """Strafing movement perpendicular to player"""
+        perp_dx = -base_dy * self.strafe_direction
+        perp_dy = base_dx * self.strafe_direction
 
-            # Add formation spreading - try to avoid being at the same angle as other enemies
-            # This creates natural spacing around the player
-            spread_angle = self.formation_angle_preference
-            spread_dx = math.cos(spread_angle) * 0.15
-            spread_dy = math.sin(spread_angle) * 0.15
+        # Mix strafe with approach/retreat
+        if distance > self.preferred_distance:
+            approach_factor = 0.4
+        else:
+            approach_factor = -0.3
 
-            final_dx += spread_dx
-            final_dy += spread_dy
+        final_dx = perp_dx * 0.8 + base_dx * approach_factor
+        final_dy = perp_dy * 0.8 + base_dy * approach_factor
 
-            # Normalize
-            final_dist = math.hypot(final_dx, final_dy)
-            if final_dist > 0:
-                return (final_dx / final_dist, final_dy / final_dist)
-            return (circle_dx, circle_dy)
+        # Normalize
+        final_dist = math.hypot(final_dx, final_dy)
+        if final_dist > 0:
+            return (final_dx / final_dist, final_dy / final_dist)
+        return (perp_dx, perp_dy)
 
-        # Fallback to direct approach
+    def calculate_zigzag_movement(self, base_dx, base_dy, distance):
+        """Zigzag movement pattern"""
+        time_seconds = self.movement_timer / 1000.0
+        zigzag_phase = (time_seconds * self.zigzag_frequency * 2 * math.pi +
+                        self.zigzag_phase_offset)
+        zigzag_intensity = math.sin(zigzag_phase) * self.zigzag_amplitude
+
+        perp_dx = -base_dy
+        perp_dy = base_dx
+
+        final_dx = (base_dx * self.zigzag_approach_bias +
+                    perp_dx * zigzag_intensity * (1 - self.zigzag_approach_bias))
+        final_dy = (base_dy * self.zigzag_approach_bias +
+                    perp_dy * zigzag_intensity * (1 - self.zigzag_approach_bias))
+
+        # Add randomness
+        noise_factor = 0.1
+        final_dx += (random.random() - 0.5) * noise_factor
+        final_dy += (random.random() - 0.5) * noise_factor
+
+        # Normalize
+        final_dist = math.hypot(final_dx, final_dy)
+        if final_dist > 0:
+            return (final_dx / final_dist, final_dy / final_dist)
         return (base_dx, base_dy)
 
-    def attack(self):
-        """Legacy attack method - now handled by attack sequence"""
-        # This method is kept for compatibility but the new sequence system handles attacks
-        if not self.is_in_attack_sequence:
-            self.start_attack_sequence()
+    def calculate_circle_movement(self, base_dx, base_dy, distance, dt):
+        """Circular movement around player"""
+        angle_increment = self.circle_rotation_speed * dt
+        self.current_movement_angle += angle_increment
+        actual_angle = self.current_movement_angle + self.circle_phase_offset
 
-    def can_see_target(self):
-        """Proper line of sight check - enemies can't see through walls"""
-        if not self.target:
-            return False
+        circle_dx = math.cos(actual_angle)
+        circle_dy = math.sin(actual_angle)
 
-        # Check basic distance first
-        dx = self.target.x - self.x
-        dy = self.target.y - self.y
-        dist = math.hypot(dx, dy)
+        target_radius = self.preferred_distance * self.circle_radius_preference
 
-        if dist > self.vision_range:
-            return False
+        # Adjust based on distance to preferred radius
+        if distance > target_radius * 1.4:
+            # Too far, approach while circling
+            mix_factor = 0.7
+            final_dx = circle_dx * (1 - mix_factor) + base_dx * mix_factor
+            final_dy = circle_dy * (1 - mix_factor) + base_dy * mix_factor
+        elif distance < target_radius * 0.6:
+            # Too close, retreat while circling
+            mix_factor = 0.5
+            final_dx = circle_dx * (1 - mix_factor) - base_dx * mix_factor
+            final_dy = circle_dy * (1 - mix_factor) - base_dy * mix_factor
+        else:
+            # Good distance, pure circle with slight approach
+            approach_bias = 0.15
+            final_dx = circle_dx * (1 - approach_bias) + base_dx * approach_bias
+            final_dy = circle_dy * (1 - approach_bias) + base_dy * approach_bias
 
-        # Use proper line of sight raycast - this should block vision through walls
-        has_los = self.has_line_of_sight(self.target)
-        return has_los
+        # Formation spreading
+        spread_dx = math.cos(self.formation_angle_preference) * 0.2
+        spread_dy = math.sin(self.formation_angle_preference) * 0.2
+        final_dx += spread_dx
+        final_dy += spread_dy
+
+        # Normalize
+        final_dist = math.hypot(final_dx, final_dy)
+        if final_dist > 0:
+            return (final_dx / final_dist, final_dy / final_dist)
+        return (circle_dx, circle_dy)
+
+    def handle_movement_blocked(self, base_dx, base_dy, move_speed):
+        """Handle when movement is blocked by walls"""
+        self.movement_mode = "strafe"
+        self.strafe_direction *= -1
+        self.movement_timer = 0
+
+        # Try perpendicular movement
+        perp_dx = -base_dy * self.strafe_direction
+        perp_dy = base_dx * self.strafe_direction
+        self.move(perp_dx * move_speed, perp_dy * move_speed)
 
     def patrol(self, dt):
-        """Patrol behavior when not alerted"""
-        # Don't patrol if we're in an attack sequence
+        """Patrol when not alerted"""
         if self.is_in_attack_sequence:
             return
 
         self.patrol_timer += dt
 
-        # Change direction every 2-4 seconds randomly
-        if self.patrol_timer > random.randint(2000, 4000):
+        # Change direction every 2-4 seconds
+        if self.patrol_timer > random.randint(2000, 4500):
             self.patrol_timer = 0
-            # Choose a new random direction
             angle = random.uniform(0, 2 * math.pi)
             self.patrol_dir = pg.Vector2(math.cos(angle), math.sin(angle))
 
-        # Move in patrol direction at slower speed
-        move_speed = self.speed * 0.3 * dt * 60  # Much slower patrol
+        # Move slowly during patrol
+        move_speed = self.speed * 0.25 * dt * 60
         move_x = self.patrol_dir.x * move_speed
         move_y = self.patrol_dir.y * move_speed
 
-        # Check if we can move in this direction
-        old_x, old_y = self.x, self.y
+        old_pos = (self.x, self.y)
         self.move(move_x, move_y)
 
-        if self.x != old_x or self.y != old_y:
+        if (self.x, self.y) != old_pos:
             self.state = "move"
         else:
-            # Hit a wall, choose new direction immediately
+            # Hit obstacle, change direction
             self.patrol_timer = 4000
             self.state = "idle"
 
-    def drop_loot(self):
-        pass
-
     def take_damage(self, amount, splash=False, direct_hit=True):
-        """Override to implement pain/alert behavior"""
+        """Handle taking damage with Doom-style pain behavior"""
         if not self.alive:
             return
 
-        # Taking damage always alerts the enemy (like Doom)
+        # Always become alerted when taking damage
         self.is_alerted = True
 
-        # Brief pain state - interrupt current action
+        # Pain can interrupt attack sequence (like Doom)
         if self.is_in_attack_sequence:
-            # Pain can interrupt attack sequence (like in Doom)
-            self.end_attack_sequence()
+            # Small chance to interrupt attack (pain chance)
+            if random.random() < 0.25:  # 25% chance like Doom
+                self.end_attack_sequence()
 
-        # Call the parent's take_damage method to handle hit state and animation
+        # Call parent damage handling for hit state and animation
         super().take_damage(amount, splash, direct_hit)
+
+    def attack(self):
+        """Legacy method for compatibility"""
+        if not self.is_in_attack_sequence:
+            self.start_ranged_attack()
+
+    def drop_loot(self):
+        """Override to drop appropriate loot"""
+        # Could drop ammo, health, etc.
+        pass
