@@ -8,6 +8,7 @@ from engine.level import Level
 from ui.hud import HUD
 from ui.level_stats import LevelStats
 from entities.level_exit import LevelExit
+from ui.intermission import IntermissionScreen
 
 class Game:
     def __init__(self):
@@ -57,10 +58,10 @@ class Game:
         # UI
         self.hud = HUD(self.screen)
 
-        # Système de transition entre niveaux
-        self.level_stats = LevelStats()
+        # Système de transition entre niveaux - NOUVEAU
+        self.intermission_screen = IntermissionScreen()
         self.level_complete = False
-        self.show_level_stats = False
+        self.show_intermission = False  # Remplace show_level_stats
         self.next_level_path = None
 
         # Statistiques de niveau
@@ -115,7 +116,7 @@ class Game:
                                 break
 
                 if event.key == pg.K_RETURN:
-                    if self.show_level_stats and not self.restart_anim_in_progress:
+                    if self.show_intermission and not self.restart_anim_in_progress:
                         # Commencer la transition vers le niveau suivant
                         self.hud.render(self.player, self)
                         self.restart_anim_surface = self.screen.copy()
@@ -152,6 +153,11 @@ class Game:
             else:
                 self.reload_level()
             self.restart_anim_in_progress = False
+            return
+
+        if self.show_intermission:
+            # Seule l'animation de l'écran d'intermission est autorisée
+            self.intermission_screen.update(dt)
             return
 
         # Handle input
@@ -228,9 +234,9 @@ class Game:
         self.hud.render(self.player, self)
         self.draw_restart_transition()
 
-        if self.show_level_stats:
-            self.level_stats.render(self.screen, self.enemies_killed, self.initial_enemy_count,
-                                    self.items_collected, self.initial_item_count)
+        if self.show_intermission:
+            self.intermission_screen.render(self.screen, self.enemies_killed, self.initial_enemy_count,
+                                            self.items_collected, self.initial_item_count)
 
         pg.display.flip()
 
@@ -276,9 +282,8 @@ class Game:
         self.has_restarted = False
         self.restart_anim_in_progress = False
 
-        # Réinitialiser les états de transition de niveau
         self.level_complete = False
-        self.show_level_stats = False
+        self.show_intermission = False  # Remplace show_level_stats
         self.next_level_path = None
         self.pending_level_change = False
 
@@ -319,10 +324,10 @@ class Game:
            self.has_restarted = True
 
     def trigger_level_complete(self, next_level_path):
-        """Déclenche la fin de niveau et affiche les statistiques"""
+        """Déclenche la fin de niveau et affiche l'écran d'intermission"""
         if not self.level_complete:
             self.level_complete = True
-            self.show_level_stats = True
+            self.show_intermission = True  # Remplace show_level_stats
             self.next_level_path = next_level_path
             print(f"[LEVEL] Level completed! Next: {next_level_path}")
 
@@ -347,9 +352,8 @@ class Game:
                 self.initial_item_count = len([pickup for pickup in self.level.pickups
                                                if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo'])
 
-                # Réinitialiser les états
                 self.level_complete = False
-                self.show_level_stats = False
+                self.show_intermission = False  # Remplace show_level_stats
                 self.next_level_path = None
                 self.has_restarted = False
                 self.restart_anim_in_progress = False

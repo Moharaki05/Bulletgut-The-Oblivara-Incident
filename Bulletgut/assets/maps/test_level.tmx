@@ -109,13 +109,13 @@
   </object>
  </objectgroup>
  <objectgroup id="7" name="EnemySpawns">
-  <object id="61" type="enemy" x="1722" y="268">
+  <object id="61" type="enemy" x="1004" y="640">
    <properties>
     <property name="enemy_type" value="serpentipede"/>
    </properties>
    <point/>
   </object>
-  <object id="64" type="enemy" x="1710" y="84">
+  <object id="64" type="enemy" x="992" y="456">
    <properties>
     <property name="enemy_type" value="gunner"/>
    </properties>
