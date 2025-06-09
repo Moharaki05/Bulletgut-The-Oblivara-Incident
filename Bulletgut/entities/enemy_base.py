@@ -14,6 +14,7 @@ class EnemyBase:
         self.position = (self.x, self.y)
         self.level = level
         self.rect = pygame.Rect(x - 10, y - 10, 20, 20)
+        self.melee_hitbox = self.rect.inflate(40, 40)
 
         # Stats
         self.max_health = 100
@@ -126,6 +127,7 @@ class EnemyBase:
             self.attack_cooldown -= dt
 
         self.update_animation(dt)
+        self.melee_hitbox.center = self.rect.center
 
     def move_towards_player(self, player, dt):
         """Move towards the player"""

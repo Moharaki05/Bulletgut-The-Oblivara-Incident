@@ -80,22 +80,35 @@ class Chainsaw(MeleeWeapon):
         self.attack_sound.stop()
 
     def try_attack(self):
-        now = pg.time.get_ticks() / 1000
-        if now - self.last_fire_time < self.shot_cooldown:
-            return
-        self.last_fire_time = now
+        hit_range = self.range  # portée en pixels
+        angle_range = math.radians(60)  # cône frontal ±30°
+
+        player_x, player_y = self.game.player.get_position()
+        player_angle = self.game.player.get_angle()
+        enemy_hit = False
 
         for enemy in self.game.enemies:
-            dx = enemy.x - self.game.player.x
-            dy = enemy.y - self.game.player.y
-            dist = math.hypot(dx, dy)
-            if dist <= self.range:
+            if not enemy.alive:
+                continue
+
+            dx = enemy.x - player_x
+            dy = enemy.y - player_y
+            distance = math.hypot(dx, dy)
+
+            if distance <= hit_range:
                 angle_to_enemy = math.atan2(dy, dx)
-                player_angle = self.game.player.get_angle()
                 angle_diff = abs((angle_to_enemy - player_angle + math.pi) % (2 * math.pi) - math.pi)
-                if angle_diff < math.radians(30):
-                    enemy.take_damage(self.damage)
-                    break
+
+                if angle_diff <= angle_range:
+                    enemy.take_damage(self.damage, splash=False, direct_hit=True)
+                    enemy_hit = True
+
+        # Gestion du son (ta version, conservée)
+        if enemy_hit:
+            if not self.attack_sound.get_num_channels():
+                self.attack_sound.play(-1)
+        else:
+            self.attack_sound.stop()
 
     def render(self, screen):
         if not self.current_sprite:

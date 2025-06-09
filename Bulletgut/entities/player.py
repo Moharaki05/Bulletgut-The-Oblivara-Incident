@@ -26,6 +26,7 @@ class Player:
         self.rotate_speed = ROTATE_SPEED
         self.collision_radius = PLAYER_COLLISION_RADIUS
         self.moving = False
+        self.size = 32
 
         self.health = 100
         self.max_health = 100
@@ -73,7 +74,7 @@ class Player:
         self.current_weapon_index = 0
         self.rect = pg.Rect(self.x - 10, self.y - 10, 20, 20)
 
-    def handle_inputs(self, keys, dt, mouse_dx=0, level=None):
+    def handle_inputs(self, keys, dt, mouse_dx=0, level=None, game=None):
         if not self.alive:
             return
 
@@ -113,6 +114,9 @@ class Player:
         self.handle_mouse_movement(mouse_dx)
         self.angle %= 2 * math.pi # Keep an angle between 0 and 2pi
         self.rect.center = (self.x, self.y)
+
+        if hasattr(game, "enemies"):
+            self.check_enemy_collisions(game)
 
     def handle_mouse_movement(self, dx):
         dx = math.copysign(abs(dx) ** MOUSE_SENSITIVITY_EXPONENT, dx)
@@ -249,4 +253,24 @@ class Player:
             self.alive = False
             random.choice(self.death_sounds).play()
             print("[PLAYER] You died!")
+
+    def check_enemy_collisions(self, game):
+        for enemy in game.enemies:
+            if not enemy.alive:
+                continue
+            if self.rect.colliderect(enemy.rect):
+                # Calcul d’un vecteur de séparation
+                dx = self.x - enemy.x
+                dy = self.y - enemy.y
+                distance = math.hypot(dx, dy)
+                if distance == 0:
+                    continue
+                overlap = (self.size + enemy.size) - distance
+                push_x = (dx / distance) * overlap * 0.5
+                push_y = (dy / distance) * overlap * 0.5
+
+                self.x += push_x
+                self.y += push_y
+                self.rect.center = (self.x, self.y)
+
 

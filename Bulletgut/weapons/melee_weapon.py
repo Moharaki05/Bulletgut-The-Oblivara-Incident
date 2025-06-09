@@ -46,33 +46,15 @@ class MeleeWeapon(WeaponBase, ABC):
 
     def _check_melee_hit(self):
         """Vérifie si un ennemi est touché par l'attaque de mêlée"""
-        # Position et direction du joueur
-        player_x, player_y = self.game.player.x, self.game.player.y
-        player_angle = self.game.player.angle
+        player_rect = self.game.player.rect
 
-        # Vérifier chaque ennemi
         for enemy in self.game.enemies:
-            dx = enemy.x - player_x
-            dy = enemy.y - player_y
+            if not enemy.alive:
+                continue
 
-            # Distance à l'ennemi
-            distance = math.sqrt(dx ** 2 + dy ** 2)
+            if hasattr(enemy, "melee_hitbox") and player_rect.colliderect(enemy.melee_hitbox):
+                enemy.take_damage(self.damage, splash=False, direct_hit=True)
 
-            # Si l'ennemi est à portée
-            if distance < self.melee_range:
-                # Calculer l'angle vers l'ennemi
-                angle_to_enemy = math.atan2(dy, dx)
-
-                # Normaliser l'angle du joueur
-                player_angle_normalized = player_angle % (2 * math.pi)
-
-                # Différence d'angle
-                angle_diff = abs(angle_to_enemy - player_angle_normalized)
-                angle_diff = min(angle_diff, 2 * math.pi - angle_diff)
-
-                # Si l'ennemi est dans le "cône" de frappe (devant le joueur)
-                if angle_diff < math.pi / 3:  # 60 degrés de vision
-                    enemy.take_damage(self.damage)
 
 
 

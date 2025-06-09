@@ -118,7 +118,7 @@ class Game:
 
         # Handle input
         keys = pg.key.get_pressed()
-        self.player.handle_inputs(keys, dt, self.mouse_dx, self.level)
+        self.player.handle_inputs(keys, dt, self.mouse_dx, self.level, self)
         if self.player.damage_flash_timer > 0:
             self.player.damage_flash_timer = max(0.0, self.player.damage_flash_timer - dt)
 

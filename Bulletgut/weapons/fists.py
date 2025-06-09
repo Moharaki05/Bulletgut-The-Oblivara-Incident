@@ -66,37 +66,39 @@ class Fists(MeleeWeapon):
         self.is_firing = True
 
     def _handle_fire(self):
-        if hasattr(self, 'swing_sound') and self.swing_sound:
-            self.swing_sound.stop()
-            self.swing_sound.play()
+        self.swing_sound.stop()
+        self.swing_sound.play()
 
-        hit_range = 2.0  # Distance maximale de frappe en unités du jeu
+        hit_range = 100.0  # portée de coup en pixels
+        angle_range = math.radians(60)  # cône de 60° (±30°)
 
-        # Obtenir la position et la direction du joueur
         player_pos = self.game.player.get_position()
         player_dir = self.game.player.get_direction_vector()
+        player_angle = math.atan2(player_dir[1], player_dir[0])
 
-        # Flag pour détecter un impact
         enemy_hit = False
 
-        # Vérifier si un ennemi est touché
         for enemy in self.game.enemies:
-            distance = ((enemy.position[0] - player_pos[0]) ** 2 +
-                        (enemy.position[1] - player_pos[1]) ** 2) ** 0.5
+            if not enemy.alive:
+                continue
+
+            # Position de l'ennemi
+            ex = getattr(enemy, 'x', getattr(enemy, 'position', (0, 0))[0])
+            ey = getattr(enemy, 'y', getattr(enemy, 'position', (0, 0))[1])
+
+            dx = ex - player_pos[0]
+            dy = ey - player_pos[1]
+            distance = math.hypot(dx, dy)
 
             if distance <= hit_range:
-                # Vérifier si l'ennemi est dans le champ de vision (±30°)
-                angle_to_enemy = math.atan2(enemy.position[1] - player_pos[1],
-                                            enemy.position[0] - player_pos[0])
-                player_angle = math.atan2(player_dir[1], player_dir[0])
-                angle_diff = (angle_to_enemy - player_angle + math.pi) % (2 * math.pi) - math.pi
+                angle_to_enemy = math.atan2(dy, dx)
+                angle_diff = abs((angle_to_enemy - player_angle + math.pi) % (2 * math.pi) - math.pi)
 
-                if abs(angle_diff) <= math.radians(30):
-                    enemy.take_damage(self.damage)
+                if angle_diff <= angle_range:
+                    enemy.take_damage(self.damage, splash=False, direct_hit=True)
                     enemy_hit = True
 
-        # Jouer le son d'impact uniquement si un ennemi a été touché
-        if enemy_hit and hasattr(self, 'punch_sound') and self.punch_sound:
+        if enemy_hit:
             self.punch_sound.play()
 
     def _update_weapon_bobbing(self, dt, player):
