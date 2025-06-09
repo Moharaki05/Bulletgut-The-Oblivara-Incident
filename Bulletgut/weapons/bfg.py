@@ -16,7 +16,7 @@ class BFG(ProjectileWeapon):
         self.projectile_speed = 775
         self.projectile_lifetime = 10.0
         self.splash_damage = True
-        self.splash_radius = 200
+        self.splash_radius = 300
 
         # Chargement des sprites d'animation (idle -> charge -> tir)
         self.load_sprites([

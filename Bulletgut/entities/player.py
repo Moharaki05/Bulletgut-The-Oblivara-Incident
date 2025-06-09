@@ -71,6 +71,9 @@ class Player:
             "rockets": 100
         }
         self.current_weapon_index = 0
+
+        self.keys = set()
+
         self.rect = pg.Rect(self.x - 10, self.y - 10, 20, 20)
 
     def handle_inputs(self, keys, dt, mouse_dx=0, level=None, game=None):

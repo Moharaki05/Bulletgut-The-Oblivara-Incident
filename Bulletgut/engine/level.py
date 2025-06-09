@@ -3,6 +3,7 @@ from pytmx.util_pygame import load_pygame
 from data.config import TILE_SIZE
 from entities.door import Door
 from entities.gunner import Gunner
+from entities.pickups.key_pickup import KeyPickup
 from entities.shotgunner import Shotgunner
 from entities.serpentipede import Serpentipede
 from entities.plutonworm import PlutonWorm
@@ -21,7 +22,6 @@ class Level:
         self.walls_layer = self.tmx_data.get_layer_by_name("Walls")
         self.floor_layer = self.tmx_data.get_layer_by_name("Floor")
         self.doors_layer = self.tmx_data.get_layer_by_name("Doors")
-        self.enemies_layer = self.tmx_data.get_layer_by_name("EnemyVisuals")
 
         if "floor_color" in self.tmx_data.properties:
             hex_color = self.tmx_data.properties["floor_color"].lstrip("#")
@@ -240,6 +240,12 @@ class Level:
 
             door = Door(grid_x, grid_y, auto_close_time, thickness)
             door.axis = axis
+
+            if "required_key" in obj.properties:
+                value = obj.properties["required_key"].strip().lower()
+                if value in ["red", "blue", "yellow"]:
+                    door.required_key = value
+
             doors.append(door)
 
         return doors
@@ -296,7 +302,18 @@ class Level:
                 amount = int(obj.properties["amount"])
                 x = obj.x
                 y = obj.y
-                pickups.append(ItemPickup(x, y, item_type, amount, sprite))
+                if obj.name.startswith("key_"):
+                    color = obj.name.split("_")[1]  # extrait "red", "blue", etc.
+                    pickup = KeyPickup(obj.x, obj.y, color)
+                    pickups.append(pickup)
+                else:
+                    pickups.append(ItemPickup(x, y, item_type, amount, sprite))
+
+            # elif obj.type == "Item" and obj.name.startswith("key_"):
+            #     color = obj.name.split("_")[1]  # extrait "red", "blue", etc.
+            #     pickup = KeyPickup(obj.x, obj.y, color)
+            #     pickups.append(pickup)
+            #     print(f"[DEBUG] Clé {color} ajoutée aux pickups ({obj.x}, {obj.y})")
 
         return pickups
 
@@ -328,14 +345,14 @@ class Level:
         if abs(dx) > 0.1:
             reduced_target_x = current_x + (dx * slide_factor)
             x_only_rect = pg.Rect(reduced_target_x, current_y, current_rect.width, current_rect.height)
-            if not self.is_rect_blocked_improved(x_only_rect):
+            if not self.is_rect_blocked(x_only_rect):
                 return reduced_target_x, current_y
 
         # Tester le mouvement vertical avec réduction
         if abs(dy) > 0.1:
             reduced_target_y = current_y + (dy * slide_factor)
             y_only_rect = pg.Rect(current_x, reduced_target_y, current_rect.width, current_rect.height)
-            if not self.is_rect_blocked_improved(y_only_rect):
+            if not self.is_rect_blocked(y_only_rect):
                 return current_x, reduced_target_y
 
         # Aucun mouvement possible

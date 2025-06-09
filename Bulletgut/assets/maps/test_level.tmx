@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="10" nextobjectid="68">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="10" nextobjectid="71">
  <properties>
   <property name="floor_color" value="#1e1e1e"/>
  </properties>
  <tileset firstgid="1" name="RetroFPSTileset" tilewidth="64" tileheight="64" tilecount="64" columns="8">
   <image source="textures/RetroFPSTileset.png" width="512" height="512"/>
- </tileset>
- <tileset firstgid="65" name="Walk1_Front" tilewidth="41" tileheight="57" tilecount="1" columns="1">
-  <image source="../sprites/enemies/gunner/move/Move_Front1.png" width="41" height="57"/>
  </tileset>
  <layer id="4" name="Floor" width="30" height="17">
   <data encoding="csv">
@@ -59,32 +56,11 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,0,0,0,0,0,
+0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-</data>
- </layer>
- <layer id="8" name="EnemyVisuals" width="30" height="17">
-  <data encoding="csv">
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -94,7 +70,7 @@
 </data>
  </layer>
  <objectgroup id="3" name="PlayerSpawn">
-  <object id="3" name="playerStart" x="292.121" y="530.242">
+  <object id="3" name="playerStart" x="282.121" y="554.242">
    <point/>
   </object>
  </objectgroup>
@@ -103,6 +79,7 @@
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
     <property name="axis" value="x"/>
+    <property name="required_key" value="red"/>
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>
@@ -110,6 +87,7 @@
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
     <property name="axis" value="x"/>
+    <property name="required_key" value="None"/>
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>
@@ -117,6 +95,7 @@
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
     <property name="axis" value="y"/>
+    <property name="required_key" value="yellow"/>
     <property name="thickness" type="float" value="1"/>
    </properties>
   </object>
@@ -124,50 +103,27 @@
    <properties>
     <property name="auto_close_time" type="float" value="3"/>
     <property name="axis" value="y"/>
+    <property name="required_key" value="None"/>
     <property name="thickness" type="float" value="0.2"/>
    </properties>
   </object>
  </objectgroup>
  <objectgroup id="7" name="EnemySpawns">
-  <object id="61" type="enemy" x="1058" y="680">
+  <object id="61" type="enemy" x="1722" y="268">
    <properties>
     <property name="enemy_type" value="serpentipede"/>
    </properties>
    <point/>
   </object>
-  <object id="62" type="enemy" x="1011" y="447">
-   <properties>
-    <property name="enemy_type" value="serpentipede"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="63" type="enemy" x="949" y="681">
-   <properties>
-    <property name="enemy_type" value="shotgunner"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="64" type="enemy" x="1076" y="562">
+  <object id="64" type="enemy" x="1710" y="84">
    <properties>
     <property name="enemy_type" value="gunner"/>
    </properties>
    <point/>
   </object>
-  <object id="66" type="enemy" x="952" y="552">
-   <properties>
-    <property name="enemy_type" value="plutonworm"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="67" type="enemy" x="920" y="430">
-   <properties>
-    <property name="enemy_type" value="plutonworm"/>
-   </properties>
-   <point/>
-  </object>
  </objectgroup>
  <objectgroup id="9" name="Pickups">
-  <object id="28" name="shells" type="Ammo" x="388.667" y="469.333">
+  <object id="28" name="shells" type="Ammo" x="382.667" y="463.333">
    <properties>
     <property name="ammo_type" value="shells"/>
     <property name="amount" type="int" value="20"/>
@@ -175,7 +131,7 @@
    </properties>
    <point/>
   </object>
-  <object id="33" name="shotgun" type="Weapon" x="192.667" y="479.333">
+  <object id="33" name="shotgun" type="Weapon" x="386.667" y="643.333">
    <properties>
     <property name="ammo_type" value="shells"/>
     <property name="amount" type="int" value="8"/>
@@ -184,7 +140,7 @@
    </properties>
    <point/>
   </object>
-  <object id="29" name="bullets" type="Ammo" x="204" y="640">
+  <object id="29" name="bullets" type="Ammo" x="1680" y="666">
    <properties>
     <property name="ammo_type" value="bullets"/>
     <property name="amount" type="int" value="50"/>
@@ -192,7 +148,7 @@
    </properties>
    <point/>
   </object>
-  <object id="31" name="cells" type="Ammo" x="1438" y="242">
+  <object id="31" name="cells" type="Ammo" x="1472" y="240">
    <properties>
     <property name="ammo_type" value="cells"/>
     <property name="amount" type="int" value="100"/>
@@ -217,7 +173,7 @@
    </properties>
    <point/>
   </object>
-  <object id="36" name="chainsaw" type="Weapon" x="1160" y="923">
+  <object id="36" name="chainsaw" type="Weapon" x="1154" y="905">
    <properties>
     <property name="ammo_type" value=""/>
     <property name="amount" type="int" value="10"/>
@@ -226,7 +182,7 @@
    </properties>
    <point/>
   </object>
-  <object id="37" name="chaingun" type="Weapon" x="390" y="648">
+  <object id="37" name="chaingun" type="Weapon" x="1674" y="496">
    <properties>
     <property name="ammo_type" value="bullets"/>
     <property name="amount" type="int" value="20"/>
@@ -235,7 +191,7 @@
    </properties>
    <point/>
   </object>
-  <object id="38" name="bfg" type="Weapon" x="1370" y="316">
+  <object id="38" name="bfg" type="Weapon" x="1382" y="260">
    <properties>
     <property name="ammo_type" value="cells"/>
     <property name="amount" type="int" value="40"/>
@@ -274,6 +230,30 @@
     <property name="amount" type="int" value="200"/>
     <property name="item_type" value="item_megaarmor"/>
     <property name="sprite" value="assets/pickups/items/item_megaarmor.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="68" name="key_red" type="Item" x="676" y="334">
+   <properties>
+    <property name="amount" type="int" value="0"/>
+    <property name="item_type" value="item"/>
+    <property name="sprite" value="assets/pickups/keys/key_red.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="69" name="key_yellow" type="Item" x="1330" y="338">
+   <properties>
+    <property name="amount" type="int" value="0"/>
+    <property name="item_type" value="item"/>
+    <property name="sprite" value="assets/pickups/keys/key_yellow.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="70" name="key_blue" type="Item" x="772" y="308">
+   <properties>
+    <property name="amount" type="int" value="0"/>
+    <property name="item_type" value="item"/>
+    <property name="sprite" value="assets/pickups/keys/key_blue.png"/>
    </properties>
    <point/>
   </object>

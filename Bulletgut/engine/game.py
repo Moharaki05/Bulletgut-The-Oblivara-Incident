@@ -88,7 +88,7 @@ class Game:
                 if event.key == pg.K_e:
                     for door in self.level.doors:
                         if self.is_near_door(door):
-                            door.toggle()
+                            door.toggle(self)
                 # Debug events
                 if event.key == pg.K_ESCAPE:
                     self.running = False

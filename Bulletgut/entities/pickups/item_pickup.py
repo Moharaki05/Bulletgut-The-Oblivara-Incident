@@ -15,6 +15,10 @@ class ItemPickup(Pickup):
             "item_megaarmor": "A MEGA ARMOR"
         }
 
+        if hasattr(self, 'suppress_message') and self.suppress_message:
+            super().on_pickup(player, game)
+            return
+
         if self.item_type == "item_medikit":
             if player.health < player.max_health:
                 player.health = min(player.health + self.amount, player.max_health)

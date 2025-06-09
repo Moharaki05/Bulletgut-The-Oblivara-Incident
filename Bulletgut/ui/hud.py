@@ -16,6 +16,12 @@ class HUD:
         self.face_manager = FaceManager()
         self.messages = MessageManager()
         self.last_rendered_surface = None
+        KEY_ICON_SIZE = (28, 20)
+        self.key_icons = {
+            "red": pg.transform.scale(pg.image.load("assets/ui/keys/key_red_ui.png").convert_alpha(), KEY_ICON_SIZE),
+            "blue": pg.transform.scale(pg.image.load("assets/ui/keys/key_blue_ui.png").convert_alpha(), KEY_ICON_SIZE),
+            "yellow": pg.transform.scale(pg.image.load("assets/ui/keys/key_yellow_ui.png").convert_alpha(), KEY_ICON_SIZE)
+        }
 
     @staticmethod
     def blit_centered_text(surf, text, rect):
@@ -70,3 +76,15 @@ class HUD:
             self.last_rendered_surface = self.screen.subsurface(pg.Rect(0, 720, 1280, 128)).copy()
 
         self.messages.render(self.screen)
+
+        # Affichage des clés dans les emplacements DOOM
+        base_x = 890  # ajuster selon ton image StatsBar
+        base_y = 775  # 720 + 18 pour le centre du slot
+
+        if "red" in player.keys:
+            self.screen.blit(self.key_icons["red"], (base_x, base_y - 40))  # haut
+        if "blue" in player.keys:
+            self.screen.blit(self.key_icons["blue"], (base_x, base_y))  # milieu
+        if "yellow" in player.keys:
+            self.screen.blit(self.key_icons["yellow"], (base_x, base_y + 40))  # bas
+

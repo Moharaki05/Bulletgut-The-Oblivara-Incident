@@ -11,6 +11,8 @@ class Door:
         self.progress = 0.0  # 0 = fully closed, 1 = fully open
         self.speed = 2.0  # Speed multiplier for opening/closing
 
+        self.required_key = None
+
         # Door properties matching DUGA's system
         self.thickness = thickness
         self.axis = "x"  # Will be set in level.py ('x' for horizontal, 'y' for vertical)
@@ -109,8 +111,13 @@ class Door:
         )
 
     # Door control methods
-    def toggle(self):
+    def toggle(self, game):
         """Toggle door state"""
+        if isinstance(self.required_key, str) and game.player and self.required_key.lower() not in game.player.keys:
+            if game:
+                game.hud.messages.add(f"YOU NEED THE {self.required_key.upper()} KEY TO OPEN THIS DOOR", (255, 0, 0))
+            return
+
         if self.state == "closed":
             self.state = "opening"
             self.timer = 0
