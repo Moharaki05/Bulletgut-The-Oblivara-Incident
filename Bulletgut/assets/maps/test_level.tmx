@@ -129,7 +129,7 @@
   </object>
  </objectgroup>
  <objectgroup id="7" name="EnemySpawns">
-  <object id="61" type="enemy" x="1110" y="716">
+  <object id="61" type="enemy" x="1058" y="680">
    <properties>
     <property name="enemy_type" value="serpentipede"/>
    </properties>
@@ -141,25 +141,25 @@
    </properties>
    <point/>
   </object>
-  <object id="63" type="enemy" x="901" y="747">
+  <object id="63" type="enemy" x="949" y="681">
    <properties>
     <property name="enemy_type" value="shotgunner"/>
    </properties>
    <point/>
   </object>
-  <object id="64" type="enemy" x="1318" y="564">
+  <object id="64" type="enemy" x="1076" y="562">
    <properties>
     <property name="enemy_type" value="gunner"/>
    </properties>
    <point/>
   </object>
-  <object id="66" type="enemy" x="800" y="512">
+  <object id="66" type="enemy" x="952" y="552">
    <properties>
     <property name="enemy_type" value="plutonworm"/>
    </properties>
    <point/>
   </object>
-  <object id="67" type="enemy" x="828" y="326">
+  <object id="67" type="enemy" x="920" y="430">
    <properties>
     <property name="enemy_type" value="plutonworm"/>
    </properties>
@@ -175,7 +175,7 @@
    </properties>
    <point/>
   </object>
-  <object id="33" name="shotgun" type="Weapon" x="392.667" y="653.333">
+  <object id="33" name="shotgun" type="Weapon" x="192.667" y="479.333">
    <properties>
     <property name="ammo_type" value="shells"/>
     <property name="amount" type="int" value="8"/>
@@ -192,7 +192,7 @@
    </properties>
    <point/>
   </object>
-  <object id="31" name="cells" type="Ammo" x="1416" y="256">
+  <object id="31" name="cells" type="Ammo" x="1438" y="242">
    <properties>
     <property name="ammo_type" value="cells"/>
     <property name="amount" type="int" value="100"/>
@@ -226,7 +226,7 @@
    </properties>
    <point/>
   </object>
-  <object id="37" name="chaingun" type="Weapon" x="194" y="482">
+  <object id="37" name="chaingun" type="Weapon" x="390" y="648">
    <properties>
     <property name="ammo_type" value="bullets"/>
     <property name="amount" type="int" value="20"/>
@@ -235,7 +235,7 @@
    </properties>
    <point/>
   </object>
-  <object id="38" name="bfg" type="Weapon" x="1350" y="344">
+  <object id="38" name="bfg" type="Weapon" x="1370" y="316">
    <properties>
     <property name="ammo_type" value="cells"/>
     <property name="amount" type="int" value="40"/>

@@ -10,8 +10,7 @@ from weapons.chaingun import Chaingun
 from weapons.chainsaw import Chainsaw
 from weapons.bfg import BFG
 from data.config import TILE_SIZE, PLAYER_SPEED, ROTATE_SPEED, FOV, PLAYER_COLLISION_RADIUS, \
-    MOUSE_SENSITIVITY, MOUSE_DEADZONE, WEAPON_SLOTS, MOUSE_SENSITIVITY_EXPONENT
-
+    MOUSE_SENSITIVITY, WEAPON_SLOTS, MOUSE_SENSITIVITY_EXPONENT
 
 class Player:
     def __init__(self, x, y):

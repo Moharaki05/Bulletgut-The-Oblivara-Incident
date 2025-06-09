@@ -9,6 +9,7 @@ class PlutonWorm(EnemyBase):
         super().__init__(x, y, level, "assets/sprites/enemies/plutonworm")
 
         # PlutonWorm-specific stats (like Doom Pinky Demon)
+        self.speed_backup = 0.0
         self.max_health = 150  # Pinky has 150 HP in Doom
         self.health = self.max_health
         self.damage = random.randint(4, 40)  # 4-10 * 4 damage range like Doom Pinky
@@ -70,6 +71,7 @@ class PlutonWorm(EnemyBase):
             self.sfx_attack = load_sound("assets/sounds/enemies/worm_bite.wav")
         except:
             self.sfx_attack = None
+
         try:
             self.sfx_charge = load_sound("assets/sounds/enemies/worm_charge.wav")
         except:
@@ -152,7 +154,7 @@ class PlutonWorm(EnemyBase):
 
             # Check for charge opportunity (medium range)
             if (not self.charge_mode and self.charge_cooldown <= 0 and
-                    dist > 120 and dist < 400 and random.random() < 0.3):
+                    120 < dist < 400 and random.random() < 0.3):
                 self.start_charge()
                 return
 

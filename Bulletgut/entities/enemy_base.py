@@ -1,10 +1,6 @@
-import os
-
 import pygame
 import math
 import random
-from entities.pickups.ammo_pickup import AmmoPickup
-from entities.pickups.weapon_pickup import WeaponPickup
 from utils.assets import load_animation_set, load_sound
 
 class EnemyBase:
@@ -202,64 +198,16 @@ class EnemyBase:
 
     # Updated move() method in enemy_base.py
     def move(self, dx, dy):
-        moved = False
         old_x, old_y = self.x, self.y
-        self.x += dx
-        self.y += dy
-        if (self.x != old_x or self.y != old_y):
+        new_x = old_x + dx
+        new_y = old_y + dy
+        safe_x, safe_y = self.get_safe_position(self.level, old_x, old_y, new_x, new_y, radius=self.rect.width // 2)
+
+        self.x = safe_x
+        self.y = safe_y
+        self.rect.center = (self.x, self.y)
+        if self.x != old_x or self.y != old_y:
             self.state = "move"
-        # Try horizontal movement first
-        test_rect = self.rect.copy()
-        test_rect.x += dx
-
-        # Check multiple points along the rectangle edges for horizontal movement
-        collision_points = [
-            (test_rect.left, test_rect.top),
-            (test_rect.left, test_rect.bottom - 1),
-            (test_rect.right - 1, test_rect.top),
-            (test_rect.right - 1, test_rect.bottom - 1),
-            (test_rect.centerx, test_rect.top),
-            (test_rect.centerx, test_rect.bottom - 1)
-        ]
-
-        can_move_x = True
-        for point in collision_points:
-            if self.level.is_blocked(point[0], point[1]):
-                can_move_x = False
-                break
-
-        if can_move_x:
-            self.rect.x += dx
-            self.x = self.rect.centerx
-            moved = True
-
-        # Try vertical movement
-        test_rect = self.rect.copy()
-        test_rect.y += dy
-
-        # Check multiple points along the rectangle edges for vertical movement
-        collision_points = [
-            (test_rect.left, test_rect.top),
-            (test_rect.left, test_rect.bottom - 1),
-            (test_rect.right - 1, test_rect.top),
-            (test_rect.right - 1, test_rect.bottom - 1),
-            (test_rect.left, test_rect.centery),
-            (test_rect.right - 1, test_rect.centery)
-        ]
-
-        can_move_y = True
-        for point in collision_points:
-            if self.level.is_blocked(point[0], point[1]):
-                can_move_y = False
-                break
-
-        if can_move_y:
-            self.rect.y += dy
-            self.y = self.rect.centery
-            moved = True
-
-        return moved
-
 
     def patrol(self, dt):
         """Patrol behavior - wander around randomly"""
@@ -310,6 +258,9 @@ class EnemyBase:
             print(f"[DEATH] {type(self).__name__} died!")
             self.die()
             return  # ⬅️ TRÈS IMPORTANT pour éviter que l'état "hit" ne s'active après la mort
+
+        if self.state == "hit":
+            return
 
         print("[DEBUG] Checking hit animation:", self.animations.get('hit'))
 
@@ -405,63 +356,63 @@ class EnemyBase:
                 # But first try the simple position
                 screen.blit(original_sprite, (base_sprite_x, base_sprite_y))
 
-    def get_safe_sprite_position(self, base_x, base_y, sprite, camera):
-        """Find safe position for sprite rendering that doesn't clip through walls"""
-        if not sprite:
-            return base_x, base_y
-
-        # FIXED: Skip safe positioning for death and hit states to prevent scaling issues
-        if self.state in ["death", "hit"]:
-            return base_x, base_y
-
-        sprite_width, sprite_height = sprite.get_size()
-
-        # Create a test rectangle for the sprite bounds
-        sprite_rect = pygame.Rect(base_x, base_y, sprite_width, sprite_height)
-
-        # Convert screen coordinates to world coordinates
-        world_rect = pygame.Rect(
-            sprite_rect.x + camera.x,
-            sprite_rect.y + camera.y,
-            sprite_rect.width,
-            sprite_rect.height
-        )
-
-        # If sprite doesn't clip through walls, use original position
-        if not self.level.is_rect_blocked_improved(world_rect):
-            return base_x, base_y
-
-        # For non-death/hit states, try to find a better position
-        entity_screen_x = self.x - camera.x
-        entity_screen_y = self.y - camera.y
-
-        # Try positions closer to the entity center (pulling sprite away from walls)
-        search_offsets = [
-            (0, 0),
-            (8, 0), (-8, 0), (0, 8), (0, -8),
-            (16, 0), (-16, 0), (0, 16), (0, -16),
-            (8, 8), (-8, 8), (8, -8), (-8, -8),
-            (16, 16), (-16, 16), (16, -16), (-16, -16)
-        ]
-
-        for offset_x, offset_y in search_offsets:
-            test_x = entity_screen_x - sprite_width // 2 + offset_x
-            test_y = entity_screen_y - sprite_height + offset_y
-
-            test_sprite_rect = pygame.Rect(test_x, test_y, sprite_width, sprite_height)
-            test_world_rect = pygame.Rect(
-                test_sprite_rect.x + camera.x,
-                test_sprite_rect.y + camera.y,
-                test_sprite_rect.width,
-                test_sprite_rect.height
-            )
-
-            if not self.level.is_rect_blocked_improved(test_world_rect):
-                return test_x, test_y
-
-        # Fallback: position sprite centered on entity (might still clip but better than scaling)
-        return (entity_screen_x - sprite_width // 2,
-                entity_screen_y - sprite_height // 2)
+    # def get_safe_sprite_position(self, base_x, base_y, sprite, camera):
+    #     """Find safe position for sprite rendering that doesn't clip through walls"""
+    #     if not sprite:
+    #         return base_x, base_y
+    #
+    #     # FIXED: Skip safe positioning for death and hit states to prevent scaling issues
+    #     if self.state in ["death", "hit"]:
+    #         return base_x, base_y
+    #
+    #     sprite_width, sprite_height = sprite.get_size()
+    #
+    #     # Create a test rectangle for the sprite bounds
+    #     sprite_rect = pygame.Rect(base_x, base_y, sprite_width, sprite_height)
+    #
+    #     # Convert screen coordinates to world coordinates
+    #     world_rect = pygame.Rect(
+    #         sprite_rect.x + camera.x,
+    #         sprite_rect.y + camera.y,
+    #         sprite_rect.width,
+    #         sprite_rect.height
+    #     )
+    #
+    #     # If sprite doesn't clip through walls, use original position
+    #     if not self.level.is_rect_blocked_improved(world_rect):
+    #         return base_x, base_y
+    #
+    #     # For non-death/hit states, try to find a better position
+    #     entity_screen_x = self.x - camera.x
+    #     entity_screen_y = self.y - camera.y
+    #
+    #     # Try positions closer to the entity center (pulling sprite away from walls)
+    #     search_offsets = [
+    #         (0, 0),
+    #         (8, 0), (-8, 0), (0, 8), (0, -8),
+    #         (16, 0), (-16, 0), (0, 16), (0, -16),
+    #         (8, 8), (-8, 8), (8, -8), (-8, -8),
+    #         (16, 16), (-16, 16), (16, -16), (-16, -16)
+    #     ]
+    #
+    #     for offset_x, offset_y in search_offsets:
+    #         test_x = entity_screen_x - sprite_width // 2 + offset_x
+    #         test_y = entity_screen_y - sprite_height + offset_y
+    #
+    #         test_sprite_rect = pygame.Rect(test_x, test_y, sprite_width, sprite_height)
+    #         test_world_rect = pygame.Rect(
+    #             test_sprite_rect.x + camera.x,
+    #             test_sprite_rect.y + camera.y,
+    #             test_sprite_rect.width,
+    #             test_sprite_rect.height
+    #         )
+    #
+    #         if not self.level.is_rect_blocked_improved(test_world_rect):
+    #             return test_x, test_y
+    #
+    #     # Fallback: position sprite centered on entity (might still clip but better than scaling)
+    #     return (entity_screen_x - sprite_width // 2,
+    #             entity_screen_y - sprite_height // 2)
 
     def get_sprite(self, viewer_x, viewer_y):
         if not self.alive and self.state != "death":
@@ -614,3 +565,27 @@ class EnemyBase:
 
     def update_rect(self):
         self.rect.topleft = (int(self.x) - self.rect.width // 2, int(self.y) - self.rect.height // 2)
+
+    def get_safe_position(self, level, old_x, old_y, new_x, new_y, radius=10):
+        collision_rect = pygame.Rect(0, 0, radius * 2, radius * 2)
+        collision_rect.center = (new_x, new_y)
+        if not level.is_rect_blocked(collision_rect):
+            return new_x, new_y
+
+        dx = new_x - old_x
+        dy = new_y - old_y
+        slide_factor = 0.25
+
+        if abs(dx) > 0.1:
+            reduced_x = old_x + dx * slide_factor
+            collision_rect.center = (reduced_x, old_y)
+            if not level.is_rect_blocked(collision_rect):
+                return reduced_x, old_y
+
+        if abs(dy) > 0.1:
+            reduced_y = old_y + dy * slide_factor
+            collision_rect.center = (old_x, reduced_y)
+            if not level.is_rect_blocked(collision_rect):
+                return old_x, reduced_y
+
+        return old_x, old_y

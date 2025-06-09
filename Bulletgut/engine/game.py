@@ -204,6 +204,7 @@ class Game:
 
     def reload_level(self):
         self.level = Level("assets/maps/test_level.tmx")
+        self.level.game = self
         spawn_x, spawn_y = self.level.spawn_point
         self.player = Player(spawn_x, spawn_y)
         self.player.initialize_weapons(self)
