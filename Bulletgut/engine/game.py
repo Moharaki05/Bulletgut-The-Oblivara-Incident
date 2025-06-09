@@ -86,6 +86,7 @@ class Game:
                         if self.player.weapon:
                             self.player.weapon.fire()
                     elif not self.restart_anim_in_progress:
+                        # Pour la mort du joueur - garder le rendu du HUD
                         self.hud.render(self.player, self)
                         self.restart_anim_surface = self.screen.copy()
                         self.restart_anim_in_progress = True
@@ -120,8 +121,8 @@ class Game:
                     if (self.show_intermission and
                             self.intermission_screen.is_transition_complete() and
                             not self.restart_anim_in_progress):
-                        # Commencer la transition vers le niveau suivant
-                        self.hud.render(self.player, self)
+                        # CORRECTION: Capturer l'écran d'intermission directement
+                        # sans faire de rendu supplémentaire du HUD
                         self.restart_anim_surface = self.screen.copy()
                         self.restart_anim_in_progress = True
                         self.restart_anim_done = False
