@@ -63,11 +63,14 @@ class Game:
         self.effects = []
 
     def update_statistics(self):
+        """Initialise les statistiques pour le niveau actuel"""
         self.enemies_killed = 0
         self.initial_enemy_count = len(self.enemies)
         self.items_collected = 0
+        # Compter seulement les items non-munitions qui ne sont pas encore ramassés
         self.initial_item_count = len([pickup for pickup in self.level.pickups
-                                       if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo'])
+                                       if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo' and not pickup.picked_up])
+        print(f"[DEBUG] Level loaded - Enemies: {self.initial_enemy_count}, Items: {self.initial_item_count}")
 
     def handle_events(self):
         self.mouse_dx = 0
@@ -168,19 +171,26 @@ class Game:
         if self.player.damage_flash_timer > 0:
             self.player.damage_flash_timer = max(0.0, self.player.damage_flash_timer - dt)
 
+        # Mettre à jour les pickups et compter les items SEULEMENT quand ils sont ramassés
         for pickup in self.level.pickups:
+            was_picked_up = pickup.picked_up
             pickup.update(self.player, self)
-            if pickup.picked_up and hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo':
+            # Compter l'item seulement au moment où il vient d'être ramassé
+            if not was_picked_up and pickup.picked_up and hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo':
                 self.items_collected += 1
+                print(f"[DEBUG] Item collected! Total: {self.items_collected}/{self.initial_item_count}")
 
         for door in self.level.doors:
             door.update(dt)
 
+        # Mettre à jour les ennemis et compter les morts SEULEMENT quand ils meurent
         for enemy in self.level.enemies:
             was_alive = enemy.alive
             enemy.update(self.player, dt)
+            # Compter l'ennemi seulement au moment où il vient de mourir
             if was_alive and not enemy.alive:
                 self.enemies_killed += 1
+                print(f"[DEBUG] Enemy killed! Total: {self.enemies_killed}/{self.initial_enemy_count}")
 
         if not self.player.alive and not self.hud.messages.has_death_message:
             self.hud.messages.add("YOU DIED. CLICK TO RESTART.", (255, 0, 0))
@@ -280,4 +290,4 @@ class Game:
     def trigger_level_complete(self):
         if not self.level_complete:
             self.level_complete = True
-            print("[LEVEL] Level completed!")
+            print(f"[LEVEL] Level completed! Stats - Enemies: {self.enemies_killed}/{self.initial_enemy_count}, Items: {self.items_collected}/{self.initial_item_count}")

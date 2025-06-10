@@ -34,12 +34,12 @@ class IntermissionScreen:
         self.entry_curtain_surface = None
         self.show_stats = False  # Ne montre les stats qu'après la transition d'entrée
 
-        # Système de transition rideau SORTIE (vers le prochain niveau)
+        # Système de transition rideau SORTIE (vers le prochain niveau) - DESCENDANTE
         self.exit_transition_active = False
         self.exit_transition_in_progress = False
         self.exit_transition_done = False
         self.exit_curtain_col_width = 4
-        self.exit_curtain_columns = [SCREEN_HEIGHT] * num_cols  # Commence en haut (rideau fermé)
+        self.exit_curtain_columns = [0] * num_cols  # Commence à 0 (rideau ouvert)
         self.exit_curtain_speeds = [random.randint(16, 32) for _ in range(num_cols)]
         self.exit_curtain_surface = None  # Surface du prochain niveau
 
@@ -64,7 +64,7 @@ class IntermissionScreen:
             self.entry_curtain_speeds = [random.randint(16, 32) for _ in range(num_cols)]
 
     def start_exit_transition(self, next_level_screen):
-        """Démarre la transition rideau vers le prochain niveau"""
+        """Démarre la transition rideau vers le prochain niveau (descendante)"""
         if not self.exit_transition_active and self.state == "showing":
             self.exit_transition_active = True
             self.exit_transition_in_progress = True
@@ -74,9 +74,9 @@ class IntermissionScreen:
             # Capturer l'écran du prochain niveau
             self.exit_curtain_surface = next_level_screen.copy()
 
-            # Réinitialiser les colonnes de sortie (commencent fermées)
+            # Réinitialiser les colonnes de sortie (commencent ouvertes, vont descendre)
             num_cols = SCREEN_WIDTH // self.exit_curtain_col_width
-            self.exit_curtain_columns = [SCREEN_HEIGHT] * num_cols
+            self.exit_curtain_columns = [0] * num_cols
             self.exit_curtain_speeds = [random.randint(16, 32) for _ in range(num_cols)]
 
     def update(self, dt):
@@ -112,17 +112,18 @@ class IntermissionScreen:
             self.state = "showing"
 
     def update_exit_curtain_transition(self):
-        """Met à jour l'animation du rideau de sortie"""
+        """Met à jour l'animation du rideau de sortie (descendante)"""
         if not self.exit_curtain_surface:
             return
 
         all_done = True
 
         for i in range(len(self.exit_curtain_columns)):
-            if self.exit_curtain_columns[i] > 0:
-                self.exit_curtain_columns[i] -= self.exit_curtain_speeds[i]
-                if self.exit_curtain_columns[i] < 0:
-                    self.exit_curtain_columns[i] = 0
+            if self.exit_curtain_columns[i] < SCREEN_HEIGHT:
+                self.exit_curtain_columns[i] += self.exit_curtain_speeds[i]
+                # S'assurer que la colonne ne dépasse pas la hauteur de l'écran
+                if self.exit_curtain_columns[i] > SCREEN_HEIGHT:
+                    self.exit_curtain_columns[i] = SCREEN_HEIGHT
                 all_done = False
 
         if all_done and not self.exit_transition_done:
@@ -133,10 +134,9 @@ class IntermissionScreen:
     def render(self, screen, enemies_killed, total_enemies, items_collected, total_items):
         """Affiche l'écran d'intermission complet avec transitions"""
 
-        if self.state == "exiting":
-            # Pendant la sortie, afficher le prochain niveau en arrière-plan
-            if self.exit_curtain_surface:
-                screen.blit(self.exit_curtain_surface, (0, 0))
+        # Toujours afficher le prochain niveau en arrière-plan pendant la sortie
+        if self.state == "exiting" and self.exit_curtain_surface:
+            screen.blit(self.exit_curtain_surface, (0, 0))
         else:
             # Afficher le fond d'intermission normal
             if self.background_image:
@@ -236,34 +236,46 @@ class IntermissionScreen:
                     pass
 
     def draw_exit_curtain_transition(self, screen):
-        """Dessine l'effet rideau de sortie (colonnes qui remontent pour révéler le niveau suivant)"""
-        if not self.exit_curtain_surface:
-            return
-
+        """Dessine l'effet rideau de sortie DESCENDANT (colonnes de l'intermission qui tombent)"""
         col_width = self.exit_curtain_col_width
 
-        # Dessiner les parties de l'intermission qui ne sont pas encore "tombées"
+        # Créer une surface temporaire avec le contenu de l'intermission si nécessaire
+        if not hasattr(self, '_intermission_surface'):
+            self._intermission_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            if self.background_image:
+                self._intermission_surface.blit(self.background_image, (0, 0))
+            else:
+                self._intermission_surface.fill((20, 20, 40))
+                for i in range(0, SCREEN_WIDTH, 100):
+                    for j in range(0, SCREEN_HEIGHT, 100):
+                        pg.draw.rect(self._intermission_surface, (30, 30, 50), (i, j, 50, 50))
+
+        # Dessiner les colonnes de l'intermission qui n'ont pas encore "tombé"
         for x in range(0, SCREEN_WIDTH, col_width):
             col_index = x // col_width
             if col_index >= len(self.exit_curtain_columns):
                 continue
 
-            curtain_height = self.exit_curtain_columns[col_index]
+            # Hauteur restante de l'intermission à afficher (ce qui n'est pas encore tombé)
+            curtain_pos = min(self.exit_curtain_columns[col_index], SCREEN_HEIGHT)
+            remaining_height = SCREEN_HEIGHT - curtain_pos
 
-            if curtain_height > 0:
-                # Dessiner la partie intermission qui reste visible
-                intermission_rect = pg.Rect(x, 0, col_width, curtain_height)
+            if remaining_height > 0:
+                # Dessiner la partie de l'intermission qui reste visible
+                source_rect = pg.Rect(x, curtain_pos, col_width, remaining_height)
+                dest_pos = (x, curtain_pos)
 
-                # Afficher le fond d'intermission pour cette colonne
-                if self.background_image:
+                # Vérifier que le rectangle source est valide
+                if (source_rect.x >= 0 and source_rect.y >= 0 and
+                    source_rect.x + source_rect.width <= SCREEN_WIDTH and
+                    source_rect.y + source_rect.height <= SCREEN_HEIGHT and
+                    source_rect.width > 0 and source_rect.height > 0):
                     try:
-                        intermission_column = self.background_image.subsurface(intermission_rect)
-                        screen.blit(intermission_column, (x, 0))
-                    except ValueError:
-                        pass
-                else:
-                    # Fond de couleur par défaut
-                    pg.draw.rect(screen, (20, 20, 40), intermission_rect)
+                        intermission_column = self._intermission_surface.subsurface(source_rect)
+                        screen.blit(intermission_column, dest_pos)
+                    except (ValueError, pg.error):
+                        # En cas d'erreur, dessiner une colonne de couleur unie
+                        pg.draw.rect(screen, (20, 20, 40), (*dest_pos, col_width, remaining_height))
 
     def is_entry_transition_complete(self):
         """Retourne True si la transition d'entrée est terminée"""
@@ -289,6 +301,9 @@ class IntermissionScreen:
         self.state = "entering"
         self.entry_curtain_surface = None
         self.exit_curtain_surface = None
+        # Nettoyer la surface temporaire
+        if hasattr(self, '_intermission_surface'):
+            del self._intermission_surface
 
     # Méthodes de compatibilité avec l'ancien code
     def start_transition(self, game_screen):
