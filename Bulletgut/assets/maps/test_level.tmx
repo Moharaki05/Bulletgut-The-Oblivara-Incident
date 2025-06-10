@@ -156,7 +156,7 @@
    </properties>
    <point/>
   </object>
-  <object id="32" name="rockets" type="Ammo" x="1370" y="882">
+  <object id="32" name="rockets" type="Ammo" x="1344" y="868">
    <properties>
     <property name="ammo_type" value="rockets"/>
     <property name="amount" type="int" value="5"/>
@@ -164,7 +164,7 @@
    </properties>
    <point/>
   </object>
-  <object id="34" name="rocketlauncher" type="Weapon" x="1484" y="886">
+  <object id="34" name="rocketlauncher" type="Weapon" x="1464" y="876">
    <properties>
     <property name="ammo_type" value="rockets"/>
     <property name="amount" type="int" value="10"/>

@@ -167,32 +167,20 @@ class IntermissionScreen:
         screen.blit(title_text, title_rect)
 
         # Statistiques des ennemis
-        enemies_text = f"ENEMIES ELIMINATED: {enemies_killed}/{total_enemies}"
+        enemy_percent = (enemies_killed / total_enemies * 100) if total_enemies > 0 else 100
+        enemies_text = f"KILLS : {int(enemy_percent)}%"
         enemies_color = (0, 255, 0) if enemies_killed == total_enemies else (255, 255, 255)
         enemies_surface = self.font_medium.render(enemies_text, True, enemies_color)
         enemies_rect = enemies_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
         screen.blit(enemies_surface, enemies_rect)
 
-        # Pourcentage des ennemis
-        enemy_percent = (enemies_killed / total_enemies * 100) if total_enemies > 0 else 100
-        enemy_percent_text = f"({enemy_percent:.0f}%)"
-        enemy_percent_surface = self.font_small.render(enemy_percent_text, True, enemies_color)
-        enemy_percent_rect = enemy_percent_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 25))
-        screen.blit(enemy_percent_surface, enemy_percent_rect)
-
         # Statistiques des items
-        items_text = f"ITEMS COLLECTED: {items_collected}/{total_items}"
+        item_percent = (items_collected / total_items * 100) if total_items > 0 else 100
+        items_text = f"ITEMS : {int(item_percent)}%"
         items_color = (0, 255, 0) if items_collected == total_items else (255, 255, 255)
         items_surface = self.font_medium.render(items_text, True, items_color)
         items_rect = items_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 10))
         screen.blit(items_surface, items_rect)
-
-        # Pourcentage des items
-        item_percent = (items_collected / total_items * 100) if total_items > 0 else 100
-        item_percent_text = f"({item_percent:.0f}%)"
-        item_percent_surface = self.font_small.render(item_percent_text, True, items_color)
-        item_percent_rect = item_percent_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 35))
-        screen.blit(item_percent_surface, item_percent_rect)
 
         # Bonus de performance (optionnel)
         if enemies_killed == total_enemies and items_collected == total_items:

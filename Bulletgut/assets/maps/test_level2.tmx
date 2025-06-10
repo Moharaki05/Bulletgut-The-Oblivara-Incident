@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="11" nextobjectid="73">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="11" nextobjectid="76">
  <properties>
   <property name="floor_color" value="#1e1e1e"/>
  </properties>
@@ -109,13 +109,25 @@
   </object>
  </objectgroup>
  <objectgroup id="7" name="EnemySpawns">
-  <object id="61" type="enemy" x="1722" y="268">
+  <object id="61" type="enemy" x="959.333" y="658.667">
    <properties>
     <property name="enemy_type" value="serpentipede"/>
    </properties>
    <point/>
   </object>
-  <object id="64" type="enemy" x="1710" y="84">
+  <object id="64" type="enemy" x="998" y="322.667">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="73" type="enemy" x="1100" y="648">
+   <properties>
+    <property name="enemy_type" value="serpentipede"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="74" type="enemy" x="1088" y="464">
    <properties>
     <property name="enemy_type" value="gunner"/>
    </properties>
@@ -258,11 +270,7 @@
    <point/>
   </object>
  </objectgroup>
- <objectgroup id="10" name="EndLevel">
-  <object id="71" x="1792" y="512.5" width="63.5" height="64.75">
-   <properties>
-    <property name="end_level" type="bool" value="true"/>
-   </properties>
-  </object>
+ <objectgroup id="10" name="LevelExit">
+  <object id="75" name="level_exit" type="level_exit" x="1784.55" y="512.143" width="71.3333" height="63.8958"/>
  </objectgroup>
 </map>

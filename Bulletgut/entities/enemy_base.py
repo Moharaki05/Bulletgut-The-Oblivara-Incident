@@ -17,6 +17,7 @@ class EnemyBase:
         self.health = self.max_health
         self.speed = 0.6
         self.damage = 10
+        self.just_died = False
 
         # States
         self.alive = True
@@ -240,7 +241,6 @@ class EnemyBase:
 
     def take_damage(self, amount, splash=False, direct_hit=True):
         if not self.alive:
-            print("hello")
             return
 
         if splash and not direct_hit:
@@ -284,8 +284,15 @@ class EnemyBase:
             print(f"[DEBUG] No hit animations available, skipping hit state")
 
     def die(self):
+        """Marque l'ennemi comme mort"""
+        if not self.alive:
+            return  # Déjà mort, ne pas traiter à nouveau
+
         self.alive = False
         self.state = "death"
+
+        # ⭐ NOUVEAU : Marquer que cette mort doit être comptée
+        self.just_died = True
 
         # IMPORTANT: Reset animation properly for death
         self.frame_index = 0

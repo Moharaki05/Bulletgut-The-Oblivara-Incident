@@ -1,6 +1,8 @@
 import math
 import random
 import pygame as pg
+
+from engine import game
 from weapons.fists import Fists
 from weapons.pistol import Pistol
 from weapons.plasma_gun import PlasmaGun
@@ -71,9 +73,7 @@ class Player:
             "rockets": 100
         }
         self.current_weapon_index = 0
-
         self.keys = set()
-
         self.rect = pg.Rect(self.x - 10, self.y - 10, 20, 20)
 
     def handle_inputs(self, keys, dt, mouse_dx=0, level=None, game=None):
@@ -273,6 +273,8 @@ class Player:
             self.alive = False
             random.choice(self.death_sounds).play()
             print("[PLAYER] You died!")
+            if hasattr(game, "reset_player_state"):
+                game.reset_player_state()
 
     def check_enemy_collisions(self, game):
         for enemy in game.enemies:

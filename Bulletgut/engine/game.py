@@ -3,7 +3,6 @@ import random
 import pygame as pg
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE, HUD_HEIGHT
 from engine.raycaster import Raycaster
-from entities.pickups.ammo_pickup import AmmoPickup
 from entities.pickups.key_pickup import KeyPickup
 from entities.pickups.weapon_pickup import WeaponPickup
 from entities.player import Player
@@ -27,6 +26,15 @@ class Game:
             "assets/maps/test_level.tmx",
             "assets/maps/test_level2.tmx"
         ])
+
+        self.is_first_level = True
+        self.player = None
+        self.level = None
+        self.raycaster = None
+        self.enemies = []
+        self.projectiles = []
+        self.effects = []
+
         self.load_level(self.level_manager.get_current())
 
         self.crosshair_enabled = True
@@ -55,15 +63,62 @@ class Game:
         self.update_statistics()
 
     def load_level(self, path):
+        # Sauvegarder l'état du joueur avant de charger le nouveau niveau (sauf si c'est le premier niveau)
+        if not self.is_first_level and self.player and self.player.alive:
+            self.save_player_state()
+
         self.level = Level(path)
         self.level.game = self
         spawn_x, spawn_y = self.level.spawn_point
         self.player = Player(spawn_x, spawn_y)
         self.player.initialize_weapons(self)
+
+        # Restaurer l'état du joueur si ce n'est pas le premier niveau
+        if not self.is_first_level:
+            self.restore_player_state()
+        else:
+            self.is_first_level = False
+
         self.raycaster = Raycaster(self.level, self.player)
         self.enemies = self.level.enemies
         self.projectiles = []
         self.effects = []
+
+    def save_player_state(self):
+        """Sauvegarde l'état du joueur (armes, munitions, armure)"""
+        if self.player:
+            self.player_state = {
+                'health': self.player.health,
+                'armor': self.player.armor,
+                'ammo': self.player.ammo.copy(),
+                'weapons': self.player.weapons.copy(),
+                'current_weapon_index': self.player.current_weapon_index,
+            }
+
+    def restore_player_state(self):
+        """Restaure l'état du joueur sauvegardé"""
+        if self.player_state and self.player:
+            self.player.health = self.player_state['health']
+            self.player.armor = self.player_state['armor']
+            self.player.ammo = self.player_state['ammo'].copy()
+            self.player.weapons = self.player_state['weapons'].copy()
+            self.player.current_weapon_index = self.player_state['current_weapon_index']
+
+            # Remettre l'arme courante
+            if 0 <= self.player.current_weapon_index < len(self.player.weapons):
+                self.player.weapon = self.player.weapons[self.player.current_weapon_index]
+            else:
+                for i, weapon in enumerate(self.player.weapons):
+                    if weapon is not None:
+                        self.player.current_weapon_index = i
+                        self.player.weapon = weapon
+                        break
+
+    def reset_player_state(self):
+        """Remet à zéro l'état du joueur (utilisé lors de la mort)"""
+        self.player_state = None
+        self.is_first_level = True
+        print("[DEBUG] Player state reset due to death")
 
     def update_statistics(self):
         """Initialise les statistiques pour le niveau actuel"""
@@ -98,6 +153,7 @@ class Game:
                         if self.player.weapon:
                             self.player.weapon.fire()
                     elif not self.restart_anim_in_progress:
+                        print("[DEBUG] CLICK DETECTED - STARTING RESTART ANIMATION")
                         self.hud.render(self.player, self)
                         self.restart_anim_surface = self.screen.copy()
                         self.restart_anim_in_progress = True
@@ -154,6 +210,12 @@ class Game:
         dt = self.clock.tick(FPS) / 1000
         pg.display.set_caption(f"Bulletgut : The Oblivara Incident - FPS: {self.clock.get_fps():.2f}")
 
+        if self.has_restarted:
+            self.reload_level()
+            self.pending_restart = False
+            self.restart_anim_in_progress = False
+            return
+
         if self.restart_anim_in_progress:
             self.update_restart_transition()
             return
@@ -206,11 +268,12 @@ class Game:
 
         # Mettre à jour les ennemis et compter les morts SEULEMENT quand ils meurent
         for enemy in self.level.enemies:
-            was_alive = enemy.alive
             enemy.update(self.player, dt)
-            # Compter l'ennemi seulement au moment où il vient de mourir
-            if was_alive and not enemy.alive:
+
+            # ⭐ NOUVEAU : Vérifier si cet ennemi vient de mourir
+            if hasattr(enemy, 'just_died') and enemy.just_died:
                 self.enemies_killed += 1
+                enemy.just_died = False  # Marquer comme traité pour éviter de compter plusieurs fois
                 print(f"[DEBUG] Enemy killed! Total: {self.enemies_killed}/{self.initial_enemy_count}")
 
         if not self.player.alive and not self.hud.messages.has_death_message:
@@ -312,3 +375,17 @@ class Game:
         if not self.level_complete:
             self.level_complete = True
             print(f"[LEVEL] Level completed! Stats - Enemies: {self.enemies_killed}/{self.initial_enemy_count}, Items: {self.items_collected}/{self.initial_item_count}")
+
+    def reload_level(self):
+        self.reset_player_state()  # Remise à zéro pour éviter de restaurer un ancien état
+        self.load_level(self.level_manager.get_current())
+        self.update_statistics()
+
+        self.restart_anim_col_width = 4
+        num_cols = SCREEN_WIDTH // self.restart_anim_col_width
+        self.restart_anim_columns = [0] * num_cols
+        self.restart_anim_speeds = [random.randint(8, 20) for _ in range(num_cols)]
+        self.restart_anim_done = False
+        self.has_restarted = False
+        self.restart_anim_in_progress = False
+
