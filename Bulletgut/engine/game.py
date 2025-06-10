@@ -6,10 +6,8 @@ from engine.raycaster import Raycaster
 from entities.player import Player
 from engine.level import Level
 from ui.hud import HUD
-from ui.level_stats import LevelStats
-from entities.level_exit import LevelExit
+from engine.level_manager import LevelManager
 from ui.intermission import IntermissionScreen
-
 
 class Game:
     def __init__(self):
@@ -19,29 +17,18 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
 
-        # Lock mouse inside the window and hide it
         pg.event.set_grab(True)
         pg.mouse.set_visible(False)
 
-        # TODO : Add player, levels, HUD, etc.
-        self.level = Level("assets/maps/test_level.tmx")
-        self.level.game = self
-        spawn_x, spawn_y = self.level.spawn_point
-        self.player = Player(spawn_x, spawn_y)
-        self.raycaster = Raycaster(self.level, self.player)
-        self.enemies = self.level.enemies
-        self.mouse_dx = 0
+        self.level_manager = LevelManager([
+            "assets/maps/test_level.tmx",
+            "assets/maps/test_level2.tmx"
+        ])
+        self.load_level(self.level_manager.get_current())
 
         self.crosshair_enabled = True
         self.crosshair_image = pg.image.load("assets/ui/crosshair.png").convert_alpha()
-        self.crosshair_image = pg.transform.scale(self.crosshair_image, (20, 20))  # Ajuster la taille
-
-        # Système d'armes
-        self.projectiles = []
-        self.effects = []
-
-        # Initialiser les armes
-        self.player.initialize_weapons(self)
+        self.crosshair_image = pg.transform.scale(self.crosshair_image, (20, 20))
 
         self.restart_anim_col_width = 4
         num_cols = SCREEN_WIDTH // self.restart_anim_col_width
@@ -51,22 +38,31 @@ class Game:
         self.restart_anim_in_progress = False
         self.restart_anim_done = False
 
-        self.take_restart_screenshot = False
         self.pending_restart = False
         self.has_restarted = False
         self.pending_level_change = False
+        self.ready_to_load_level = False
 
-        # UI
         self.hud = HUD(self.screen)
-
-        # Système de transition entre niveaux
         self.intermission_screen = IntermissionScreen()
         self.level_complete = False
         self.show_intermission = False
-        self.next_level_path = None
-        self.intermission_transition_started = False  # NOUVEAU
+        self.intermission_transition_started = False
 
-        # Statistiques de niveau
+        self.update_statistics()
+
+    def load_level(self, path):
+        self.level = Level(path)
+        self.level.game = self
+        spawn_x, spawn_y = self.level.spawn_point
+        self.player = Player(spawn_x, spawn_y)
+        self.player.initialize_weapons(self)
+        self.raycaster = Raycaster(self.level, self.player)
+        self.enemies = self.level.enemies
+        self.projectiles = []
+        self.effects = []
+
+    def update_statistics(self):
         self.enemies_killed = 0
         self.initial_enemy_count = len(self.enemies)
         self.items_collected = 0
@@ -86,50 +82,47 @@ class Game:
                         if self.player.weapon:
                             self.player.weapon.fire()
                     elif not self.restart_anim_in_progress:
-                        # Pour la mort du joueur - garder le rendu du HUD
                         self.hud.render(self.player, self)
                         self.restart_anim_surface = self.screen.copy()
                         self.restart_anim_in_progress = True
                         self.restart_anim_done = False
                         self.has_restarted = False
-                if event.button == 4:  # Molette vers le haut
+                if event.button == 4:
                     self.player.switch_weapon(-1)
-                elif event.button == 5:  # Molette vers le bas
+                elif event.button == 5:
                     self.player.switch_weapon(1)
-            elif event.type == pg.MOUSEBUTTONUP:  # Ajout de cette condition
+            elif event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1:
-                    # Arrêter le tir quand le bouton est relâché
                     if self.player.weapon:
                         self.player.weapon.release_trigger()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_e:
-                    # Vérifier les portes
                     for door in self.level.doors:
                         if self.is_near_door(door):
                             door.toggle(self)
                             break
                     else:
-                        # Si aucune porte n'est proche, vérifier les sorties de niveau
                         for level_exit in self.level.level_exits:
                             if level_exit.is_player_near(self.player):
                                 if level_exit.activate():
-                                    self.trigger_level_complete(level_exit.next_level)
+                                    self.trigger_level_complete()
                                 break
-
                 if event.key == pg.K_RETURN:
-                    # Seulement si l'intermission est affichée ET que la transition est terminée
-                    if (self.show_intermission and
-                            self.intermission_screen.is_transition_complete() and
-                            not self.restart_anim_in_progress):
-                        # CORRECTION: Capturer l'écran d'intermission directement
-                        # sans faire de rendu supplémentaire du HUD
+                    if self.show_intermission and self.intermission_screen.is_transition_complete():
+                        self.pending_level_change = True
+                        self.level_manager.advance()
+                        self.load_level(self.level_manager.get_current())
+                        self.update_statistics()
+                        self.render_game_without_intermission()
                         self.restart_anim_surface = self.screen.copy()
+                        self.restart_anim_columns = [0] * len(self.restart_anim_columns)
+                        self.restart_anim_speeds = [random.randint(16, 32) for _ in self.restart_anim_speeds]
                         self.restart_anim_in_progress = True
                         self.restart_anim_done = False
                         self.has_restarted = False
-                        self.pending_level_change = True
-
-                # Debug events
+                        self.show_intermission = False
+                        self.intermission_transition_started = False
+                        self.level_complete = False
                 if event.key == pg.K_ESCAPE:
                     self.running = False
 
@@ -137,66 +130,43 @@ class Game:
         px, py = self.player.get_position()
         dx = px - (door.grid_x + 0.5) * TILE_SIZE
         dy = py - (door.grid_y + 0.5) * TILE_SIZE
-        dist_squared = dx * dx + dy * dy
-        return dist_squared <= (TILE_SIZE * 2.1) ** 2  # Adjust 1.1 as needed
+        return dx * dx + dy * dy <= (TILE_SIZE * 2.1) ** 2
 
     def update(self):
-        # later: update player, enemies, projectiles, etc.
-        dt = self.clock.tick(FPS) / 1000  # Delta time in seconds
+        dt = self.clock.tick(FPS) / 1000
         pg.display.set_caption(f"Bulletgut : The Oblivara Incident - FPS: {self.clock.get_fps():.2f}")
 
         if self.restart_anim_in_progress:
             self.update_restart_transition()
 
-        if self.has_restarted:
-            if self.pending_level_change:
-                self.load_next_level()
-                self.pending_level_change = False
-            else:
-                self.reload_level()
-            self.restart_anim_in_progress = False
-            return
-
-        # NOUVEAU: Gérer la transition vers l'intermission
         if self.level_complete and not self.intermission_transition_started:
-            # Capturer l'écran actuel pour la transition rideau
-            self.render_game_without_intermission()  # Rendre le jeu une dernière fois
+            self.render_game_without_intermission()
             self.intermission_screen.start_transition(self.screen)
             self.intermission_transition_started = True
             self.show_intermission = True
 
         if self.show_intermission:
-            # Seule l'animation de l'écran d'intermission est autorisée
             self.intermission_screen.update(dt)
             return
 
-        # Handle input
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level, self)
         if self.player.damage_flash_timer > 0:
             self.player.damage_flash_timer = max(0.0, self.player.damage_flash_timer - dt)
 
-        collected_items_this_frame = 0
         for pickup in self.level.pickups:
-            was_picked_up = pickup.picked_up
             pickup.update(self.player, self)
-            if not was_picked_up and pickup.picked_up:
-                if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo':
-                    collected_items_this_frame += 1
-
-        self.items_collected += collected_items_this_frame
+            if pickup.picked_up and hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo':
+                self.items_collected += 1
 
         for door in self.level.doors:
             door.update(dt)
 
-        dead_enemies_this_frame = 0
         for enemy in self.level.enemies:
             was_alive = enemy.alive
             enemy.update(self.player, dt)
             if was_alive and not enemy.alive:
-                dead_enemies_this_frame += 1
-
-        self.enemies_killed += dead_enemies_this_frame
+                self.enemies_killed += 1
 
         if not self.player.alive and not self.hud.messages.has_death_message:
             self.hud.messages.add("YOU DIED. CLICK TO RESTART.", (255, 0, 0))
@@ -204,7 +174,6 @@ class Game:
 
         if self.player.weapon:
             self.player.weapon.update(dt)
-
             if hasattr(self.player.weapon, 'update_line_detection'):
                 self.player.weapon.update_line_detection()
 
@@ -213,27 +182,22 @@ class Game:
 
     def render(self):
         if self.show_intermission:
-            # Afficher l'écran d'intermission avec sa transition
             self.intermission_screen.render(self.screen, self.enemies_killed, self.initial_enemy_count,
                                             self.items_collected, self.initial_item_count)
         else:
-            # Rendu normal du jeu
             self.render_game_without_intermission()
 
         self.draw_restart_transition()
         pg.display.flip()
 
     def render_game_without_intermission(self):
-        """Rend le jeu normal sans l'écran d'intermission"""
         self.screen.fill((0, 0, 0))
-
         self.raycaster.cast_rays(self.render_surface, self.player, self.level.floor_color)
         self.raycaster.render_pickups(self.render_surface, self.player, self.level.pickups)
         self.raycaster.render_enemies(self.render_surface, self.player, self.level.enemies)
 
         if self.player.weapon:
             self.player.weapon.render(self.render_surface)
-
             if hasattr(self.player.weapon, 'render_detection_line'):
                 self.player.weapon.render_detection_line(self.render_surface)
 
@@ -264,52 +228,13 @@ class Game:
 
     def _render_projectiles(self):
         for projectile in self.projectiles:
-            # Calcule position relative au joueur
             dx = projectile.x - self.player.x
             dy = projectile.y - self.player.y
-
-            # Calcule l'angle relatif entre projectile et direction du joueur
             rel_angle = math.atan2(dy, dx) - self.player.angle
-            rel_angle = (rel_angle + math.pi) % (2 * math.pi) - math.pi  # Normalisation [-π, π]
-
-            # Ne pas dessiner si hors champ de vision
+            rel_angle = (rel_angle + math.pi) % (2 * math.pi) - math.pi
             if abs(rel_angle) > self.raycaster.fov / 2:
                 continue
-
             projectile.render(self.render_surface, self.raycaster)
-
-    def reload_level(self):
-        self.level = Level("assets/maps/test_level.tmx")
-        self.level.game = self
-        spawn_x, spawn_y = self.level.spawn_point
-        self.player = Player(spawn_x, spawn_y)
-        self.player.initialize_weapons(self)
-        self.raycaster = Raycaster(self.level, self.player)
-        self.projectiles.clear()
-        self.effects.clear()
-        self.enemies.clear()
-        self.hud.messages.has_death_message = False
-
-        self.restart_anim_col_width = 4
-        num_cols = SCREEN_WIDTH // self.restart_anim_col_width
-        self.restart_anim_columns = [0] * num_cols
-        self.restart_anim_speeds = [random.randint(8, 20) for _ in range(num_cols)]
-        self.restart_anim_done = False
-        self.has_restarted = False
-        self.restart_anim_in_progress = False
-
-        self.level_complete = False
-        self.show_intermission = False
-        self.next_level_path = None
-        self.pending_level_change = False
-        self.intermission_transition_started = False  # NOUVEAU
-
-        # Réinitialiser les statistiques
-        self.enemies_killed = 0
-        self.initial_enemy_count = len(self.enemies)
-        self.items_collected = 0
-        self.initial_item_count = len([pickup for pickup in self.level.pickups
-                                       if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo'])
 
     def draw_restart_transition(self):
         if not self.restart_anim_surface:
@@ -317,10 +242,8 @@ class Game:
 
         all_done = True
         col_width = self.restart_anim_col_width
-
         for x in range(0, SCREEN_WIDTH, col_width):
             col_index = x // col_width
-
             if self.restart_anim_columns[col_index] < SCREEN_HEIGHT:
                 self.restart_anim_columns[col_index] += self.restart_anim_speeds[col_index]
                 all_done = False
@@ -340,47 +263,7 @@ class Game:
         if self.restart_anim_done and not self.has_restarted:
             self.has_restarted = True
 
-    def trigger_level_complete(self, next_level_path):
-        """Déclenche la fin de niveau et prépare l'écran d'intermission"""
+    def trigger_level_complete(self):
         if not self.level_complete:
             self.level_complete = True
-            self.next_level_path = next_level_path
-            # Ne pas afficher immédiatement l'intermission,
-            # elle sera affichée avec transition dans update()
-            print(f"[LEVEL] Level completed! Next: {next_level_path}")
-
-    def load_next_level(self):
-        """Charge le niveau suivant"""
-        if self.next_level_path:
-            try:
-                self.level = Level(self.next_level_path)
-                self.level.game = self
-                spawn_x, spawn_y = self.level.spawn_point
-                self.player = Player(spawn_x, spawn_y)
-                self.player.initialize_weapons(self)
-                self.raycaster = Raycaster(self.level, self.player)
-                self.projectiles.clear()
-                self.effects.clear()
-                self.enemies.clear()
-
-                # Réinitialiser les statistiques
-                self.enemies_killed = 0
-                self.initial_enemy_count = len(self.level.enemies)
-                self.items_collected = 0
-                self.initial_item_count = len([pickup for pickup in self.level.pickups
-                                               if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo'])
-
-                self.level_complete = False
-                self.show_intermission = False
-                self.next_level_path = None
-                self.has_restarted = False
-                self.restart_anim_in_progress = False
-                self.intermission_transition_started = False  # NOUVEAU
-
-                print(f"[LEVEL] Successfully loaded: {self.next_level_path}")
-            except Exception as e:
-                print(f"[ERROR] Failed to load next level: {e}")
-                self.reload_level()  # Fallback sur le niveau actuel
-        else:
-            print("[LEVEL] No next level specified, reloading current level")
-            self.reload_level()
+            print("[LEVEL] Level completed!")
