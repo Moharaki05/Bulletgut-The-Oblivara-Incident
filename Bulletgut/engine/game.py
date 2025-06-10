@@ -30,6 +30,7 @@ class Game:
         self.is_first_level = True
         self.player = None
         self.level = None
+        self.level_name = ""
         self.raycaster = None
         self.enemies = []
         self.projectiles = []
@@ -75,6 +76,7 @@ class Game:
             self.save_player_state()
 
         self.level = Level(path)
+        self.level_name = self.level.get_map_name_from_tmx(path)
         self.level.game = self
         spawn_x, spawn_y = self.level.spawn_point
         self.player = Player(spawn_x, spawn_y)
@@ -298,7 +300,7 @@ class Game:
     def render(self):
         if self.show_intermission:
             self.intermission_screen.render(self.screen, self.enemies_killed, self.initial_enemy_count,
-                                            self.items_collected, self.initial_item_count)
+                                            self.items_collected, self.initial_item_count, self.level_name)
         else:
             self.render_game_without_intermission()
 

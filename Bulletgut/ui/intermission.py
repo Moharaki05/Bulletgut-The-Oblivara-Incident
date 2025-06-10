@@ -2,12 +2,12 @@ import pygame as pg
 import random
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT
 
-
 class IntermissionScreen:
     def __init__(self):
-        self.font_large = pg.font.Font(None, 48)
-        self.font_medium = pg.font.Font(None, 36)
-        self.font_small = pg.font.Font(None, 24)
+        self.font_xlarge = pg.font.SysFont("consolas", 80, bold=True)
+        self.font_large = pg.font.SysFont("consolas", 60)
+        self.font_medium = pg.font.SysFont("consolas", 40)
+        self.font_small = pg.font.SysFont("consolas", 20)
 
         # Charger l'image de fond d'intermission
         try:
@@ -131,7 +131,7 @@ class IntermissionScreen:
             self.exit_transition_in_progress = False
             self.state = "done"
 
-    def render(self, screen, enemies_killed, total_enemies, items_collected, total_items):
+    def render(self, screen, enemies_killed, total_enemies, items_collected, total_items, map_name=""):
         """Affiche l'écran d'intermission complet avec transitions"""
 
         # Toujours afficher le prochain niveau en arrière-plan pendant la sortie
@@ -151,7 +151,7 @@ class IntermissionScreen:
 
         # Afficher les statistiques seulement pendant l'état "showing"
         if self.show_stats and self.state == "showing":
-            self.render_stats(screen, enemies_killed, total_enemies, items_collected, total_items)
+            self.render_stats(screen, enemies_killed, total_enemies, items_collected, total_items, map_name)
 
         # Dessiner les effets rideau appropriés
         if self.entry_transition_in_progress:
@@ -159,10 +159,16 @@ class IntermissionScreen:
         elif self.exit_transition_in_progress:
             self.draw_exit_curtain_transition(screen)
 
-    def render_stats(self, screen, enemies_killed, total_enemies, items_collected, total_items):
-        """Affiche les statistiques de fin de niveau"""
+    def render_stats(self, screen, enemies_killed, total_enemies, items_collected, total_items, map_name=""):
+        """Affiche les statistiques de fin de niveau, avec nom de map"""
+        # Nom du niveau
+        if map_name:
+            name_surface = self.font_xlarge.render(map_name, True, (255, 255, 255))
+            name_rect = name_surface.get_rect(center=(SCREEN_WIDTH // 2 + 20, SCREEN_HEIGHT // 4 - 80))
+            screen.blit(name_surface, name_rect)
+
         # Titre principal
-        title_text = self.font_large.render("LEVEL COMPLETE", True, (0, 255, 0))
+        title_text = self.font_large.render("FINISHED", True, (255, 0, 0))
         title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
         screen.blit(title_text, title_rect)
 
@@ -182,17 +188,10 @@ class IntermissionScreen:
         items_rect = items_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 10))
         screen.blit(items_surface, items_rect)
 
-        # Bonus de performance (optionnel)
-        if enemies_killed == total_enemies and items_collected == total_items:
-            bonus_text = "PERFECT COMPLETION!"
-            bonus_surface = self.font_medium.render(bonus_text, True, (255, 215, 0))  # Couleur or
-            bonus_rect = bonus_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80))
-            screen.blit(bonus_surface, bonus_rect)
-
-        # Instructions clignotantes (seulement si pas en transition de sortie)
+        # Instruction clignotante
         if self.show_enter_text and self.state == "showing":
-            instruction_text = "PRESS ENTER TO CONTINUE"
-            instruction_surface = self.font_medium.render(instruction_text, True, (255, 255, 0))
+            instruction_text = "PRESS [ENTER] TO CONTINUE"
+            instruction_surface = self.font_medium.render(instruction_text, True, (255, 0, 0))
             instruction_rect = instruction_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100))
             screen.blit(instruction_surface, instruction_rect)
 

@@ -377,4 +377,8 @@ class Level:
 
         return level_exits
 
+    def get_map_name_from_tmx(self, path):
+        tmx_data = load_pygame(path)
+        return tmx_data.properties.get("map_name", "UNKNOWN MAP")
+
 
