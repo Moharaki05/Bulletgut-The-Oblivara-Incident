@@ -47,7 +47,7 @@ class Game:
         self.intermission_screen = IntermissionScreen()
         self.level_complete = False
         self.show_intermission = False
-        self.intermission_transition_started = False
+        self.intermission_entry_started = False
 
         self.update_statistics()
 
@@ -108,23 +108,25 @@ class Game:
                                     self.trigger_level_complete()
                                 break
                 if event.key == pg.K_RETURN:
-                    if self.show_intermission and self.intermission_screen.is_transition_complete():
-                        self.pending_level_change = True
-                        self.level_manager.advance()
-                        self.load_level(self.level_manager.get_current())
-                        self.update_statistics()
-                        self.render_game_without_intermission()
-                        self.restart_anim_surface = self.screen.copy()
-                        self.restart_anim_columns = [0] * len(self.restart_anim_columns)
-                        self.restart_anim_speeds = [random.randint(16, 32) for _ in self.restart_anim_speeds]
-                        self.restart_anim_in_progress = True
-                        self.restart_anim_done = False
-                        self.has_restarted = False
-                        self.show_intermission = False
-                        self.intermission_transition_started = False
-                        self.level_complete = False
+                    # Gérer ENTER seulement si l'intermission peut accepter l'input
+                    if self.show_intermission and self.intermission_screen.can_accept_input():
+                        self.start_level_transition()
                 if event.key == pg.K_ESCAPE:
                     self.running = False
+
+    def start_level_transition(self):
+        """Démarre la transition vers le niveau suivant"""
+        # Charger le niveau suivant en arrière-plan
+        self.level_manager.advance()
+        self.load_level(self.level_manager.get_current())
+        self.update_statistics()
+
+        # Rendre le nouveau niveau une fois pour capturer l'écran
+        self.render_game_without_intermission()
+        next_level_screen = self.screen.copy()
+
+        # Démarrer la transition de sortie avec l'écran du nouveau niveau
+        self.intermission_screen.start_exit_transition(next_level_screen)
 
     def is_near_door(self, door):
         px, py = self.player.get_position()
@@ -138,17 +140,29 @@ class Game:
 
         if self.restart_anim_in_progress:
             self.update_restart_transition()
+            return
 
-        if self.level_complete and not self.intermission_transition_started:
+        # Gérer le début de l'intermission
+        if self.level_complete and not self.intermission_entry_started:
             self.render_game_without_intermission()
-            self.intermission_screen.start_transition(self.screen)
-            self.intermission_transition_started = True
+            self.intermission_screen.start_entry_transition(self.screen)
+            self.intermission_entry_started = True
             self.show_intermission = True
+
+        # Gérer la fin de l'intermission
+        if self.show_intermission and self.intermission_screen.is_exit_transition_complete():
+            # Transition terminée, retourner au jeu normal
+            self.show_intermission = False
+            self.intermission_entry_started = False
+            self.level_complete = False
+            self.intermission_screen.reset()
+            return
 
         if self.show_intermission:
             self.intermission_screen.update(dt)
             return
 
+        # Logique de jeu normale
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level, self)
         if self.player.damage_flash_timer > 0:
