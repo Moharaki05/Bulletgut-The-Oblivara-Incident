@@ -3,6 +3,9 @@ import random
 import pygame as pg
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE, HUD_HEIGHT
 from engine.raycaster import Raycaster
+from entities.pickups.ammo_pickup import AmmoPickup
+from entities.pickups.key_pickup import KeyPickup
+from entities.pickups.weapon_pickup import WeaponPickup
 from entities.player import Player
 from engine.level import Level
 from ui.hud import HUD
@@ -65,11 +68,21 @@ class Game:
     def update_statistics(self):
         """Initialise les statistiques pour le niveau actuel"""
         self.enemies_killed = 0
-        self.initial_enemy_count = len(self.enemies)
+        self.initial_enemy_count = len(
+            [enemy for enemy in self.enemies if enemy.alive])  # Compter seulement les ennemis vivants
         self.items_collected = 0
-        # Compter seulement les items non-munitions qui ne sont pas encore ramassés
-        self.initial_item_count = len([pickup for pickup in self.level.pickups
-                                       if hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo' and not pickup.picked_up])
+
+        # Compter seulement les items de type "health", "armor", etc. (pas les clés, armes, munitions)
+        self.initial_item_count = 0
+        for pickup in self.level.pickups:
+            if hasattr(pickup, 'pickup_type'):
+                # Exclure les munitions, armes et clés du comptage
+                if pickup.pickup_type not in ['weapon', 'key'] and not pickup.picked_up:
+                    self.initial_item_count += 1
+            # Pour les pickups sans pickup_type, vérifier le type de classe
+            elif not isinstance(pickup, (WeaponPickup, KeyPickup)) and not pickup.picked_up:
+                self.initial_item_count += 1
+
         print(f"[DEBUG] Level loaded - Enemies: {self.initial_enemy_count}, Items: {self.initial_item_count}")
 
     def handle_events(self):
@@ -172,13 +185,21 @@ class Game:
             self.player.damage_flash_timer = max(0.0, self.player.damage_flash_timer - dt)
 
         # Mettre à jour les pickups et compter les items SEULEMENT quand ils sont ramassés
+        # Remplacer cette section dans la méthode update():
         for pickup in self.level.pickups:
             was_picked_up = pickup.picked_up
             pickup.update(self.player, self)
             # Compter l'item seulement au moment où il vient d'être ramassé
-            if not was_picked_up and pickup.picked_up and hasattr(pickup, 'pickup_type') and pickup.pickup_type != 'ammo':
-                self.items_collected += 1
-                print(f"[DEBUG] Item collected! Total: {self.items_collected}/{self.initial_item_count}")
+            # ET seulement si ce n'est pas une munition, arme ou clé
+            if not was_picked_up and pickup.picked_up:
+                if hasattr(pickup, 'pickup_type'):
+                    if pickup.pickup_type not in ['weapon', 'key']:
+                        self.items_collected += 1
+                        print(f"[DEBUG] Item collected! Total: {self.items_collected}/{self.initial_item_count}")
+                # Pour les pickups sans pickup_type, vérifier le type de classe
+                elif not isinstance(pickup, (WeaponPickup, KeyPickup)):
+                    self.items_collected += 1
+                    print(f"[DEBUG] Item collected! Total: {self.items_collected}/{self.initial_item_count}")
 
         for door in self.level.doors:
             door.update(dt)

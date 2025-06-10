@@ -286,7 +286,9 @@ class Level:
                 sprite_path = obj.properties.get("sprite", f"assets/pickups/ammo/ammo_{ammo_type}.png")
                 x = obj.x
                 y = obj.y
-                pickups.append(AmmoPickup(x, y, ammo_type, amount, sprite_path))
+                pickup = AmmoPickup(x, y, ammo_type, amount, sprite_path)
+                pickup.pickup_type = 'ammo'  # Définir explicitement le type
+                pickups.append(pickup)
 
             elif obj.type == "Weapon":
                 weapon_name = obj.properties["weapon_name"]
@@ -295,26 +297,25 @@ class Level:
                 amount = int(obj.properties["amount"])
                 x = obj.x
                 y = obj.y
-                pickups.append(WeaponPickup(x, y, weapon_name, sprite, ammo_type, amount))
+                pickup = WeaponPickup(x, y, weapon_name, sprite, ammo_type, amount)
+                pickup.pickup_type = 'weapon'  # Définir explicitement le type
+                pickups.append(pickup)
 
             elif obj.type == "Item":
-                item_type = obj.properties["item_type"]
-                sprite = obj.properties.get("sprite", f"assets/pickups/items/{item_type}.png")
-                amount = int(obj.properties["amount"])
-                x = obj.x
-                y = obj.y
                 if obj.name.startswith("key_"):
                     color = obj.name.split("_")[1]  # extrait "red", "blue", etc.
                     pickup = KeyPickup(obj.x, obj.y, color)
+                    pickup.pickup_type = 'key'  # Définir explicitement le type
                     pickups.append(pickup)
                 else:
-                    pickups.append(ItemPickup(x, y, item_type, amount, sprite))
-
-            # elif obj.type == "Item" and obj.name.startswith("key_"):
-            #     color = obj.name.split("_")[1]  # extrait "red", "blue", etc.
-            #     pickup = KeyPickup(obj.x, obj.y, color)
-            #     pickups.append(pickup)
-            #     print(f"[DEBUG] Clé {color} ajoutée aux pickups ({obj.x}, {obj.y})")
+                    item_type = obj.properties["item_type"]
+                    sprite = obj.properties.get("sprite", f"assets/pickups/items/{item_type}.png")
+                    amount = int(obj.properties["amount"])
+                    x = obj.x
+                    y = obj.y
+                    pickup = ItemPickup(x, y, item_type, amount, sprite)
+                    pickup.pickup_type = item_type  # Utiliser le type d'item (health, armor, etc.)
+                    pickups.append(pickup)
 
         return pickups
 
