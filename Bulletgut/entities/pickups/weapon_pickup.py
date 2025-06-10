@@ -62,6 +62,8 @@ class WeaponPickup(Pickup):
                 fallback_name = self.weapon_name.replace("_", " ").upper()
                 display_name = nice_names.get(self.weapon_name, fallback_name)
                 game.hud.messages.add(f"YOU GOT THE {display_name}!", (255, 0, 0))
+        elif has_weapon and self.weapon_name == "chainsaw":
+            return
         else:
             if gained_ammo > 0:
                 ammo_names = {

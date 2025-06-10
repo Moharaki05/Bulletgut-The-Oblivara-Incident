@@ -34,6 +34,13 @@ class Game:
         self.enemies = []
         self.projectiles = []
         self.effects = []
+        self.player_state = None
+        self.enemies_killed = 0
+        self.initial_item_count = 0
+        self.initial_enemy_count = 0
+        self.items_collected = 0
+
+        self.mouse_dx = 0
 
         self.load_level(self.level_manager.get_current())
 
