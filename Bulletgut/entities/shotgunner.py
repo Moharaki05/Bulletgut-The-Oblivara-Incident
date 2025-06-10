@@ -538,10 +538,10 @@ class Shotgunner(EnemyBase):
             self.state = "idle"
 
     def drop_loot(self):
-        self.level.pickups.append(
-            AmmoPickup(self.x, self.y, ammo_type="shells", amount=4,
+        loot = AmmoPickup(self.x, self.y, ammo_type="shells", amount=4,
                        sprite_path="assets/pickups/ammo/ammo_fourshells.png", label="4 SHELLS")
-        )
+        loot.dropped_by_enemy = True
+        self.level.pickups.append(loot)
 
     def take_damage(self, amount, splash=False, direct_hit=True):
         if not self.alive:

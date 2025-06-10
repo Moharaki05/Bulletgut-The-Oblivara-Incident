@@ -263,6 +263,8 @@ class Game:
             # Compter l'item seulement au moment où il vient d'être ramassé
             # ET seulement si ce n'est pas une munition, arme ou clé
             if not was_picked_up and pickup.picked_up:
+                if getattr(pickup, 'dropped_by_enemy', False):
+                    continue
                 if hasattr(pickup, 'pickup_type'):
                     if pickup.pickup_type not in ['weapon', 'key']:
                         self.items_collected += 1

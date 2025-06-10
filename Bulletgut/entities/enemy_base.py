@@ -51,6 +51,7 @@ class EnemyBase:
         self.wake_timer = 0
         self.is_attacking = False
         self.attack_pause_timer = 0
+        self.death_timer = 0
 
         self.image = None  # Pour que self.image soit bien défini
         self.frame_index = 0
@@ -62,11 +63,11 @@ class EnemyBase:
         # Sons
         try:
             self.sfx_attack = load_sound(f"{asset_folder}/attack.wav")
-        except:
+        except FileNotFoundError:
             self.sfx_attack = None
         try:
             self.sfx_death = load_sound(f"{asset_folder}/death.wav")
-        except:
+        except FileNotFoundError:
             self.sfx_death = None
 
         self.update_rect()
@@ -143,7 +144,6 @@ class EnemyBase:
         move_x = dx * self.speed * dt * 60
         move_y = dy * self.speed * dt * 60
 
-        old_x, old_y = self.x, self.y
         self.move(move_x, move_y)
 
     def move_towards(self, target_x, target_y, dt):
@@ -573,7 +573,8 @@ class EnemyBase:
     def update_rect(self):
         self.rect.topleft = (int(self.x) - self.rect.width // 2, int(self.y) - self.rect.height // 2)
 
-    def get_safe_position(self, level, old_x, old_y, new_x, new_y, radius=10):
+    @staticmethod
+    def get_safe_position(level, old_x, old_y, new_x, new_y, radius=10):
         collision_rect = pygame.Rect(0, 0, radius * 2, radius * 2)
         collision_rect.center = (new_x, new_y)
         if not level.is_rect_blocked(collision_rect):

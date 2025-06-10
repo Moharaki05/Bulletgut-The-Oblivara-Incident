@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="11" nextobjectid="72">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="64" tileheight="64" infinite="0" nextlayerid="11" nextobjectid="76">
  <properties>
   <property name="floor_color" value="#1e1e1e"/>
   <property name="map_name" value="Test O'Fun !"/>
@@ -33,16 +33,16 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,42,42,43,42,45,42,9,42,42,42,42,42,42,42,42,42,42,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
-0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
-0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
-0,42,42,42,42,42,42,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,42,42,42,42,0,
-0,42,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,42,0,42,42,42,0,0,0,42,0,
+0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,11,0,0,42,0,0,0,0,42,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,11,0,12,0,0,0,11,11,0,42,0,0,0,0,42,0,0,0,0,0,
+0,42,42,42,42,42,42,42,0,0,10,10,12,0,0,0,0,0,0,42,0,0,0,0,42,42,42,42,42,0,
+0,42,0,0,0,0,0,42,0,0,10,10,12,0,0,0,0,0,0,42,42,0,42,42,42,0,0,0,42,0,
 0,42,0,0,0,0,0,43,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,42,0,
 0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,
 0,42,0,0,0,0,0,43,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,42,0,
-0,42,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,42,0,42,42,42,0,0,0,42,0,
-0,42,42,42,42,42,42,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,42,0,
-0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,42,42,42,42,0,
+0,42,0,0,0,0,0,42,0,0,0,0,0,0,0,11,11,11,0,42,42,0,42,42,42,0,0,0,42,0,
+0,42,42,42,42,42,42,42,0,0,0,0,0,0,0,11,10,12,0,42,0,0,0,0,42,0,0,0,42,0,
+0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,11,0,10,0,42,0,0,0,0,42,42,42,42,42,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,42,0,0,0,0,0,
 0,0,0,0,0,0,0,42,42,42,42,42,44,45,44,42,42,42,42,42,42,42,42,42,42,0,0,0,0,0,
@@ -110,13 +110,31 @@
   </object>
  </objectgroup>
  <objectgroup id="7" name="EnemySpawns">
-  <object id="61" type="enemy" x="1004" y="640">
+  <object id="61" type="enemy" x="1012" y="576">
    <properties>
     <property name="enemy_type" value="serpentipede"/>
    </properties>
    <point/>
   </object>
-  <object id="64" type="enemy" x="992" y="456">
+  <object id="64" type="enemy" x="1092" y="389.333">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="72" type="enemy" x="925.333" y="334.667">
+   <properties>
+    <property name="enemy_type" value="shotgunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="73" type="enemy" x="1389.33" y="546.667">
+   <properties>
+    <property name="enemy_type" value="plutonworm"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="74" type="enemy" x="1018.67" y="922.667">
    <properties>
     <property name="enemy_type" value="gunner"/>
    </properties>
@@ -210,7 +228,7 @@
    </properties>
    <point/>
   </object>
-  <object id="41" name="medikit" type="Item" x="584" y="897">
+  <object id="41" name="medikit" type="Item" x="581.333" y="910.333">
    <properties>
     <property name="amount" type="int" value="25"/>
     <property name="item_type" value="item_medikit"/>
@@ -218,7 +236,7 @@
    </properties>
    <point/>
   </object>
-  <object id="42" name="armor" type="Item" x="595" y="195">
+  <object id="42" name="armor" type="Item" x="717.667" y="295">
    <properties>
     <property name="amount" type="int" value="100"/>
     <property name="item_type" value="item_armor"/>
@@ -226,7 +244,7 @@
    </properties>
    <point/>
   </object>
-  <object id="43" name="megaarmor" type="Item" x="1125" y="197">
+  <object id="43" name="megaarmor" type="Item" x="1115.67" y="239.667">
    <properties>
     <property name="amount" type="int" value="200"/>
     <property name="item_type" value="item_megaarmor"/>
@@ -234,7 +252,7 @@
    </properties>
    <point/>
   </object>
-  <object id="68" name="key_red" type="Item" x="676" y="334">
+  <object id="68" name="key_red" type="Item" x="1401.33" y="932.667">
    <properties>
     <property name="amount" type="int" value="0"/>
     <property name="item_type" value="item"/>
@@ -242,7 +260,7 @@
    </properties>
    <point/>
   </object>
-  <object id="69" name="key_yellow" type="Item" x="1371.33" y="563.333">
+  <object id="69" name="key_yellow" type="Item" x="1339.33" y="247.333">
    <properties>
     <property name="amount" type="int" value="0"/>
     <property name="item_type" value="item"/>
@@ -250,11 +268,19 @@
    </properties>
    <point/>
   </object>
-  <object id="70" name="key_blue" type="Item" x="1694" y="732">
+  <object id="70" name="key_blue" type="Item" x="1054" y="818.667">
    <properties>
     <property name="amount" type="int" value="0"/>
     <property name="item_type" value="item"/>
     <property name="sprite" value="assets/pickups/keys/key_blue.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="75" name="medikit" type="Item" x="745.667" y="295.333">
+   <properties>
+    <property name="amount" type="int" value="25"/>
+    <property name="item_type" value="item_medikit"/>
+    <property name="sprite" value="assets/pickups/items/item_medikit.png"/>
    </properties>
    <point/>
   </object>

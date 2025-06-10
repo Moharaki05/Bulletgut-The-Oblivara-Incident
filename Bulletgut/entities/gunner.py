@@ -540,10 +540,10 @@ class Gunner(EnemyBase):
     def drop_loot(self):
         """Drop ammo when killed (like Doom Zombieman drops clip)"""
         # Zombieman drops 1 clip (10 bullets) in Doom
-        self.level.pickups.append(
-            AmmoPickup(self.x, self.y, ammo_type="bullets", amount=10,
+        loot = AmmoPickup(self.x, self.y, ammo_type="bullets", amount=10,
                        sprite_path="assets/pickups/ammo/ammo_clip.png", label="A CLIP")
-        )
+        loot.dropped_by_enemy = True
+        self.level.pickups.append(loot)
 
     def take_damage(self, amount, splash=False, direct_hit=True):
         """Override to implement pain/alert behavior"""
