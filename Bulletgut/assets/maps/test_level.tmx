@@ -201,7 +201,7 @@
    </properties>
    <point/>
   </object>
-  <object id="37" name="chaingun" type="Weapon" x="1674" y="496">
+  <object id="37" name="chaingun" type="Weapon" x="298.727" y="665.333">
    <properties>
     <property name="ammo_type" value="bullets"/>
     <property name="amount" type="int" value="20"/>

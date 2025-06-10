@@ -185,9 +185,9 @@ class HitscanWeapon(WeaponBase, ABC):
 
         # Position and angle du joueur
         px, py = player.get_position()
-        angle = player.get_angle()
+        base_angle = player.get_angle()
 
-        print(f"[SHOT] Firing weapon from ({px:.1f}, {py:.1f}) at angle {math.degrees(angle):.1f}°")
+        print(f"[SHOT] Firing weapon from ({px:.1f}, {py:.1f}) at angle {math.degrees(base_angle):.1f}°")
         print(f"[WEAPON] Damage per hit: {self.damage}, Pellets: {self.pellets}")
 
         # Find all alive enemies for debugging
@@ -199,49 +199,56 @@ class HitscanWeapon(WeaponBase, ABC):
         enemies_hit = set()  # Track unique enemies hit this shot
 
         for pellet_num in range(self.pellets):
-            # Applique une dispersion aléatoire
-            shot_angle = angle
+            # Applique une dispersion aléatoire pour CHAQUE pellet
+            shot_angle = base_angle
             if self.spread > 0:
-                shot_angle += random.uniform(-self.spread, self.spread)
+                if self.pellets > 1:
+                    # For shotguns, use Gaussian distribution for more realistic pellet clustering
+                    # Most pellets cluster near center, fewer at the edges
+                    spread_factor = random.gauss(0, 0.3)  # Standard deviation of 0.3
+                    spread_factor = max(-1.0, min(1.0, spread_factor))  # Clamp to [-1, 1]
+                    shot_angle += spread_factor * self.spread
+                else:
+                    # For single-shot weapons, use uniform distribution
+                    shot_angle += random.uniform(-self.spread, self.spread)
 
-            # Direction du tir
+            # Direction du tir pour CE pellet spécifique
             dx = math.cos(shot_angle)
             dy = math.sin(shot_angle)
 
-            # Get line end point considering walls
+            # Get line end point considering walls for THIS pellet
             end_x, end_y = self._get_line_end_point(px, py, dx, dy)
-            print(f"[TRACE] Pellet {pellet_num + 1}: Line from ({px:.1f}, {py:.1f}) to ({end_x:.1f}, {end_y:.1f})")
+            spread_degrees = math.degrees(shot_angle - base_angle)
+            print(
+                f"[TRACE] Pellet {pellet_num + 1}: Line from ({px:.1f}, {py:.1f}) to ({end_x:.1f}, {end_y:.1f}) at angle {math.degrees(shot_angle):.1f}° (spread: {spread_degrees:+.1f}°)")
 
-            # Check for enemy hits along the line
+            # Check for enemy hits along THIS pellet's line
             hit_enemy = None
             closest_distance = float('inf')
 
-            # Check each enemy
+            # Check each enemy for THIS specific pellet
             for enemy in enemies:
                 if not enemy.alive:
                     continue
 
                 enemy_distance = math.hypot(enemy.x - px, enemy.y - py)
-                print(f"[CHECK] Checking enemy at ({enemy.x:.1f}, {enemy.y:.1f}), distance: {enemy_distance:.1f}")
 
                 if self._line_intersects_enemy(px, py, end_x, end_y, enemy):
-                    print(f"[INTERSECT] Line intersects with enemy at {enemy_distance:.1f}px")
+                    print(f"[INTERSECT] Pellet {pellet_num + 1} intersects with enemy at {enemy_distance:.1f}px")
                     if enemy_distance < closest_distance:
                         closest_distance = enemy_distance
                         hit_enemy = enemy
-                else:
-                    print(f"[NO_INTERSECT] Line does not intersect enemy")
 
-            # Damage the closest enemy hit
-            if hit_enemy and id(hit_enemy) not in enemies_hit:
+            # Damage the closest enemy hit by THIS pellet
+            if hit_enemy:
                 hits_this_shot += 1
-                enemies_hit.add(id(hit_enemy))
+                enemies_hit.add(id(hit_enemy))  # Track for statistics only
                 print(
                     f"[HIT] Pellet {pellet_num + 1} hit {type(hit_enemy).__name__} at {closest_distance:.1f}px distance")
 
-                # Actually deal the damage
+                # Each pellet deals its own damage - this is what makes shotguns powerful!
                 damage_to_deal = self.damage
-                print(f"[DAMAGE] Dealing {damage_to_deal} damage to enemy")
+                print(f"[DAMAGE] Dealing {damage_to_deal} damage to enemy (pellet {pellet_num + 1})")
                 hit_enemy.take_damage(damage_to_deal)
 
                 self._create_hit_effect(hit_enemy.x, hit_enemy.y, is_enemy=True)
@@ -250,11 +257,12 @@ class HitscanWeapon(WeaponBase, ABC):
                 print(f"[MISS] Pellet {pellet_num + 1} hit wall/nothing at ({end_x:.1f}, {end_y:.1f})")
                 self._create_hit_effect(end_x, end_y)
 
-            # Create tracer effect
+            # Create tracer effect for this pellet
             self._create_tracer_effect(px, py, end_x, end_y)
 
         if hits_this_shot > 0:
             print(f"[SHOT RESULT] {hits_this_shot}/{self.pellets} pellets hit {len(enemies_hit)} unique enemies")
+            print(f"[TOTAL DAMAGE] {hits_this_shot * self.damage} total damage dealt this shot")
         else:
             print(f"[SHOT RESULT] No hits - all {self.pellets} pellets missed")
 

@@ -10,9 +10,11 @@ TILE_SIZE = 64
 
 # Player settings
 PLAYER_SPEED = 450
-MOUSE_SENSITIVITY = 0.0098
-MOUSE_SENSITIVITY_EXPONENT = 1.25
-MOUSE_DEADZONE = 1
+
+MOUSE_SENSITIVITY = 0.02  # Increased from 0.0098 but reasonable
+MOUSE_SENSITIVITY_EXPONENT = 1.0  # Linear response (was 1.25)
+MOUSE_DEADZONE = 0.5  # Reduced deadzone (was 1)
+
 ROTATE_SPEED = MOUSE_SENSITIVITY * 60
 FOV = math.pi / 3
 

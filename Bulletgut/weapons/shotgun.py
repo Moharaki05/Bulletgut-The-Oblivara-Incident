@@ -151,30 +151,12 @@ class Shotgun(HitscanWeapon):
         self.current_sprite_index = 1  # Start with the first animation frame
         self.current_sprite = self.sprites[1]
 
-        # Obtenir la position et la direction du joueur
-        player = self.game.player
-        start_x, start_y = player.x, player.y
-        direction = player.get_direction_vector()
-
-        # Tirer plusieurs plombs avec dispersion
-        for _ in range(self.pellets):
-            # Calculer un angle aléatoire dans la limite du spread
-            angle_offset = random.uniform(-self.spread, self.spread)
-            # Appliquer la rotation à la direction
-            cos_offset = math.cos(angle_offset)
-            sin_offset = math.sin(angle_offset)
-            dx, dy = direction
-            pellet_direction = (
-                dx * cos_offset - dy * sin_offset,
-                dx * sin_offset + dy * cos_offset
-            )
-
+        # Call the parent's fire effect which handles all pellets with proper spread
         super()._fire_effect()
 
-        # TODO: Implémenter le raycast pour détecter les impacts
-        print(f"Plomb de fusil tiré depuis ({start_x}, {start_y}) dans la direction {pellet_direction}")
         print(f"Munitions restantes: {self.game.player.ammo[self.ammo_type]}")
 
         # Recul du joueur
+        player = self.game.player
         if hasattr(player, 'apply_recoil'):
             player.apply_recoil(0.15)
