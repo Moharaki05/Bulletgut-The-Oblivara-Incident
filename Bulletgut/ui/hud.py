@@ -11,8 +11,8 @@ class HUD:
     def __init__(self, screen):
         self.screen = screen
         self.hud_image = pg.transform.scale(pg.image.load("assets/ui/StatsBar.png").convert(), (SCREEN_WIDTH, HUD_HEIGHT))
-        self.doom_font_big = pg.font.SysFont("DooM", 55, bold=False)
-        self.doom_font_small = pg.font.SysFont("DooM", 17, bold=False)
+        self.doom_font_big = pg.font.Font("assets/fonts/DooM.ttf", 55)
+        self.doom_font_small = pg.font.Font("assets/fonts/DooM.ttf", 17)
         self.face_manager = FaceManager()
         self.messages = MessageManager()
         self.last_rendered_surface = None

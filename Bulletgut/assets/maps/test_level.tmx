@@ -128,7 +128,7 @@
    </properties>
    <point/>
   </object>
-  <object id="73" type="enemy" x="1389.33" y="546.667">
+  <object id="73" type="enemy" x="1331.75" y="567.879">
    <properties>
     <property name="enemy_type" value="plutonworm"/>
    </properties>
@@ -260,7 +260,7 @@
    </properties>
    <point/>
   </object>
-  <object id="69" name="key_yellow" type="Item" x="263.572" y="623.091">
+  <object id="69" name="key_yellow" type="Item" x="1321.15" y="320.06">
    <properties>
     <property name="amount" type="int" value="0"/>
     <property name="item_type" value="item"/>
