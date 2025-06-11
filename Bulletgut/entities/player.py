@@ -173,7 +173,7 @@ class Player:
         dy = new_y - old_y
 
         # Facteur de réduction du glissement (ajustable)
-        slide_factor = 0.75  # 25% du mouvement original pour le glissement
+        slide_factor = 0.75  # 75% du mouvement original pour le glissement
 
         # Tester mouvement horizontal réduit
         if abs(dx) > 0.1:

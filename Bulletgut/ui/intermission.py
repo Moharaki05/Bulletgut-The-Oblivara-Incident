@@ -4,10 +4,10 @@ from data.config import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class IntermissionScreen:
     def __init__(self):
-        self.font_xlarge = pg.font.SysFont("consolas", 80, bold=True)
-        self.font_large = pg.font.SysFont("consolas", 60)
-        self.font_medium = pg.font.SysFont("consolas", 40)
-        self.font_small = pg.font.SysFont("consolas", 20)
+        self.font_xlarge = pg.font.SysFont("DooM", 65, bold=False)
+        self.font_large = pg.font.SysFont("DooM", 45)
+        self.font_medium = pg.font.SysFont("DooM", 30)
+        self.font_small = pg.font.SysFont("DooM", 20)
 
         # Charger l'image de fond d'intermission
         try:

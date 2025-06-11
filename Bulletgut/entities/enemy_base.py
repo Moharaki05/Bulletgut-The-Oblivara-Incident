@@ -206,6 +206,7 @@ class EnemyBase:
 
         self.x = safe_x
         self.y = safe_y
+        self.position = (self.x, self.y)
         self.rect.center = (self.x, self.y)
         if self.x != old_x or self.y != old_y:
             self.state = "move"

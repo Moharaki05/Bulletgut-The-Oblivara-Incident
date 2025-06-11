@@ -11,8 +11,8 @@ class HUD:
     def __init__(self, screen):
         self.screen = screen
         self.hud_image = pg.transform.scale(pg.image.load("assets/ui/StatsBar.png").convert(), (SCREEN_WIDTH, HUD_HEIGHT))
-        self.doom_font_big = pg.font.SysFont("consolas", 60, bold=True)
-        self.doom_font_small = pg.font.SysFont("consolas", 20, bold=True)
+        self.doom_font_big = pg.font.SysFont("DooM", 55, bold=False)
+        self.doom_font_small = pg.font.SysFont("DooM", 17, bold=False)
         self.face_manager = FaceManager()
         self.messages = MessageManager()
         self.last_rendered_surface = None
@@ -41,9 +41,9 @@ class HUD:
         armor = int(player.armor)
 
         zones = {
-            "ammo": (ammo, pg.Rect(115, 720 + 33, 100, 40)),
-            "health": (f"{health}%", pg.Rect(312, 720 + 33, 120, 40)),
-            "armor": (f"{armor}%", pg.Rect(705, 720 + 33, 120, 40))
+            "ammo": (ammo, pg.Rect(115, 720 + 25, 100, 40)),
+            "health": (f"{health}%", pg.Rect(312, 720 + 25, 120, 40)),
+            "armor": (f"{armor}%", pg.Rect(705, 720 + 25, 120, 40))
         }
 
         for key, (text_val, rect) in zones.items():
@@ -58,10 +58,10 @@ class HUD:
 
         # Munitions par type (texte petit)
         ammo_display_y = {
-            "bullets": 720 + 23,
-            "shells": 720 + 48,
-            "rockets": 720 + 73,
-            "cells": 720 + 98,
+            "bullets": 720 + 20,
+            "shells": 720 + 45,
+            "rockets": 720 + 70,
+            "cells": 720 + 95,
         }
 
         for ammo_type, y in ammo_display_y.items():

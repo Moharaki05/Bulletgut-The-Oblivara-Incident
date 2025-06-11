@@ -3,6 +3,7 @@ import random
 import pygame as pg
 from entities.enemy_base import EnemyBase
 from entities.pickups.ammo_pickup import AmmoPickup
+from entities.pickups.weapon_pickup import WeaponPickup
 from utils.assets import load_sound
 
 class Shotgunner(EnemyBase):
@@ -538,8 +539,10 @@ class Shotgunner(EnemyBase):
             self.state = "idle"
 
     def drop_loot(self):
-        loot = AmmoPickup(self.x, self.y, ammo_type="shells", amount=4,
-                       sprite_path="assets/pickups/ammo/ammo_fourshells.png", label="4 SHELLS")
+        # loot = AmmoPickup(self.x, self.y, ammo_type="shells", amount=4,
+        #                sprite_path="assets/pickups/ammo/ammo_fourshells.png", label="4 SHELLS")
+        loot = WeaponPickup(self.x, self.y, "shotgun",
+                          sprite_path="assets/pickups/weapons/shotgun.png", ammo_type = "shells" , amount = 8)
         loot.dropped_by_enemy = True
         self.level.pickups.append(loot)
 

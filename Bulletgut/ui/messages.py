@@ -4,7 +4,7 @@ import time
 class MessageManager:
     def __init__(self, font=None):
         self.messages = []
-        self.font = font or pg.font.SysFont("consolas", 24, bold=True)
+        self.font = font or pg.font.SysFont("DooM", 20, bold=False)
         self.duration = 3.0  # secondes
         self.has_death_message = False
 
