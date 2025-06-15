@@ -10,6 +10,7 @@ from engine.level import Level
 from ui.hud import HUD
 from engine.level_manager import LevelManager
 from ui.intermission import IntermissionScreen
+from ui.pause_menu import PauseMenu  # Nouveau import
 
 
 class Game:
@@ -69,7 +70,43 @@ class Game:
         self.show_intermission = False
         self.intermission_entry_started = False
 
+        # Nouveau : Menu pause
+        self.pause_menu = PauseMenu()
+        self.game_paused = False
+
         self.update_statistics()
+
+    def toggle_pause(self):
+        """Active/désactive le menu pause"""
+        if self.game_paused:
+            self.resume_game()
+        else:
+            self.pause_game()
+
+    def pause_game(self):
+        """Met le jeu en pause"""
+        if not self.player.alive or self.show_intermission or self.restart_anim_in_progress:
+            return  # Ne pas permettre la pause dans ces états
+
+        self.game_paused = True
+        self.pause_menu.show()
+
+        # Libérer la souris pour naviguer dans le menu
+        pg.event.set_grab(False)
+        pg.mouse.set_visible(True)
+
+        print("[GAME] Game paused")
+
+    def resume_game(self):
+        """Reprend le jeu"""
+        self.game_paused = False
+        self.pause_menu.hide()
+
+        # Reprendre le contrôle de la souris
+        pg.event.set_grab(True)
+        pg.mouse.set_visible(False)
+
+        print("[GAME] Game resumed")
 
     def load_level(self, path):
         # Sauvegarder l'état du joueur avant de charger le nouveau niveau (sauf si c'est le premier niveau)
@@ -203,6 +240,31 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
+
+            # Gestion du menu pause
+            elif event.type == pg.KEYDOWN and event.key == pg.K_p:
+                self.toggle_pause()
+                continue
+
+            # Si le jeu est en pause, gérer les événements du menu pause
+            if self.game_paused:
+                action = self.pause_menu.handle_input(event)
+                if action == "resume":
+                    self.resume_game()
+                elif action == "restart":
+                    self.resume_game()  # Fermer le menu d'abord
+                    if not self.restart_anim_in_progress:
+                        print("[DEBUG] RESTART FROM PAUSE MENU")
+                        self.hud.render(self.player, self)
+                        self.restart_anim_surface = self.screen.copy()
+                        self.restart_anim_in_progress = True
+                        self.restart_anim_done = False
+                        self.has_restarted = False
+                elif action == "quit":
+                    self.running = False
+                continue  # Ignorer les autres événements si en pause
+
+            # Événements normaux du jeu (seulement si pas en pause)
             elif event.type == pg.MOUSEMOTION:
                 self.mouse_dx = event.rel[0]
             elif event.type == pg.MOUSEBUTTONDOWN:
@@ -225,7 +287,7 @@ class Game:
                 if event.button == 1:
                     if self.player.weapon:
                         self.player.weapon.release_trigger()
-            if event.type == pg.KEYDOWN:
+            elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_e:
                     for door in self.level.doors:
                         if self.is_near_door(door):
@@ -270,6 +332,10 @@ class Game:
     def update(self):
         dt = self.clock.tick(FPS) / 1000
         pg.display.set_caption(f"Bulletgut : The Oblivara Incident - FPS: {self.clock.get_fps():.2f}")
+
+        # Si le jeu est en pause, ne pas mettre à jour la logique de jeu
+        if self.game_paused:
+            return
 
         if self.has_restarted:
             self.reload_level()
@@ -357,6 +423,11 @@ class Game:
                                             self.items_collected, self.initial_item_count, self.level_name)
         else:
             self.render_game_without_intermission()
+
+        # Afficher le menu pause par-dessus tout
+        if self.game_paused:
+            self.pause_menu.render(self.screen)
+            self.stop_all_sounds()
 
         self.draw_restart_transition()
         pg.display.flip()
