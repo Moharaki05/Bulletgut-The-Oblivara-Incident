@@ -69,12 +69,12 @@ class PlutonWorm(EnemyBase):
         # Sound effects
         try:
             self.sfx_attack = load_sound("assets/sounds/enemies/worm_bite.wav")
-        except:
+        except FileNotFoundError:
             self.sfx_attack = None
 
         try:
             self.sfx_charge = load_sound("assets/sounds/enemies/worm_charge.wav")
-        except:
+        except FileNotFoundError:
             self.sfx_charge = None
 
     def update(self, player, dt):
@@ -269,7 +269,7 @@ class PlutonWorm(EnemyBase):
         base_dy = dy / dist
 
         # More direct approach with some pack behavior
-        move_dx, move_dy = self.calculate_aggressive_movement(base_dx, base_dy, dist, dt)
+        move_dx, move_dy = self.calculate_aggressive_movement(base_dx, base_dy)
 
         # Apply movement
         move_speed = self.speed * dt * 60
@@ -311,7 +311,7 @@ class PlutonWorm(EnemyBase):
 
         self.movement_duration = random.randint(200, 600)  # Shorter than gunner
 
-    def calculate_aggressive_movement(self, base_dx, base_dy, dist, dt):
+    def calculate_aggressive_movement(self, base_dx, base_dy):
         """Calculate movement direction - more direct than gunner"""
 
         if self.movement_mode == "direct":
@@ -319,7 +319,7 @@ class PlutonWorm(EnemyBase):
             noise_factor = 0.1  # Less noise than gunner
             noise_dx = (random.random() - 0.5) * noise_factor
             noise_dy = (random.random() - 0.5) * noise_factor
-            return (base_dx + noise_dx, base_dy + noise_dy)
+            return base_dx + noise_dx, base_dy + noise_dy
 
         elif self.movement_mode == "flank":
             # Try to approach from the side
@@ -334,8 +334,8 @@ class PlutonWorm(EnemyBase):
             # Normalize
             final_dist = math.hypot(final_dx, final_dy)
             if final_dist > 0:
-                return (final_dx / final_dist, final_dy / final_dist)
-            return (base_dx, base_dy)
+                return final_dx / final_dist, final_dy / final_dist
+            return base_dx, base_dy
 
         elif self.movement_mode == "zigzag":
             # Simple zigzag pattern
@@ -351,11 +351,11 @@ class PlutonWorm(EnemyBase):
             # Normalize
             final_dist = math.hypot(final_dx, final_dy)
             if final_dist > 0:
-                return (final_dx / final_dist, final_dy / final_dist)
-            return (base_dx, base_dy)
+                return final_dx / final_dist, final_dy / final_dist
+            return base_dx, base_dy
 
         # Fallback
-        return (base_dx, base_dy)
+        return base_dx, base_dy
 
     def update_pack_behavior(self):
         """Update pack behavior - worms are stronger in groups"""

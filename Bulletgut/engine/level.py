@@ -211,7 +211,7 @@ class Level:
         for dx, dy in directions:
             check_x, check_y = grid_x + dx, grid_y + dy
 
-            if (0 <= check_x < self.map_width and 0 <= check_y < self.map_height):
+            if 0 <= check_x < self.map_width and 0 <= check_y < self.map_height:
                 tile = self.walls_layer.data[check_y][check_x]
                 gid = tile.gid if hasattr(tile, 'gid') else tile
 
@@ -377,7 +377,8 @@ class Level:
 
         return level_exits
 
-    def get_map_name_from_tmx(self, path):
+    @staticmethod
+    def get_map_name_from_tmx(path):
         tmx_data = load_pygame(path)
         return tmx_data.properties.get("map_name", "UNKNOWN MAP")
 

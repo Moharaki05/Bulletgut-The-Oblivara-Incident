@@ -137,7 +137,8 @@ class Rocket(Projectile):
                     print(f"💥 Splash damage à {type(enemy).__name__}: {damage_to_enemy} (distance: {enemy_dist:.1f})")
                     self._apply_direct_damage(enemy, damage_to_enemy)
 
-    def _apply_direct_damage(self, enemy, damage):
+    @staticmethod
+    def _apply_direct_damage(enemy, damage):
         """Applique les dégâts directement en contournant les vérifications d'état"""
         if not enemy.alive:
             return

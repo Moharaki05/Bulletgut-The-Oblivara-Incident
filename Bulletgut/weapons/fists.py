@@ -31,7 +31,7 @@ class Fists(MeleeWeapon):
         self.scale_factor = 2.5
 
         # Chargement des sprites
-        self.load_sprites()
+        self.load_sprites("assets/weapons/fists")
 
         # Chargement des sons
         self.swing_sound = pg.mixer.Sound("assets/sounds/fists/fist_swing.wav")
@@ -41,22 +41,19 @@ class Fists(MeleeWeapon):
         self.current_sprite_index = 0
         self.current_sprite = self.sprites[0] if self.sprites else None
 
-    def load_sprites(self):
-        # Chemin vers les sprites
-        base_path = "assets/weapons/fists"
-
+    def load_sprites(self, sprite_paths):
         # Vérifier si le dossier existe
-        if not os.path.exists(base_path):
-            print(f"ERREUR: Le dossier {base_path} n'existe pas!")
+        if not os.path.exists(sprite_paths):
+            print(f"ERREUR: Le dossier {sprite_paths} n'existe pas!")
             return
 
         # Charger les sprites
         try:
             self.sprites = [
-                pg.image.load(f"{base_path}/punch_idle.png").convert_alpha(),
-                pg.image.load(f"{base_path}/punch1.png").convert_alpha(),
-                pg.image.load(f"{base_path}/punch2.png").convert_alpha(),
-                pg.image.load(f"{base_path}/punch3.png").convert_alpha()
+                pg.image.load(f"{sprite_paths}/punch_idle.png").convert_alpha(),
+                pg.image.load(f"{sprite_paths}/punch1.png").convert_alpha(),
+                pg.image.load(f"{sprite_paths}/punch2.png").convert_alpha(),
+                pg.image.load(f"{sprite_paths}/punch3.png").convert_alpha()
             ]
         except Exception as e:
             print(f"ERREUR lors du chargement des sprites des poings : {e}")

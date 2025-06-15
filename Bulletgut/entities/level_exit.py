@@ -1,5 +1,3 @@
-import pygame as pg
-import math
 from data.config import TILE_SIZE
 
 class LevelExit:

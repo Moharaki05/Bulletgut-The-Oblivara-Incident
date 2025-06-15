@@ -1,5 +1,4 @@
 from weapons.weapon_base import WeaponBase
-from weapons.projectiles.projectile import Projectile
 from abc import ABC
 
 class ProjectileWeapon(WeaponBase, ABC):
@@ -16,26 +15,7 @@ class ProjectileWeapon(WeaponBase, ABC):
 
     # Dans projectile_weapon.py
     def _fire_effect(self, player=None):
-        """Tire un projectile physique"""
-        if player is None:
-            player = self.game.player
-
-        # Position et angle du joueur
-        px, py = player.get_position()
-        angle = self.game.raycaster.get_center_ray_angle()
-
-        # Crée un nouveau projectile
-        projectile = Projectile(
-            self.game,
-            px, py,
-            angle,
-            self.projectile_speed,
-            self.damage,
-            self.projectile_lifetime,
-            self.splash_damage,
-            self.splash_radius,
-            self.projectile_sprite
-        )
+        pass
 
 
     # Dans weapon_base.py ou projectile_weapon.py

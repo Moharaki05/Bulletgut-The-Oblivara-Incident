@@ -12,11 +12,20 @@ from engine.level_manager import LevelManager
 from ui.intermission import IntermissionScreen
 from ui.pause_menu import PauseMenu  # Nouveau import
 
-
 class Game:
     def __init__(self):
         pg.init()
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+        # Charger et définir l'icône personnalisée
+        try:
+            icon = pg.image.load("assets/ui/icon.png")
+            pg.display.set_icon(icon)
+            print("[GAME] Custom icon loaded successfully")
+        except Exception as e:
+            print(f"[GAME] Could not load custom icon: {e}")
+            print("[GAME] Using default pygame icon")
+
         self.render_surface = self.screen.subsurface((0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - HUD_HEIGHT))
         self.clock = pg.time.Clock()
         self.running = True

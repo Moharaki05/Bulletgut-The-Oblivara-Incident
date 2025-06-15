@@ -13,7 +13,7 @@ class IntermissionScreen:
         try:
             self.background_image = pg.image.load("assets/ui/intermission_bg.png")
             self.background_image = pg.transform.scale(self.background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        except:
+        except FileNotFoundError:
             # Fallback si l'image n'existe pas
             print("[WARNING] assets/ui/intermission_bg.png not found, using default background")
             self.background_image = None
@@ -42,6 +42,8 @@ class IntermissionScreen:
         self.exit_curtain_columns = [0] * num_cols  # Commence à 0 (rideau ouvert)
         self.exit_curtain_speeds = [random.randint(16, 32) for _ in range(num_cols)]
         self.exit_curtain_surface = None  # Surface du prochain niveau
+
+        self._intermission_surface = None
 
         # États de l'intermission
         self.state = "entering"  # "entering", "showing", "exiting", "done"
@@ -227,15 +229,15 @@ class IntermissionScreen:
         col_width = self.exit_curtain_col_width
 
         # Créer une surface temporaire avec le contenu de l'intermission si nécessaire
-        if not hasattr(self, '_intermission_surface'):
-            self._intermission_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            if self.background_image:
-                self._intermission_surface.blit(self.background_image, (0, 0))
-            else:
-                self._intermission_surface.fill((20, 20, 40))
-                for i in range(0, SCREEN_WIDTH, 100):
-                    for j in range(0, SCREEN_HEIGHT, 100):
-                        pg.draw.rect(self._intermission_surface, (30, 30, 50), (i, j, 50, 50))
+
+        self._intermission_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        if self.background_image:
+            self._intermission_surface.blit(self.background_image, (0, 0))
+        else:
+            self._intermission_surface.fill((20, 20, 40))
+            for i in range(0, SCREEN_WIDTH, 100):
+                for j in range(0, SCREEN_HEIGHT, 100):
+                    pg.draw.rect(self._intermission_surface, (30, 30, 50), (i, j, 50, 50))
 
         # Dessiner les colonnes de l'intermission qui n'ont pas encore "tombé"
         for x in range(0, SCREEN_WIDTH, col_width):

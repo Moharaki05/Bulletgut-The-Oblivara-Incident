@@ -1,6 +1,5 @@
 from weapons.weapon_base import WeaponBase
 from abc import ABC
-import math
 
 class MeleeWeapon(WeaponBase, ABC):
     def __init__(self, game):

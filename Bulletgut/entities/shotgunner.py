@@ -2,7 +2,6 @@ import math
 import random
 import pygame as pg
 from entities.enemy_base import EnemyBase
-from entities.pickups.ammo_pickup import AmmoPickup
 from entities.pickups.weapon_pickup import WeaponPickup
 from utils.assets import load_sound
 
@@ -70,7 +69,7 @@ class Shotgunner(EnemyBase):
 
         try:
             self.sfx_attack = load_sound("assets/sounds/enemies/shotgunner_shoot.wav")
-        except:
+        except FileNotFoundError:
             self.sfx_attack = None
 
     def update(self, player, dt):
@@ -287,7 +286,7 @@ class Shotgunner(EnemyBase):
                                           player.y - self.last_player_pos[1])
             if player_move_dist > 32:  # Player moved significantly
                 player_moved = True
-                self.dodge_timer = 500  # Start dodging for 500ms
+                self.dodge_timer = 500  # Start dodging for 500 ms
 
         self.last_player_pos = (player.x, player.y)
 
@@ -382,9 +381,9 @@ class Shotgunner(EnemyBase):
             # Maintain preferred distance
             if dist < self.preferred_distance * 0.8:
                 # Too close, back away slightly while maintaining some forward pressure
-                return (base_dx * 0.3 + noise_dx, base_dy * 0.3 + noise_dy)
+                return base_dx * 0.3 + noise_dx, base_dy * 0.3 + noise_dy
             else:
-                return (base_dx + noise_dx, base_dy + noise_dy)
+                return base_dx + noise_dx, base_dy + noise_dy
 
         elif self.movement_mode == "strafe":
             # Move perpendicular to player while slowly approaching
@@ -399,8 +398,8 @@ class Shotgunner(EnemyBase):
             # Normalize
             final_dist = math.hypot(final_dx, final_dy)
             if final_dist > 0:
-                return (final_dx / final_dist, final_dy / final_dist)
-            return (perp_dx, perp_dy)
+                return final_dx / final_dist, final_dy / final_dist
+            return perp_dx, perp_dy
 
         elif self.movement_mode == "zigzag":
             # FIXED: Improved zigzag pattern with unique parameters per enemy
@@ -430,8 +429,8 @@ class Shotgunner(EnemyBase):
             # Normalize the final direction
             final_dist = math.hypot(final_dx, final_dy)
             if final_dist > 0:
-                return (final_dx / final_dist, final_dy / final_dist)
-            return (base_dx, base_dy)
+                return final_dx / final_dist, final_dy / final_dist
+            return base_dx, base_dy
 
         elif self.movement_mode == "circle":
             # FIXED: Improved circular movement with unique parameters
@@ -478,11 +477,11 @@ class Shotgunner(EnemyBase):
             # Normalize
             final_dist = math.hypot(final_dx, final_dy)
             if final_dist > 0:
-                return (final_dx / final_dist, final_dy / final_dist)
-            return (circle_dx, circle_dy)
+                return final_dx / final_dist, final_dy / final_dist
+            return circle_dx, circle_dy
 
         # Fallback to direct approach
-        return (base_dx, base_dy)
+        return base_dx, base_dy
 
     def attack(self):
         """Legacy attack method - now handled by attack sequence"""

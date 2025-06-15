@@ -20,7 +20,8 @@ class Raycaster:
         self.render_floor(screen, color)
         self.render_walls(screen, player)
 
-    def render_floor(self, screen, color):
+    @staticmethod
+    def render_floor(screen, color):
         height = screen.get_height()
         pg.draw.rect(screen, color, (0, height // 2, SCREEN_WIDTH, height // 2))
 
@@ -374,7 +375,7 @@ class Raycaster:
 
             # Wolf3D-style scaling: pickups are much smaller than walls
             # Use a smaller base size for pickups (they're floor items, not wall-height)
-            base_pickup_size = 8000  # Much smaller than wall's 40000
+            base_pickup_size = 8000  # Much smaller than wall's 40 000
             pickup_height = int((base_pickup_size / (corrected_distance + 0.0001)) * WALL_HEIGHT_SCALE * PICKUP_SCALE)
 
             # Get original sprite dimensions

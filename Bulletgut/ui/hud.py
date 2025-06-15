@@ -16,11 +16,11 @@ class HUD:
         self.face_manager = FaceManager()
         self.messages = MessageManager()
         self.last_rendered_surface = None
-        KEY_ICON_SIZE = (28, 20)
+        self.key_icon_size = (28, 20)
         self.key_icons = {
-            "red": pg.transform.scale(pg.image.load("assets/ui/keys/key_red_ui.png").convert_alpha(), KEY_ICON_SIZE),
-            "blue": pg.transform.scale(pg.image.load("assets/ui/keys/key_blue_ui.png").convert_alpha(), KEY_ICON_SIZE),
-            "yellow": pg.transform.scale(pg.image.load("assets/ui/keys/key_yellow_ui.png").convert_alpha(), KEY_ICON_SIZE)
+            "red": pg.transform.scale(pg.image.load("assets/ui/keys/key_red_ui.png").convert_alpha(), self.key_icon_size),
+            "blue": pg.transform.scale(pg.image.load("assets/ui/keys/key_blue_ui.png").convert_alpha(), self.key_icon_size),
+            "yellow": pg.transform.scale(pg.image.load("assets/ui/keys/key_yellow_ui.png").convert_alpha(), self.key_icon_size)
         }
 
     @staticmethod
@@ -35,7 +35,6 @@ class HUD:
         weapon = player.weapon
         ammo_type = weapon.ammo_type if weapon and hasattr(weapon, "ammo_type") else None
         ammo = player.ammo.get(ammo_type, 0) if ammo_type else 0
-        max_ammo = player.max_ammo.get(ammo_type, 0) if ammo_type else 0
 
         health = int(player.health)
         armor = int(player.armor)
@@ -67,8 +66,8 @@ class HUD:
         for ammo_type, y in ammo_display_y.items():
             current = player.ammo.get(ammo_type, 0)
             maximum = player.max_ammo.get(ammo_type, 0)
-            left = pg.Rect(1020, y, 70, 20)
-            right = pg.Rect(1115, y, 70, 20)
+            left = pg.Rect(1030, y, 70, 20)
+            right = pg.Rect(1120, y, 70, 20)
             self.blit_centered_text(self.screen, self.doom_font_small.render(str(current), True, YELLOW), left)
             self.blit_centered_text(self.screen, self.doom_font_small.render(str(maximum), True, YELLOW), right)
 

@@ -1,7 +1,6 @@
 import os
 import pygame
 import re
-from collections import defaultdict
 
 _image_cache = {}
 _sound_cache = {}
@@ -13,7 +12,6 @@ state_aliases = {
     "hit": "hit",
     "death": "death"
 }
-
 
 def load_image(path):
     """Charge une image avec cache. Retourne une surface vide en cas d'erreur."""

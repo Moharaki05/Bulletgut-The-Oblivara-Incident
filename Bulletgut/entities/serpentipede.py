@@ -75,7 +75,7 @@ class Serpentipede(EnemyBase):
         try:
             self.sfx_attack_melee = load_sound("assets/sounds/enemies/serpentipede_attack_near.wav")
             self.sfx_attack_ranged = load_sound("assets/sounds/enemies/serpentipede_shoot.wav")
-        except:
+        except FileNotFoundError:
             self.sfx_attack_melee = None
             self.sfx_attack_ranged = None
 
@@ -143,8 +143,7 @@ class Serpentipede(EnemyBase):
                 return
 
             # Ranged attack logic
-            if (dist >= self.min_attack_range and
-                    dist <= self.max_attack_range and
+            if (self.min_attack_range <= dist <= self.max_attack_range and
                     self.attack_cooldown <= 0):
 
                 # Random chance to attack vs move (like Doom AI)
@@ -191,7 +190,8 @@ class Serpentipede(EnemyBase):
 
         self.update_animation(dt)
 
-    def calculate_attack_chance(self, distance):
+    @staticmethod
+    def calculate_attack_chance(distance):
         """Calculate probability of attacking based on distance (like Doom AI)"""
         if distance < 150:
             return 0.8  # High chance at close range
@@ -370,7 +370,7 @@ class Serpentipede(EnemyBase):
         elif self.movement_mode == "strafe":
             return self.calculate_strafe_movement(base_dx, base_dy, distance)
         elif self.movement_mode == "zigzag":
-            return self.calculate_zigzag_movement(base_dx, base_dy, distance)
+            return self.calculate_zigzag_movement(base_dx, base_dy)
         elif self.movement_mode == "circle":
             return self.calculate_circle_movement(base_dx, base_dy, distance, dt)
 
@@ -384,12 +384,12 @@ class Serpentipede(EnemyBase):
 
         if distance < self.preferred_distance * 0.7:
             # Too close, back away while maintaining some approach
-            return (base_dx * 0.2 + noise_dx, base_dy * 0.2 + noise_dy)
+            return base_dx * 0.2 + noise_dx, base_dy * 0.2 + noise_dy
         elif distance > self.preferred_distance * 1.3:
             # Too far, approach more aggressively
-            return (base_dx * 1.2 + noise_dx, base_dy * 1.2 + noise_dy)
+            return base_dx * 1.2 + noise_dx, base_dy * 1.2 + noise_dy
         else:
-            return (base_dx * 0.8 + noise_dx, base_dy * 0.8 + noise_dy)
+            return base_dx * 0.8 + noise_dx, base_dy * 0.8 + noise_dy
 
     def calculate_strafe_movement(self, base_dx, base_dy, distance):
         """Strafing movement perpendicular to player"""
@@ -408,10 +408,10 @@ class Serpentipede(EnemyBase):
         # Normalize
         final_dist = math.hypot(final_dx, final_dy)
         if final_dist > 0:
-            return (final_dx / final_dist, final_dy / final_dist)
-        return (perp_dx, perp_dy)
+            return final_dx / final_dist, final_dy / final_dist
+        return perp_dx, perp_dy
 
-    def calculate_zigzag_movement(self, base_dx, base_dy, distance):
+    def calculate_zigzag_movement(self, base_dx, base_dy):
         """Zigzag movement pattern"""
         time_seconds = self.movement_timer / 1000.0
         zigzag_phase = (time_seconds * self.zigzag_frequency * 2 * math.pi +
@@ -434,8 +434,8 @@ class Serpentipede(EnemyBase):
         # Normalize
         final_dist = math.hypot(final_dx, final_dy)
         if final_dist > 0:
-            return (final_dx / final_dist, final_dy / final_dist)
-        return (base_dx, base_dy)
+            return final_dx / final_dist, final_dy / final_dist
+        return base_dx, base_dy
 
     def calculate_circle_movement(self, base_dx, base_dy, distance, dt):
         """Circular movement around player"""
@@ -474,11 +474,11 @@ class Serpentipede(EnemyBase):
         # Normalize
         final_dist = math.hypot(final_dx, final_dy)
         if final_dist > 0:
-            return (final_dx / final_dist, final_dy / final_dist)
-        return (circle_dx, circle_dy)
+            return final_dx / final_dist, final_dy / final_dist
+        return circle_dx, circle_dy
 
     def handle_movement_blocked(self, base_dx, base_dy, move_speed):
-        """Handle when movement is blocked by walls"""
+        """Handle when walls block movement"""
         self.movement_mode = "strafe"
         self.strafe_direction *= -1
         self.movement_timer = 0

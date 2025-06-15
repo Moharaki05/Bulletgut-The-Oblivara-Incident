@@ -13,7 +13,7 @@ class PauseMenu:
         # Couleurs style Doom
         self.bg_color = (32, 32, 32)  # Gris foncé
         self.text_color = (255, 255, 255)  # Blanc
-        self.selected_color = (255, 255, 0)  # Jaune pour la sélection
+        self.selected_color = (255, 0, 0)  # Jaune pour la sélection
         self.shadow_color = (64, 64, 64)  # Gris pour l'ombre
 
         # Options du menu
@@ -33,7 +33,7 @@ class PauseMenu:
             logo_width = min(500, SCREEN_WIDTH - 50)  # Plus large
             logo_height = int(self.logo.get_height() * (logo_width / self.logo.get_width()))
             self.logo = pg.transform.scale(self.logo, (logo_width, logo_height))
-        except:
+        except FileNotFoundError:
             # Si le logo n'existe pas, créer un texte de remplacement
             self.logo = None
             print("[WARNING] Logo not found at assets/ui/logo.png")

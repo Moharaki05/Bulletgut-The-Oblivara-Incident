@@ -112,7 +112,8 @@ class HitscanWeapon(WeaponBase, ABC):
         dist_sq = (ex - closest_x) ** 2 + (ey - closest_y) ** 2
         return dist_sq <= enemy_radius ** 2
 
-    def _get_enemy_by_id(self, enemy_id, enemies):
+    @staticmethod
+    def _get_enemy_by_id(enemy_id, enemies):
         """Helper to get enemy object by its id"""
         for enemy in enemies:
             if id(enemy) == enemy_id:

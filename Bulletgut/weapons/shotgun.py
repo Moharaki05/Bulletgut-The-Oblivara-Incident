@@ -1,5 +1,4 @@
 from weapons.hitscan_weapon import HitscanWeapon
-import random
 import math
 import pygame as pg
 
@@ -112,7 +111,7 @@ class Shotgun(HitscanWeapon):
         # Si l'arme est en train de se recharger ou si l'animation est active, ne pas tirer
         if self.is_reloading or self.animation_active:
             print("Le shotgun est en cours de rechargement, impossible de tirer")
-            return
+            return None
 
         # Vérifier si on peut tirer (cooldown)
         current_time = pg.time.get_ticks() / 1000.0
@@ -160,3 +159,4 @@ class Shotgun(HitscanWeapon):
         player = self.game.player
         if hasattr(player, 'apply_recoil'):
             player.apply_recoil(0.15)
+        return None
