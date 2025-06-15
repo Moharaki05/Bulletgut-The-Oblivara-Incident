@@ -11,6 +11,7 @@ from ui.hud import HUD
 from engine.level_manager import LevelManager
 from ui.intermission import IntermissionScreen
 
+
 class Game:
     def __init__(self):
         pg.init()
@@ -149,6 +150,54 @@ class Game:
 
         print(f"[DEBUG] Level loaded - Enemies: {self.initial_enemy_count}, Items: {self.initial_item_count}")
 
+    def stop_all_sounds(self):
+        """Arrête tous les sons du jeu (ennemis, armes, effets)"""
+        try:
+            # Arrêter tous les channels audio pygame
+            pg.mixer.stop()
+
+            # Arrêter spécifiquement les sons des ennemis
+            for enemy in self.enemies:
+                if hasattr(enemy, 'stop_all_sounds'):
+                    enemy.stop_all_sounds()
+                # Fallback pour les ennemis sans méthode stop_all_sounds
+                elif hasattr(enemy, 'sound_channels'):
+                    for channel in enemy.sound_channels.values():
+                        if channel and channel.get_busy():
+                            channel.stop()
+
+            # Arrêter les sons du joueur/armes
+            if self.player and self.player.weapon:
+                if hasattr(self.player.weapon, 'stop_all_sounds'):
+                    self.player.weapon.stop_all_sounds()
+                elif hasattr(self.player.weapon, 'sound_channels'):
+                    for channel in self.player.weapon.sound_channels.values():
+                        if channel and channel.get_busy():
+                            channel.stop()
+
+            # Arrêter les sons des projectiles
+            for projectile in self.projectiles:
+                if hasattr(projectile, 'stop_all_sounds'):
+                    projectile.stop_all_sounds()
+                elif hasattr(projectile, 'sound_channels'):
+                    for channel in projectile.sound_channels.values():
+                        if channel and channel.get_busy():
+                            channel.stop()
+
+            # Arrêter les sons des effets
+            for effect in self.effects:
+                if hasattr(effect, 'stop_all_sounds'):
+                    effect.stop_all_sounds()
+                elif hasattr(effect, 'sound_channels'):
+                    for channel in effect.sound_channels.values():
+                        if channel and channel.get_busy():
+                            channel.stop()
+
+            print("[AUDIO] All level sounds stopped for intermission")
+
+        except Exception as e:
+            print(f"[AUDIO] Error stopping sounds: {e}")
+
     def handle_events(self):
         self.mouse_dx = 0
         for event in pg.event.get():
@@ -197,6 +246,9 @@ class Game:
 
     def start_level_transition(self):
         """Démarre la transition vers le niveau suivant"""
+        # S'assurer que les sons sont toujours arrêtés
+        self.stop_all_sounds()
+
         # Charger le niveau suivant en arrière-plan
         self.level_manager.advance()
         self.load_level(self.level_manager.get_current())
@@ -385,10 +437,15 @@ class Game:
     def trigger_level_complete(self):
         if not self.level_complete:
             self.level_complete = True
-            print(f"[LEVEL] Level completed! Stats - Enemies: {self.enemies_killed}/{self.initial_enemy_count}, Items: {self.items_collected}/{self.initial_item_count}")
+
+            self.stop_all_sounds()
+
+            print(
+                f"[LEVEL] Level completed! Stats - Enemies: {self.enemies_killed}/{self.initial_enemy_count}, Items: {self.items_collected}/{self.initial_item_count}")
 
     def reload_level(self):
         self.reset_player_state()  # Remise à zéro pour éviter de restaurer un ancien état
+        self.stop_all_sounds()
         self.load_level(self.level_manager.get_current())
         self.update_statistics()
 
@@ -399,4 +456,3 @@ class Game:
         self.restart_anim_done = False
         self.has_restarted = False
         self.restart_anim_in_progress = False
-

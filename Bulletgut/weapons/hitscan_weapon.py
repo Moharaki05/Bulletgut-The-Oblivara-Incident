@@ -1,7 +1,6 @@
 from abc import ABC
 import math
 import random
-import pygame as pg
 from weapons.weapon_base import WeaponBase
 
 
@@ -29,8 +28,6 @@ class HitscanWeapon(WeaponBase, ABC):
         # Calculate line end point
         dx = math.cos(angle)
         dy = math.sin(angle)
-        end_x = px + dx * self.range
-        end_y = py + dy * self.range
 
         # Find actual end point (considering walls)
         actual_end_x, actual_end_y = self._get_line_end_point(px, py, dx, dy)
@@ -60,63 +57,6 @@ class HitscanWeapon(WeaponBase, ABC):
 
         return currently_detected
 
-    def render_detection_line(self, surface):
-        """Render the detection line for debugging purposes"""
-        if not hasattr(self, 'debug_render') or not self.debug_render:
-            return
-
-        player = self.game.player
-        px, py = player.get_position()
-        angle = player.get_angle()
-
-        # Calculate line direction
-        dx = math.cos(angle)
-        dy = math.sin(angle)
-
-        # Get actual end point considering walls
-        end_x, end_y = self._get_line_end_point(px, py, dx, dy)
-
-        # Convert world coordinates to screen coordinates
-        # The render_surface is already offset, so we need to calculate relative to player position
-        screen_width = surface.get_width()
-        screen_height = surface.get_height()
-
-        # Player should be at center of screen
-        player_screen_x = screen_width // 2
-        player_screen_y = screen_height // 2
-
-        # Calculate end position relative to player
-        world_dx = end_x - px
-        world_dy = end_y - py
-
-        end_screen_x = player_screen_x + world_dx
-        end_screen_y = player_screen_y + world_dy
-
-        # Only draw if end point is reasonable (within a reasonable distance from center)
-        max_screen_distance = max(screen_width, screen_height)
-        if abs(end_screen_x - player_screen_x) > max_screen_distance or abs(
-                end_screen_y - player_screen_y) > max_screen_distance:
-            # Clamp to screen bounds
-            line_length = math.hypot(world_dx, world_dy)
-            if line_length > 0:
-                # Normalize and scale to fit screen
-                scale = min(max_screen_distance * 0.8, line_length) / line_length
-                end_screen_x = player_screen_x + world_dx * scale
-                end_screen_y = player_screen_y + world_dy * scale
-
-        start_screen = (int(player_screen_x), int(player_screen_y))
-        end_screen = (int(end_screen_x), int(end_screen_y))
-
-        # Draw the line (red if detecting enemy, green otherwise)
-        color = (255, 0, 0) if self.last_detected_enemies else (0, 255, 0)
-
-        # Only draw if both points are within reasonable bounds
-        if (0 <= end_screen[0] <= screen_width * 2 and
-                0 <= end_screen[1] <= screen_height * 2):
-            try:
-                pg.draw.line(surface, color, start_screen, end_screen, 2)
-            except:
-                pass  # Skip if coordinates cause issues
 
     def _get_line_end_point(self, start_x, start_y, dx, dy):
         """Get the actual end point of the line, considering wall collisions"""
@@ -137,7 +77,8 @@ class HitscanWeapon(WeaponBase, ABC):
         # No wall hit within range, return max distance point
         return start_x + dx * max_distance, start_y + dy * max_distance
 
-    def _line_intersects_enemy(self, line_start_x, line_start_y, line_end_x, line_end_y, enemy):
+    @staticmethod
+    def _line_intersects_enemy(line_start_x, line_start_y, line_end_x, line_end_y, enemy):
         """Check if a line intersects with an enemy's hitbox using closest point method"""
         # Enemy position and size
         ex, ey = enemy.x, enemy.y
