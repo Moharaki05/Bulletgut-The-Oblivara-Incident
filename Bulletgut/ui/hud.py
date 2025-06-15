@@ -12,7 +12,7 @@ class HUD:
         self.screen = screen
         self.hud_image = pg.transform.scale(pg.image.load("assets/ui/StatsBar.png").convert(), (SCREEN_WIDTH, HUD_HEIGHT))
         self.doom_font_big = pg.font.Font("assets/fonts/DooM.ttf", 55)
-        self.doom_font_small = pg.font.Font("assets/fonts/DooM.ttf", 17)
+        self.doom_font_small = pg.font.Font("assets/fonts/Born2bSportyFS.otf", 27)
         self.face_manager = FaceManager()
         self.messages = MessageManager()
         self.last_rendered_surface = None
@@ -58,10 +58,10 @@ class HUD:
 
         # Munitions par type (texte petit)
         ammo_display_y = {
-            "bullets": 720 + 20,
-            "shells": 720 + 45,
-            "rockets": 720 + 70,
-            "cells": 720 + 95,
+            "bullets": 720 + 17,
+            "shells": 720 + 42,
+            "rockets": 720 + 67,
+            "cells": 720 + 92,
         }
 
         for ammo_type, y in ammo_display_y.items():
