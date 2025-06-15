@@ -6,7 +6,7 @@ class PauseMenu:
     def __init__(self):
         self.font_large = pg.font.Font("assets/fonts/DooM.ttf", 48)
         self.font_medium = pg.font.Font("assets/fonts/DooM.ttf", 36)
-        self.font_small = pg.font.Font("assets/fonts/DooM.ttf", 24)
+        self.font_small = pg.font.Font("assets/fonts/DooM.ttf", 20)  # Réduit de 24 à 20
 
         # Couleurs style Doom
         self.bg_color = (32, 32, 32)  # Gris foncé
@@ -41,20 +41,15 @@ class PauseMenu:
         self.overlay.set_alpha(128)
         self.overlay.fill((0, 0, 0))
 
-        # Dimensions du menu principal - plus grand
-        self.menu_width = 450
-        self.menu_height = 320
+        # Dimensions du menu principal - légèrement agrandi et redescendu
+        self.menu_width = 480  # Augmenté de 450 à 480
+        self.menu_height = 340  # Augmenté de 320 à 340
         self.menu_x = (SCREEN_WIDTH - self.menu_width) // 2
-        self.menu_y = (SCREEN_HEIGHT - self.menu_height) // 2
+        self.menu_y = (SCREEN_HEIGHT - self.menu_height) // 2 + 180  # Redescendu de 40px
 
-        # Ajuster la position si on a un logo
+        # Position du logo fixe
         if self.logo:
-            self.logo_y = self.menu_y - self.logo.get_height() - 15  # Un peu moins d'espace
-            if self.logo_y < 15:
-                # Si pas assez de place en haut, décaler le menu vers le bas
-                offset = 15 - self.logo_y
-                self.logo_y = 15
-                self.menu_y += offset
+            self.logo_y = self.menu_y - self.logo.get_height() - 20
 
     def show(self):
         """Affiche le menu pause"""
@@ -126,8 +121,8 @@ class PauseMenu:
             screen.blit(title_text, (title_x, title_y))
 
         # Afficher les options du menu
-        option_start_y = self.menu_y + 50
-        option_spacing = 60
+        option_start_y = self.menu_y + 30
+        option_spacing = 55  # Réduit de 60 à 55
 
         for i, option in enumerate(self.menu_options):
             # Couleur selon si l'option est sélectionnée
@@ -158,5 +153,5 @@ class PauseMenu:
         instruction_text = self.font_small.render("↑↓ Navigate • ENTER Select • P Resume",
                                                   True, (128, 128, 128))
         instruction_x = (SCREEN_WIDTH - instruction_text.get_width()) // 2
-        instruction_y = self.menu_y + self.menu_height - 30
+        instruction_y = self.menu_y + self.menu_height - 40
         screen.blit(instruction_text, (instruction_x, instruction_y))
