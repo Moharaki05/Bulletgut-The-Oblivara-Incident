@@ -80,6 +80,16 @@ class Player:
         if not self.alive:
             return
 
+        # ⭐ NOUVEAU : Vérifier si l'intermission est active
+        if game and hasattr(game, 'show_intermission') and game.show_intermission:
+            # Pendant l'intermission, ignorer TOUS les contrôles du joueur
+            return
+
+        # ⭐ NOUVEAU : Vérifier si le jeu est en pause
+        if game and hasattr(game, 'game_paused') and game.game_paused:
+            # Pendant la pause, ignorer TOUS les contrôles du joueur
+            return
+
         speed = self.move_speed * dt
         dx = math.cos(self.angle)
         dy = math.sin(self.angle)

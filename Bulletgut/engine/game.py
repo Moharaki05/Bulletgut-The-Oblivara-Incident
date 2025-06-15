@@ -12,6 +12,7 @@ from engine.level_manager import LevelManager
 from ui.intermission import IntermissionScreen
 from ui.pause_menu import PauseMenu  # Nouveau import
 
+
 class Game:
     def __init__(self):
         pg.init()
@@ -73,6 +74,9 @@ class Game:
         self.pending_level_change = False
         self.ready_to_load_level = False
 
+        # ⭐ NOUVEAU : Flag pour éviter les redémarrages multiples
+        self.restart_from_menu = False
+
         self.hud = HUD(self.screen)
         self.intermission_screen = IntermissionScreen()
         self.level_complete = False
@@ -116,6 +120,18 @@ class Game:
         pg.mouse.set_visible(False)
 
         print("[GAME] Game resumed")
+
+    def start_restart_transition(self):
+        """Démarre la transition de redémarrage (méthode centralisée)"""
+        if self.restart_anim_in_progress:
+            return  # Éviter les redémarrages multiples
+
+        print("[DEBUG] STARTING RESTART TRANSITION")
+        self.hud.render(self.player, self)
+        self.restart_anim_surface = self.screen.copy()
+        self.restart_anim_in_progress = True
+        self.restart_anim_done = False
+        self.has_restarted = False
 
     def load_level(self, path):
         # Sauvegarder l'état du joueur avant de charger le nouveau niveau (sauf si c'est le premier niveau)
@@ -251,7 +267,7 @@ class Game:
                 self.running = False
 
             # Gestion du menu pause
-            elif event.type == pg.KEYDOWN and event.key == pg.K_p:
+            elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 self.toggle_pause()
                 continue
 
@@ -262,13 +278,8 @@ class Game:
                     self.resume_game()
                 elif action == "restart":
                     self.resume_game()  # Fermer le menu d'abord
-                    if not self.restart_anim_in_progress:
-                        print("[DEBUG] RESTART FROM PAUSE MENU")
-                        self.hud.render(self.player, self)
-                        self.restart_anim_surface = self.screen.copy()
-                        self.restart_anim_in_progress = True
-                        self.restart_anim_done = False
-                        self.has_restarted = False
+                    self.restart_from_menu = True  # ⭐ Marquer le redémarrage depuis le menu
+                    self.start_restart_transition()
                 elif action == "quit":
                     self.running = False
                 continue  # Ignorer les autres événements si en pause
@@ -281,13 +292,9 @@ class Game:
                     if self.player.alive:
                         if self.player.weapon:
                             self.player.weapon.fire()
-                    elif not self.restart_anim_in_progress:
-                        print("[DEBUG] CLICK DETECTED - STARTING RESTART ANIMATION")
-                        self.hud.render(self.player, self)
-                        self.restart_anim_surface = self.screen.copy()
-                        self.restart_anim_in_progress = True
-                        self.restart_anim_done = False
-                        self.has_restarted = False
+                    # ⭐ MODIFICATION : Vérifier qu'on ne redémarre pas déjà depuis le menu
+                    elif not self.restart_anim_in_progress and not self.restart_from_menu:
+                        self.start_restart_transition()
                 if event.button == 4:
                     self.player.switch_weapon(-1)
                 elif event.button == 5:
@@ -312,8 +319,7 @@ class Game:
                     # Gérer ENTER seulement si l'intermission peut accepter l'input
                     if self.show_intermission and self.intermission_screen.can_accept_input():
                         self.start_level_transition()
-                if event.key == pg.K_ESCAPE:
-                    self.running = False
+
 
     def start_level_transition(self):
         """Démarre la transition vers le niveau suivant"""
@@ -350,6 +356,7 @@ class Game:
             self.reload_level()
             self.pending_restart = False
             self.restart_anim_in_progress = False
+            self.restart_from_menu = False  # ⭐ Remettre à zéro le flag
             return
 
         if self.restart_anim_in_progress:

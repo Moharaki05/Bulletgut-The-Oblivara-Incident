@@ -276,7 +276,10 @@ class IntermissionScreen:
 
     def can_accept_input(self):
         """Retourne True si l'intermission peut accepter des inputs (ENTER)"""
-        return self.state == "showing" and self.show_stats
+        return (self.state == "showing" and
+                self.show_stats and
+                not self.entry_transition_in_progress and
+                not self.exit_transition_in_progress)
 
     def reset(self):
         """Remet l'intermission à zéro pour la prochaine utilisation"""

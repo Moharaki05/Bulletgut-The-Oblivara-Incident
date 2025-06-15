@@ -20,7 +20,7 @@ class PauseMenu:
         self.menu_options = [
             "RESUME GAME",
             "RESTART LEVEL",
-            "QUIT GAME"
+            "RETURN TO MENU"
         ]
 
         self.selected_index = 0
@@ -153,8 +153,7 @@ class PauseMenu:
                 screen.blit(arrow_right, (text_x + main_text.get_width(), text_y))
 
         # Instructions en bas - EN DEHORS du cadre
-        # TODO : Remplacer P par Echap une fois le developpement terminé
-        instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [P] Resume",
+        instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [ESC] Resume",
                                                   True, (128, 128, 128))
         instruction_x = (SCREEN_WIDTH - instruction_text.get_width()) // 2
         instruction_y = self.menu_y + self.menu_height + 30  # EN DEHORS du cadre
