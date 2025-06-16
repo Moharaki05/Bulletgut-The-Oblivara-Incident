@@ -98,8 +98,12 @@ class Game:
 
     def pause_game(self):
         """Met le jeu en pause"""
-        if not self.player.alive or self.show_intermission or self.restart_anim_in_progress:
-            return  # Ne pas permettre la pause dans ces états
+        # Ne pas permettre la pause pendant certains états
+        if (not self.player.alive or
+                self.show_intermission or
+                self.restart_anim_in_progress or
+                self.level_complete):
+            return
 
         self.game_paused = True
         self.pause_menu.show()
@@ -268,7 +272,9 @@ class Game:
 
             # Gestion du menu pause
             elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-                self.toggle_pause()
+                # Ne pas permettre la pause pendant l'intermission
+                if not self.show_intermission:
+                    self.toggle_pause()
                 continue
 
             # Si le jeu est en pause, gérer les événements du menu pause
@@ -278,13 +284,31 @@ class Game:
                     self.resume_game()
                 elif action == "restart":
                     self.resume_game()  # Fermer le menu d'abord
-                    self.restart_from_menu = True  # ⭐ Marquer le redémarrage depuis le menu
-                    self.start_restart_transition()
+                    if not self.restart_anim_in_progress:
+                        print("[DEBUG] RESTART FROM PAUSE MENU")
+                        self.hud.render(self.player, self)
+                        self.restart_anim_surface = self.screen.copy()
+                        self.restart_anim_in_progress = True
+                        self.restart_anim_done = False
+                        self.has_restarted = False
                 elif action == "quit":
                     self.running = False
                 continue  # Ignorer les autres événements si en pause
 
-            # Événements normaux du jeu (seulement si pas en pause)
+            # ⭐ NOUVEAU : Gestion spéciale pendant l'intermission
+            if self.show_intermission:
+                # Pendant l'intermission, seule la touche ENTER est autorisée
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_RETURN:
+                        # Gérer ENTER seulement si l'intermission peut accepter l'input
+                        if self.intermission_screen.can_accept_input():
+                            self.start_level_transition()
+                    elif event.key == pg.K_ESCAPE:
+                        self.running = False
+                # Ignorer TOUS les autres événements pendant l'intermission
+                continue
+
+            # Événements normaux du jeu (seulement si pas en pause ET pas en intermission)
             elif event.type == pg.MOUSEMOTION:
                 self.mouse_dx = event.rel[0]
             elif event.type == pg.MOUSEBUTTONDOWN:
@@ -292,9 +316,13 @@ class Game:
                     if self.player.alive:
                         if self.player.weapon:
                             self.player.weapon.fire()
-                    # ⭐ MODIFICATION : Vérifier qu'on ne redémarre pas déjà depuis le menu
-                    elif not self.restart_anim_in_progress and not self.restart_from_menu:
-                        self.start_restart_transition()
+                    elif not self.restart_anim_in_progress:
+                        print("[DEBUG] CLICK DETECTED - STARTING RESTART ANIMATION")
+                        self.hud.render(self.player, self)
+                        self.restart_anim_surface = self.screen.copy()
+                        self.restart_anim_in_progress = True
+                        self.restart_anim_done = False
+                        self.has_restarted = False
                 if event.button == 4:
                     self.player.switch_weapon(-1)
                 elif event.button == 5:
@@ -356,7 +384,6 @@ class Game:
             self.reload_level()
             self.pending_restart = False
             self.restart_anim_in_progress = False
-            self.restart_from_menu = False  # ⭐ Remettre à zéro le flag
             return
 
         if self.restart_anim_in_progress:
@@ -381,16 +408,18 @@ class Game:
 
         if self.show_intermission:
             self.intermission_screen.update(dt)
+            # ⭐ NOUVEAU : Pendant l'intermission, ne pas mettre à jour la logique de jeu
             return
 
-        # Logique de jeu normale
+        # ⭐ NOUVEAU : Logique de jeu normale seulement si pas en intermission
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level, self)
+
+        # Le reste de la logique de jeu continue normalement...
         if self.player.damage_flash_timer > 0:
             self.player.damage_flash_timer = max(0.0, self.player.damage_flash_timer - dt)
 
         # Mettre à jour les pickups et compter les items SEULEMENT quand ils sont ramassés
-        # Remplacer cette section dans la méthode update():
         for pickup in self.level.pickups:
             was_picked_up = pickup.picked_up
             pickup.update(self.player, self)
