@@ -14,9 +14,13 @@ from ui.pause_menu import PauseMenu  # Nouveau import
 
 
 class Game:
-    def __init__(self):
-        pg.init()
-        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    def __init__(self, screen = None):
+        if screen is not None:
+            self.screen = screen
+        else:
+            # Fallback si appelé directement
+            pg.init()
+            self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
         # Charger et définir l'icône personnalisée
         try:
@@ -88,6 +92,7 @@ class Game:
         self.game_paused = False
 
         self.update_statistics()
+        self.should_return_to_menu = False
 
     def toggle_pause(self):
         """Active/désactive le menu pause"""
