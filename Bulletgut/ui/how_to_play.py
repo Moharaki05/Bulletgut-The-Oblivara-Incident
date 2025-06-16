@@ -31,11 +31,11 @@ class HowToPlayScreen:
                 "E - Open doors / Interact",
                 "ESC - Pause menu"
             ]),
-            ("OBJECTIVE", [
-                "Find the exit to complete the level",
-                "Collect items and eliminate enemies",
-                "Survive at all costs!"
-            ])
+            # ("OBJECTIVE", [
+            #     "Find the exit to complete the level",
+            #     "Collect items and eliminate enemies",
+            #     "Survive at all costs!"
+            # ])
         ]
 
     def show(self):

@@ -1,7 +1,6 @@
 import pygame as pg
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT
 
-
 class CreditsScreen:
     def __init__(self):
         self.font_large = pg.font.Font("assets/fonts/DooM.ttf", 48)
@@ -12,6 +11,7 @@ class CreditsScreen:
         self.bg_color = (16, 16, 16)  # Noir très foncé
         self.title_color = (255, 255, 255)
         self.text_color = (200, 200, 200)
+        self.section_color = (255, 0, 0)  # Jaune pour les noms/rôles
         self.highlight_color = (255, 255, 0)  # Jaune pour les noms/rôles
         self.shadow_color = (64, 64, 64)
 
@@ -24,28 +24,33 @@ class CreditsScreen:
 
         # Contenu des crédits
         self.credits_content = [
-            ("BULLETGUT: THE OBLIVARA INCIDENT", "title"),
+            ("BULLETGUT:", "title"),
+            ("THE OBLIVARA INCIDENT", "title"),
             ("", "space"),
             ("DEVELOPMENT TEAM", "section"),
             ("", "space_small"),
             ("Game Design & Programming", "role"),
-            ("Your Name Here", "name"),
+            ("Mohamed LARAKI", "name"),
+            ("Claude AI", "name"),
+            ("ChatGPT", "name"),
             ("", "space_small"),
             ("Level Design", "role"),
-            ("Level Designer Name", "name"),
+            ("Mohamed Laraki", "name"),
             ("", "space_small"),
             ("Art & Graphics", "role"),
-            ("Artist Name", "name"),
+            ("Freedoom Community", "name"),
+            ("Little Martian", "name"),
+            ("Open Game Art", "name"),
             ("", "space_small"),
             ("Sound & Music", "role"),
-            ("Sound Designer Name", "name"),
+            ("Music : PDKMusic", "name"),
+            ("Sounds : Freesound", "name"),
+            ("Sounds : Pixabay", "name"),
+            ("Sounds : Bobby Prince", "name"),
             ("", "space"),
             ("SPECIAL THANKS", "section"),
             ("", "space_small"),
-            ("Python Community", "name"),
-            ("Pygame Development Team", "name"),
-            ("Doom & Classic FPS Games", "name"),
-            ("All Playtesters", "name"),
+            ("Daniel Lemire", "name"),
             ("", "space"),
             ("TOOLS & LIBRARIES", "section"),
             ("", "space_small"),
@@ -53,16 +58,16 @@ class CreditsScreen:
             ("Pygame", "name"),
             ("Tiled Map Editor", "name"),
             ("", "space"),
-            ("ASSETS", "section"),
-            ("", "space_small"),
-            ("Font: DooM.ttf", "name"),
-            ("Font: Born2bSportyFS.otf", "name"),
-            ("Various texture sources", "name"),
-            ("", "space"),
-            ("", "space"),
+            # ("ASSETS", "section"),
+            # ("", "space_small"),
+            # ("Font: DooM.ttf", "name"),
+            # ("Font: Born2bSportyFS.otf", "name"),
+            # ("Various texture sources", "name"),
+            # ("", "space"),
+            # ("", "space"),
             ("Thank you for playing!", "thank_you"),
             ("", "space"),
-            ("Visit us at: github.com/yourproject", "website"),
+            ("Visit us at: https://github.com/Moharaki05/Bulletgut-The-Oblivara-Incident", "website"),
             ("", "space"),
             ("", "space"),
             ("Press [ESC] to return to menu", "instruction")
@@ -160,7 +165,7 @@ class CreditsScreen:
 
                 elif text_type == "section":
                     font = self.font_medium
-                    color = self.highlight_color
+                    color = self.section_color
                     text_surface = font.render(text, True, color)
                     x = (SCREEN_WIDTH - text_surface.get_width()) // 2
 

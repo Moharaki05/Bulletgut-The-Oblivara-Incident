@@ -14,7 +14,7 @@ from ui.pause_menu import PauseMenu  # Nouveau import
 
 
 class Game:
-    def __init__(self, screen = None):
+    def __init__(self, screen=None):
         if screen is not None:
             self.screen = screen
         else:
@@ -270,90 +270,6 @@ class Game:
         except Exception as e:
             print(f"[AUDIO] Error stopping sounds: {e}")
 
-    # def handle_events(self):
-    #     self.mouse_dx = 0
-    #     for event in pg.event.get():
-    #         if event.type == pg.QUIT:
-    #             self.running = False
-    #
-    #         # Gestion du menu pause
-    #         elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-    #             # Ne pas permettre la pause pendant l'intermission
-    #             if not self.show_intermission:
-    #                 self.toggle_pause()
-    #             continue
-    #
-    #         # Si le jeu est en pause, gérer les événements du menu pause
-    #         if self.game_paused:
-    #             action = self.pause_menu.handle_input(event)
-    #             if action == "resume":
-    #                 self.resume_game()
-    #             elif action == "restart":
-    #                 self.resume_game()  # Fermer le menu d'abord
-    #                 if not self.restart_anim_in_progress:
-    #                     print("[DEBUG] RESTART FROM PAUSE MENU")
-    #                     self.hud.render(self.player, self)
-    #                     self.restart_anim_surface = self.screen.copy()
-    #                     self.restart_anim_in_progress = True
-    #                     self.restart_anim_done = False
-    #                     self.has_restarted = False
-    #             elif action == "quit":
-    #                 self.running = False
-    #             continue  # Ignorer les autres événements si en pause
-    #
-    #         # ⭐ NOUVEAU : Gestion spéciale pendant l'intermission
-    #         if self.show_intermission:
-    #             # Pendant l'intermission, seule la touche ENTER est autorisée
-    #             if event.type == pg.KEYDOWN:
-    #                 if event.key == pg.K_RETURN:
-    #                     # Gérer ENTER seulement si l'intermission peut accepter l'input
-    #                     if self.intermission_screen.can_accept_input():
-    #                         self.start_level_transition()
-    #                 elif event.key == pg.K_ESCAPE:
-    #                     self.running = False
-    #             # Ignorer TOUS les autres événements pendant l'intermission
-    #             continue
-    #
-    #         # Événements normaux du jeu (seulement si pas en pause ET pas en intermission)
-    #         elif event.type == pg.MOUSEMOTION:
-    #             self.mouse_dx = event.rel[0]
-    #         elif event.type == pg.MOUSEBUTTONDOWN:
-    #             if event.button == 1:
-    #                 if self.player.alive:
-    #                     if self.player.weapon:
-    #                         self.player.weapon.fire()
-    #                 elif not self.restart_anim_in_progress:
-    #                     print("[DEBUG] CLICK DETECTED - STARTING RESTART ANIMATION")
-    #                     self.hud.render(self.player, self)
-    #                     self.restart_anim_surface = self.screen.copy()
-    #                     self.restart_anim_in_progress = True
-    #                     self.restart_anim_done = False
-    #                     self.has_restarted = False
-    #             if event.button == 4:
-    #                 self.player.switch_weapon(-1)
-    #             elif event.button == 5:
-    #                 self.player.switch_weapon(1)
-    #         elif event.type == pg.MOUSEBUTTONUP:
-    #             if event.button == 1:
-    #                 if self.player.weapon:
-    #                     self.player.weapon.release_trigger()
-    #         elif event.type == pg.KEYDOWN:
-    #             if event.key == pg.K_e:
-    #                 for door in self.level.doors:
-    #                     if self.is_near_door(door):
-    #                         door.toggle(self)
-    #                         break
-    #                 else:
-    #                     for level_exit in self.level.level_exits:
-    #                         if level_exit.is_player_near(self.player):
-    #                             if level_exit.activate():
-    #                                 self.trigger_level_complete()
-    #                             break
-    #             if event.key == pg.K_RETURN:
-    #                 # Gérer ENTER seulement si l'intermission peut accepter l'input
-    #                 if self.show_intermission and self.intermission_screen.can_accept_input():
-    #                     self.start_level_transition()
-
     def handle_single_event(self, event):
         """Méthode pour gérer un seul événement (appelée par GameManager)"""
         # Traitement spécial pour ESC - retour au menu principal
@@ -428,14 +344,15 @@ class Game:
         if not self.handle_own_events:
             return  # Si géré par GameManager, ne pas traiter ici
 
+        # ⭐ CORRECTION PRINCIPALE : Remettre à zéro le mouvement souris au début de chaque frame
         self.mouse_dx = 0
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
                 continue
 
             self.handle_single_event(event)
-
 
     def start_level_transition(self):
         """Démarre la transition vers le niveau suivant"""
@@ -502,6 +419,9 @@ class Game:
         # ⭐ NOUVEAU : Logique de jeu normale seulement si pas en intermission
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level, self)
+
+        # ⭐ CORRECTION SUPPLÉMENTAIRE : Remettre à zéro mouse_dx après usage
+        self.mouse_dx = 0
 
         # Le reste de la logique de jeu continue normalement...
         if self.player.damage_flash_timer > 0:

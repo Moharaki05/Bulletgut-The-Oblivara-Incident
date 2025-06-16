@@ -5,7 +5,7 @@ from data.config import SCREEN_WIDTH, SCREEN_HEIGHT
 class MainMenu:
     def __init__(self):
         self.font_large = pg.font.Font("assets/fonts/DooM.ttf", 48)
-        self.font_medium = pg.font.Font("assets/fonts/DooM.ttf", 36)
+        self.font_medium = pg.font.Font("assets/fonts/DooM.ttf", 32)
         self.font_small = pg.font.Font("assets/fonts/Born2bSportyFS.otf", 24)
 
         self.arrow_font_medium = pg.font.SysFont("Arial", 36)
@@ -41,9 +41,9 @@ class MainMenu:
         try:
             self.logo = pg.image.load("assets/ui/logo.png").convert_alpha()
             # Redimensionner le logo pour qu'il soit plus grand
-            logo_width = min(600, SCREEN_WIDTH - 100)
+            logo_width = min(600, SCREEN_WIDTH - 50)
             logo_height = int(self.logo.get_height() * (logo_width / self.logo.get_width()))
-            self.logo = pg.transform.scale(self.logo, (logo_width, logo_height))
+            self.logo = pg.transform.scale(self.logo, (logo_width/1.25, logo_height/1.25))
             print("[MAIN_MENU] Logo loaded successfully")
         except FileNotFoundError:
             # Si le logo n'existe pas, créer un texte de remplacement
@@ -51,14 +51,14 @@ class MainMenu:
             print("[WARNING] Logo not found at assets/ui/logo.png")
 
         # Positionnement à droite de l'écran
-        self.menu_start_x = SCREEN_WIDTH - 400  # Position X des options (côté droit)
-        self.menu_start_y = SCREEN_HEIGHT // 2 + 50  # Position Y de départ des options
-        self.option_spacing = 80  # Espacement entre les options
+        self.menu_start_x = SCREEN_WIDTH - 450  # Position X des options (côté droit)
+        self.menu_start_y = SCREEN_HEIGHT // 2 - 40 # Position Y de départ des options
+        self.option_spacing = 65  # Espacement entre les options
 
         # Position du logo (côté droit aussi, au-dessus des options)
         if self.logo:
             self.logo_x = SCREEN_WIDTH - self.logo.get_width() - 50
-            self.logo_y = self.menu_start_y - self.logo.get_height() - 80
+            self.logo_y = self.menu_start_y - self.logo.get_height() + 50
 
     def show(self):
         """Affiche le menu principal"""
@@ -160,11 +160,11 @@ class MainMenu:
 
         # Instructions en bas à droite
         instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [ESC] Quit",
-                                                  True, (128, 128, 128))
+                                                  True, (255, 255, 255))
         instruction_x = SCREEN_WIDTH - instruction_text.get_width() - 20
         instruction_y = SCREEN_HEIGHT - 40
         screen.blit(instruction_text, (instruction_x, instruction_y))
 
         # Version du jeu en bas à gauche (optionnel)
-        version_text = self.font_small.render("BULLETGUT v1.0 - The Oblivara Incident", True, (96, 96, 96))
+        version_text = self.font_small.render("by Mohamed Laraki - v 1.0", True, (255, 255, 255))
         screen.blit(version_text, (20, SCREEN_HEIGHT - 40))
