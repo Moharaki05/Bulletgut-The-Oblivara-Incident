@@ -36,6 +36,9 @@ class GameManager:
         self.game = None
         self.game_ready = False
 
+        # ⭐ NOUVEAU : Surface pour stocker le rendu du jeu
+        self.game_surface = None
+
         # Contrôle de la souris pour les menus
         pg.event.set_grab(False)
         pg.mouse.set_visible(True)
@@ -61,8 +64,9 @@ class GameManager:
         if self.game:
             self.game = None
 
-        # ⭐ NOUVEAU : Reset du flag game_ready
+        # ⭐ NOUVEAU : Reset du flag game_ready et de la surface
         self.game_ready = False
+        self.game_surface = None
 
         self.state = "main_menu"
         self.main_menu.show()
@@ -128,6 +132,7 @@ class GameManager:
 
         if self.state == "loading":
             self.loading_screen.update(dt)
+
             # Vérifier si le chargement est terminé
             if self.loading_screen.is_complete and not self.game_ready:
                 print("[GAME_MANAGER] Creating game during loading completion")
@@ -136,12 +141,16 @@ class GameManager:
                     self.game = Game(self.screen)
                     self.game_ready = True
                     print("[GAME_MANAGER] Game created and ready")
+
+                    # ⭐ NOUVEAU : Rendre le jeu immédiatement pour préparer la transition
+                    self.prepare_game_surface()
+
                 except Exception as e:
                     print(f"[GAME_MANAGER] Error creating game: {e}")
                     self.return_to_menu()
                     return
 
-                # Vérifier si le chargement ET la transition rideau sont terminés
+            # Vérifier si le chargement ET la transition rideau sont terminés
             if self.loading_screen.is_finished():
                 print("[GAME_MANAGER] Loading and transition complete, switching to game state")
                 self.switch_to_game_state()
@@ -154,6 +163,29 @@ class GameManager:
             # Vérifier si le jeu est toujours en cours
             if not self.game.running:
                 self.return_to_menu()
+
+    def prepare_game_surface(self):
+        """Prépare la surface du jeu pour la transition rideau"""
+        if self.game and self.game_ready:
+            print("[GAME_MANAGER] Preparing game surface for transition")
+            # Créer une surface temporaire pour capturer le rendu du jeu
+            temp_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+            # Sauvegarder la surface actuelle
+            original_screen = self.game.screen
+
+            # Temporairement rediriger le rendu vers notre surface
+            self.game.screen = temp_surface
+
+            # Rendre le jeu sur notre surface temporaire
+            self.game.render()
+
+            # Restaurer la surface originale
+            self.game.screen = original_screen
+
+            # Sauvegarder la surface du jeu
+            self.game_surface = temp_surface.copy()
+            print("[GAME_MANAGER] Game surface prepared")
 
     def switch_to_game_state(self):
         """Passe au state 'game' après la transition"""
@@ -170,9 +202,9 @@ class GameManager:
             self.main_menu.render(self.screen)
         elif self.state == "loading":
             # ⭐ NOUVEAU : Gérer la transition rideau avec le jeu en arrière-plan
-            if self.loading_screen.curtain_transition and self.game_ready and self.game:
-                # D'abord, rendre le jeu en arrière-plan
-                self.game.render()
+            if self.loading_screen.curtain_transition and self.game_surface:
+                # D'abord, afficher le jeu en arrière-plan
+                self.screen.blit(self.game_surface, (0, 0))
                 # Puis appliquer l'effet rideau par-dessus
                 self.loading_screen.render(self.screen)
             else:

@@ -85,10 +85,9 @@ class LoadingScreen:
         self.curtain_speeds = [random.randint(12, 24) for _ in range(num_cols)]
         self.curtain_complete = False
 
-        # Délai avant le début de la transition rideau
-        self.curtain_delay = 0.5  # 0.5 secondes après la fin du chargement
+        # ⭐ MODIFICATION : Réduire le délai pour démarrer le rideau plus tôt
+        self.curtain_delay = 0.1  # 0.1 secondes après la fin du chargement (au lieu de 0.5)
         self.curtain_delay_timer = 0.0
-
 
     def start_loading(self):
         """Démarre le processus de chargement"""
@@ -139,7 +138,6 @@ class LoadingScreen:
             if self.progress < self.target_progress:
                 self.progress = min(self.target_progress, self.progress + dt * 2)
 
-
         # Gérer la transition rideau après le chargement
         if self.is_complete and not self.curtain_transition:
             self.curtain_delay_timer += dt
@@ -155,7 +153,9 @@ class LoadingScreen:
         if not self.curtain_transition:
             print("[LOADING_SCREEN] Starting curtain transition")
             self.curtain_transition = True
-
+            # ⭐ NOUVEAU : Préparer la surface de l'écran de chargement maintenant
+            self.curtain_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.render_loading_content(self.curtain_surface)
 
     def update_curtain_transition(self):
         """Met à jour la transition rideau"""
@@ -277,13 +277,8 @@ class LoadingScreen:
 
     def draw_curtain_transition(self, screen):
         """Dessine la transition rideau - masque progressivement l'écran de chargement"""
-        if not self.curtain_transition:
+        if not self.curtain_transition or not self.curtain_surface:
             return
-
-        # ⭐ NOUVEAU : Créer la surface de l'écran de chargement à la volée
-        if not self.curtain_surface:
-            self.curtain_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            self.render_loading_content(self.curtain_surface)
 
         # Dessiner les colonnes de l'écran de chargement qui restent visibles
         col_width = self.curtain_col_width
@@ -315,11 +310,8 @@ class LoadingScreen:
             game_screen: Surface du jeu à afficher derrière le rideau (optionnel)
         """
         if self.curtain_transition:
-            # Pendant la transition rideau, d'abord dessiner le jeu en arrière-plan
-            if game_screen is not None:
-                screen.blit(game_screen, (0, 0))
-
-            # Puis dessiner l'écran de chargement par-dessus avec l'effet de rideau
+            # ⭐ CORRECTION : Pendant la transition rideau, le jeu doit déjà être affiché
+            # par le GameManager, donc on dessine seulement l'effet de rideau
             self.draw_curtain_transition(screen)
         else:
             # Affichage normal de l'écran de chargement
@@ -329,4 +321,3 @@ class LoadingScreen:
     def is_complete(self):
         """Retourne True si le chargement est à 100% (avant la transition rideau)"""
         return self.progress >= 1.0
-
