@@ -3,6 +3,7 @@ from engine.game import Game
 from ui.main_menu import MainMenu
 from ui.credits import CreditsScreen
 from ui.how_to_play import HowToPlayScreen
+from ui.loading import LoadingScreen
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
 
 
@@ -25,20 +26,32 @@ class GameManager:
         self.running = True
 
         # États du jeu
-        self.state = "main_menu"  # "main_menu", "game", "credits", "how_to_play"
+        self.state = "main_menu"  # "main_menu", "loading", "game", "credits", "how_to_play"
 
         # Initialiser les écrans
         self.main_menu = MainMenu()
         self.credits_screen = CreditsScreen()
         self.how_to_play_screen = HowToPlayScreen()
+        self.loading_screen = LoadingScreen()
         self.game = None
 
         # Contrôle de la souris pour les menus
         pg.event.set_grab(False)
         pg.mouse.set_visible(True)
 
+    def start_loading(self):
+        """Démarre l'écran de chargement avant de lancer le jeu"""
+        try:
+            print("[GAME_MANAGER] Starting loading screen")
+            self.state = "loading"
+            self.loading_screen.start_loading()
+        except Exception as e:
+            print(f"[GAME_MANAGER] Error starting loading screen: {e}")
+            # Retourner au menu en cas d'erreur
+            self.return_to_menu()
+
     def start_game(self):
-        """Démarre une nouvelle partie"""
+        """Démarre une nouvelle partie après le chargement"""
         try:
             # Activer le contrôle souris pour le jeu
             pg.event.set_grab(True)
@@ -87,7 +100,7 @@ class GameManager:
             if self.state == "main_menu":
                 action = self.main_menu.handle_input(event)
                 if action == "new_game":
-                    self.start_game()
+                    self.start_loading()  # Commencer par l'écran de chargement
                 elif action == "credits":
                     self.show_credits()
                 elif action == "how_to_play":
@@ -99,6 +112,12 @@ class GameManager:
                     # Actions liées au modal - pas besoin d'action spécifique
                     # Le modal est géré dans MainMenu
                     pass
+
+            elif self.state == "loading":
+                # Pendant le chargement, permettre d'annuler avec ESC
+                if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                    print("[GAME_MANAGER] Loading cancelled by user")
+                    self.return_to_menu()
 
             elif self.state == "credits":
                 action = self.credits_screen.handle_input(event)
@@ -124,8 +143,16 @@ class GameManager:
         """Met à jour l'état actuel"""
         dt = self.clock.tick(FPS) / 1000
 
-        if self.state == "credits":
+        if self.state == "loading":
+            self.loading_screen.update(dt)
+            # Vérifier si le chargement est terminé
+            if self.loading_screen.is_finished():
+                print("[GAME_MANAGER] Loading complete, starting game")
+                self.start_game()
+
+        elif self.state == "credits":
             self.credits_screen.update(dt)
+
         elif self.state == "game" and self.game:
             self.game.update()
             # Vérifier si le jeu est toujours en cours
@@ -136,6 +163,8 @@ class GameManager:
         """Affiche l'écran selon l'état actuel"""
         if self.state == "main_menu":
             self.main_menu.render(self.screen)
+        elif self.state == "loading":
+            self.loading_screen.render(self.screen)
         elif self.state == "credits":
             self.credits_screen.render(self.screen)
         elif self.state == "how_to_play":

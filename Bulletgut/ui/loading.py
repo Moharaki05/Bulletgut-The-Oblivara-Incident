@@ -17,6 +17,29 @@ class LoadingScreen:
         self.bar_bg_color = (64, 64, 80)
         self.bar_fill_color = (255, 128, 128)
 
+        # Charger le logo
+        self.logo = None
+        self.logo_scale = 1.0
+        self.fallback_title = False
+
+        try:
+            # Essayer de charger le logo depuis le même chemin que le menu principal
+            self.logo = pg.image.load("assets/ui/logo.png").convert_alpha()
+            # Redimensionner le logo pour l'écran de chargement (un peu plus petit que dans le menu)
+            logo_width = min(450, SCREEN_WIDTH - 100)  # Plus petit que dans le menu
+            logo_height = int(self.logo.get_height() * (logo_width / self.logo.get_width()))
+            self.logo = pg.transform.scale(self.logo, (logo_width, logo_height))
+
+            # Position du logo (centré horizontalement)
+            self.logo_x = SCREEN_WIDTH // 2 - self.logo.get_width() // 2
+            self.logo_y = SCREEN_HEIGHT // 3 - self.logo.get_height() // 2
+
+            print("[LOADING_SCREEN] Logo loaded successfully")
+        except FileNotFoundError:
+            # Fallback vers le texte si le logo n'existe pas
+            self.fallback_title = True
+            print("[LOADING_SCREEN] Logo not found, using text fallback")
+
         # Animation
         self.progress = 0.0
         self.target_progress = 0.0
@@ -116,6 +139,38 @@ class LoadingScreen:
         fade_progress = min(1.0, self.fade_out_timer / self.fade_duration)
         return int(255 * (1.0 - fade_progress))
 
+    def render_logo_with_pulse(self, surface):
+        """Affiche le logo avec effet de pulse"""
+        if self.logo and not self.fallback_title:
+            # Effet de pulse sur le logo
+            pulse_scale = 1.0 + 0.03 * math.sin(self.pulse_animation)  # Pulse plus subtil pour le logo
+
+            # Redimensionner temporairement le logo pour l'effet de pulse
+            current_width = int(self.logo.get_width() * pulse_scale)
+            current_height = int(self.logo.get_height() * pulse_scale)
+            pulsed_logo = pg.transform.scale(self.logo, (current_width, current_height))
+
+            # Recentrer le logo pulsé
+            logo_x = SCREEN_WIDTH // 2 - current_width // 2
+            logo_y = SCREEN_HEIGHT // 3 - current_height // 2
+
+            surface.blit(pulsed_logo, (logo_x, logo_y))
+        else:
+            # Fallback vers le texte avec pulse
+            pulse_scale = 1.0 + 0.05 * math.sin(self.pulse_animation)
+            title_font = pg.font.Font("assets/fonts/DooM.ttf", int(48 * pulse_scale))
+            title_text = title_font.render("BULLETGUT", True, self.accent_color)
+            subtitle_text = self.font_medium.render("THE OBLIVARA INCIDENT", True, self.text_color)
+
+            title_x = SCREEN_WIDTH // 2 - title_text.get_width() // 2
+            title_y = SCREEN_HEIGHT // 3 - title_text.get_height() // 2
+
+            subtitle_x = SCREEN_WIDTH // 2 - subtitle_text.get_width() // 2
+            subtitle_y = title_y + title_text.get_height() + 10
+
+            surface.blit(title_text, (title_x, title_y))
+            surface.blit(subtitle_text, (subtitle_x, subtitle_y))
+
     def render(self, screen):
         """Affiche l'écran de chargement"""
         alpha = self.get_alpha()
@@ -133,26 +188,15 @@ class LoadingScreen:
                            (int(particle['x'].x), int(particle['x'].y)),
                            int(particle['size']))
 
-        # Titre principal avec effet de pulse
-        pulse_scale = 1.0 + 0.05 * math.sin(self.pulse_animation)
-        title_font = pg.font.Font("assets/fonts/DooM.ttf", int(48 * pulse_scale))
-        title_text = title_font.render("BULLETGUT", True, self.accent_color)
-        subtitle_text = self.font_medium.render("THE OBLIVARA INCIDENT", True, self.text_color)
+        # Afficher le logo avec effet de pulse
+        self.render_logo_with_pulse(temp_surface)
 
-        title_x = SCREEN_WIDTH // 2 - title_text.get_width() // 2
-        title_y = SCREEN_HEIGHT // 3 - title_text.get_height() // 2
-
-        subtitle_x = SCREEN_WIDTH // 2 - subtitle_text.get_width() // 2
-        subtitle_y = title_y + title_text.get_height() + 10
-
-        temp_surface.blit(title_text, (title_x, title_y))
-        temp_surface.blit(subtitle_text, (subtitle_x, subtitle_y))
-
-        # Barre de progression
+        # Barre de progression - ajustée pour être plus bas si on utilise le logo
+        bar_y_offset = 150 if (self.logo and not self.fallback_title) else 100
         bar_width = 400
         bar_height = 20
         bar_x = SCREEN_WIDTH // 2 - bar_width // 2
-        bar_y = SCREEN_HEIGHT // 2 + 100
+        bar_y = SCREEN_HEIGHT // 2 + bar_y_offset
 
         # Fond de la barre
         pg.draw.rect(temp_surface, self.bar_bg_color,
@@ -191,13 +235,19 @@ class LoadingScreen:
             step_y = percent_y + 60
             temp_surface.blit(step_surface, (step_x, step_y))
 
-        # Instruction
+        # Instruction - ajustée pour être au bon endroit
         if not self.is_complete:
             instruction_text = self.font_small.render("Preparing your descent into hell...",
                                                       True, (200, 200, 200))
             instruction_x = SCREEN_WIDTH // 2 - instruction_text.get_width() // 2
             instruction_y = SCREEN_HEIGHT - 60
             temp_surface.blit(instruction_text, (instruction_x, instruction_y))
+
+        # Instructions d'annulation
+        cancel_text = self.font_small.render("[ESC] Cancel", True, (150, 150, 150))
+        cancel_x = 20
+        cancel_y = SCREEN_HEIGHT - 40
+        temp_surface.blit(cancel_text, (cancel_x, cancel_y))
 
         # Appliquer l'alpha et blitter sur l'écran principal
         if alpha < 255:
