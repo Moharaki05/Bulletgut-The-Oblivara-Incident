@@ -89,7 +89,6 @@ class LoadingScreen:
         self.curtain_delay = 0.5  # 0.5 secondes après la fin du chargement
         self.curtain_delay_timer = 0.0
 
-        self.is_complete = False
 
     def start_loading(self):
         """Démarre le processus de chargement"""
@@ -98,7 +97,6 @@ class LoadingScreen:
         self.current_step = 0
         self.step_timer = 0.0
         self.animation_time = 0.0
-        self.is_complete = False
 
         # Reset de la transition rideau
         self.curtain_transition = False
@@ -141,9 +139,6 @@ class LoadingScreen:
             if self.progress < self.target_progress:
                 self.progress = min(self.target_progress, self.progress + dt * 2)
 
-            # Marquer comme terminé quand la progression atteint 100%
-            if self.progress >= 1.0:
-                self.is_complete = True
 
         # Gérer la transition rideau après le chargement
         if self.is_complete and not self.curtain_transition:
@@ -160,11 +155,7 @@ class LoadingScreen:
         if not self.curtain_transition:
             print("[LOADING_SCREEN] Starting curtain transition")
             self.curtain_transition = True
-            # Capturer l'écran actuel pour la transition
-            # Note: Dans un vrai contexte, vous devriez passer la surface depuis l'extérieur
-            # Ici on simule en créant une surface temporaire
-            self.curtain_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            self.render_loading_content(self.curtain_surface)
+
 
     def update_curtain_transition(self):
         """Met à jour la transition rideau"""
@@ -179,7 +170,7 @@ class LoadingScreen:
             print("[LOADING_SCREEN] Curtain transition complete")
 
     def is_finished(self):
-        """Retourne True si le chargement et la transition rideau sont terminés"""
+        """Retourne True si le chargement ET la transition rideau sont terminés"""
         return self.curtain_complete
 
     def render_loading_content(self, surface):
@@ -188,7 +179,6 @@ class LoadingScreen:
 
         # Particules d'arrière-plan
         for particle in self.particles:
-            color = (*self.accent_color, particle['alpha'])
             pg.draw.circle(surface, self.accent_color[:3],
                            (int(particle['x'].x), int(particle['x'].y)),
                            int(particle['size']))
@@ -218,7 +208,6 @@ class LoadingScreen:
             # Effet de brillance qui se déplace
             shine_pos = (self.animation_time * 100) % (bar_width + 50) - 25
             if 0 <= shine_pos <= fill_width:
-                shine_color = (255, 255, 255, 100)
                 pg.draw.rect(surface, (255, 255, 255),
                              (bar_x + shine_pos - 15, bar_y, 30, bar_height))
 
@@ -232,7 +221,7 @@ class LoadingScreen:
         # Texte de l'étape actuelle ou message de completion
         if self.is_complete:
             # Message de completion
-            complete_text = self.font_small.render("Loading complete! Entering game...", True, self.accent_color)
+            complete_text = self.font_small.render("Good luck, Devil Dog!", True, self.accent_color)
             complete_x = SCREEN_WIDTH // 2 - complete_text.get_width() // 2
             complete_y = percent_y + 60
             surface.blit(complete_text, (complete_x, complete_y))
@@ -253,13 +242,6 @@ class LoadingScreen:
             instruction_x = SCREEN_WIDTH // 2 - instruction_text.get_width() // 2
             instruction_y = SCREEN_HEIGHT - 60
             surface.blit(instruction_text, (instruction_x, instruction_y))
-
-        # Instructions d'annulation
-        if not self.curtain_transition:  # Masquer pendant la transition
-            cancel_text = self.font_small.render("[ESC] Cancel", True, (150, 150, 150))
-            cancel_x = 20
-            cancel_y = SCREEN_HEIGHT - 40
-            surface.blit(cancel_text, (cancel_x, cancel_y))
 
     def render_logo_with_pulse(self, surface):
         """Affiche le logo avec effet de pulse"""
@@ -295,8 +277,13 @@ class LoadingScreen:
 
     def draw_curtain_transition(self, screen):
         """Dessine la transition rideau - masque progressivement l'écran de chargement"""
-        if not self.curtain_surface or not self.curtain_transition:
+        if not self.curtain_transition:
             return
+
+        # ⭐ NOUVEAU : Créer la surface de l'écran de chargement à la volée
+        if not self.curtain_surface:
+            self.curtain_surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.render_loading_content(self.curtain_surface)
 
         # Dessiner les colonnes de l'écran de chargement qui restent visibles
         col_width = self.curtain_col_width
@@ -337,3 +324,9 @@ class LoadingScreen:
         else:
             # Affichage normal de l'écran de chargement
             self.render_loading_content(screen)
+
+    @property
+    def is_complete(self):
+        """Retourne True si le chargement est à 100% (avant la transition rideau)"""
+        return self.progress >= 1.0
+

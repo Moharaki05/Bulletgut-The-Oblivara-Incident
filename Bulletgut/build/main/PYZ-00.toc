@@ -1855,6 +1855,10 @@
    'C:\\Users\\Mohamed '
    'LARAKI\\PycharmProjects\\Bulletgut-The-Oblivara-Incident\\Bulletgut\\ui\\intermission.py',
    'PYMODULE'),
+  ('ui.loading',
+   'C:\\Users\\Mohamed '
+   'LARAKI\\PycharmProjects\\Bulletgut-The-Oblivara-Incident\\Bulletgut\\ui\\loading.py',
+   'PYMODULE'),
   ('ui.main_menu',
    'C:\\Users\\Mohamed '
    'LARAKI\\PycharmProjects\\Bulletgut-The-Oblivara-Incident\\Bulletgut\\ui\\main_menu.py',

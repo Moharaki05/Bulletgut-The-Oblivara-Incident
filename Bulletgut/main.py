@@ -34,6 +34,7 @@ class GameManager:
         self.how_to_play_screen = HowToPlayScreen()
         self.loading_screen = LoadingScreen()
         self.game = None
+        self.game_ready = False
 
         # Contrôle de la souris pour les menus
         pg.event.set_grab(False)
@@ -50,21 +51,6 @@ class GameManager:
             # Retourner au menu en cas d'erreur
             self.return_to_menu()
 
-    def start_game(self):
-        """Démarre une nouvelle partie après le chargement"""
-        try:
-            # Activer le contrôle souris pour le jeu
-            pg.event.set_grab(True)
-            pg.mouse.set_visible(False)
-
-            self.game = Game()
-            self.state = "game"
-            print("[GAME_MANAGER] New game started")
-        except Exception as e:
-            print(f"[GAME_MANAGER] Error starting game: {e}")
-            # Retourner au menu en cas d'erreur
-            self.return_to_menu()
-
     def return_to_menu(self):
         """Retourne au menu principal"""
         # Désactiver le contrôle souris
@@ -74,6 +60,9 @@ class GameManager:
         # Nettoyer le jeu si nécessaire
         if self.game:
             self.game = None
+
+        # ⭐ NOUVEAU : Reset du flag game_ready
+        self.game_ready = False
 
         self.state = "main_menu"
         self.main_menu.show()
@@ -113,12 +102,6 @@ class GameManager:
                     # Le modal est géré dans MainMenu
                     pass
 
-            elif self.state == "loading":
-                # Pendant le chargement, permettre d'annuler avec ESC
-                if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-                    print("[GAME_MANAGER] Loading cancelled by user")
-                    self.return_to_menu()
-
             elif self.state == "credits":
                 action = self.credits_screen.handle_input(event)
                 if action == "back_to_menu":
@@ -146,9 +129,22 @@ class GameManager:
         if self.state == "loading":
             self.loading_screen.update(dt)
             # Vérifier si le chargement est terminé
+            if self.loading_screen.is_complete and not self.game_ready:
+                print("[GAME_MANAGER] Creating game during loading completion")
+                try:
+                    # Créer le jeu silencieusement (sans changer de state)
+                    self.game = Game(self.screen)
+                    self.game_ready = True
+                    print("[GAME_MANAGER] Game created and ready")
+                except Exception as e:
+                    print(f"[GAME_MANAGER] Error creating game: {e}")
+                    self.return_to_menu()
+                    return
+
+                # Vérifier si le chargement ET la transition rideau sont terminés
             if self.loading_screen.is_finished():
-                print("[GAME_MANAGER] Loading complete, starting game")
-                self.start_game()
+                print("[GAME_MANAGER] Loading and transition complete, switching to game state")
+                self.switch_to_game_state()
 
         elif self.state == "credits":
             self.credits_screen.update(dt)
@@ -159,12 +155,29 @@ class GameManager:
             if not self.game.running:
                 self.return_to_menu()
 
+    def switch_to_game_state(self):
+        """Passe au state 'game' après la transition"""
+        # Activer le contrôle souris pour le jeu
+        pg.event.set_grab(True)
+        pg.mouse.set_visible(False)
+
+        self.state = "game"
+        print("[GAME_MANAGER] Switched to game state")
+
     def render(self):
         """Affiche l'écran selon l'état actuel"""
         if self.state == "main_menu":
             self.main_menu.render(self.screen)
         elif self.state == "loading":
-            self.loading_screen.render(self.screen)
+            # ⭐ NOUVEAU : Gérer la transition rideau avec le jeu en arrière-plan
+            if self.loading_screen.curtain_transition and self.game_ready and self.game:
+                # D'abord, rendre le jeu en arrière-plan
+                self.game.render()
+                # Puis appliquer l'effet rideau par-dessus
+                self.loading_screen.render(self.screen)
+            else:
+                # Affichage normal de l'écran de chargement
+                self.loading_screen.render(self.screen)
         elif self.state == "credits":
             self.credits_screen.render(self.screen)
         elif self.state == "how_to_play":

@@ -11,8 +11,9 @@ class MainMenu:
         self.arrow_font_medium = pg.font.SysFont("Arial", 36)
 
         # Couleurs style Doom
-        self.text_color = (255, 255, 255)  # Blanc
-        self.selected_color = (255, 0, 0)  # Rouge pour la sélection
+        self.menu_text_color = (255, 0, 0)  # Rouge
+        self.selected_color = (255, 255, 0)  # Jaune pour la sélection
+        self.text_color = (255, 255, 255) # Blanc
         self.shadow_color = (64, 64, 64)  # Gris pour l'ombre
 
         # Options du menu
@@ -150,7 +151,7 @@ class MainMenu:
         screen.blit(overlay, (0, 0))
 
         # Dimensions et position du modal (plus large)
-        modal_width = 600
+        modal_width = 1100
         modal_height = 250
         modal_x = (SCREEN_WIDTH - modal_width) // 2
         modal_y = (SCREEN_HEIGHT - modal_height) // 2
@@ -166,7 +167,7 @@ class MainMenu:
         pg.draw.rect(screen, (32, 32, 32), modal_rect)  # Même gris foncé que le pause menu
 
         # Titre du modal
-        title_text = self.font_medium.render("QUIT GAME?", True, (255, 0, 0))
+        title_text = self.font_medium.render("YOU AIN'T CHICKENIN' OUT NOW, ARE YA?", True, (255, 0, 0))
         title_x = modal_x + (modal_width - title_text.get_width()) // 2
         title_y = modal_y + 40
         screen.blit(title_text, (title_x, title_y))
@@ -226,7 +227,7 @@ class MainMenu:
         # Afficher les options du menu (alignées à gauche)
         for i, option in enumerate(self.menu_options):
             # Couleur selon si l'option est sélectionnée
-            color = self.selected_color if i == self.selected_index else self.text_color
+            color = self.selected_color if i == self.selected_index else self.menu_text_color
 
             # Rendu du texte avec ombre
             shadow_text = self.font_medium.render(option, True, self.shadow_color)
