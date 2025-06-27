@@ -26,6 +26,11 @@ class MainMenu:
         self.selected_index = 0
         self.is_active = True
 
+        # Modal de confirmation de sortie
+        self.show_quit_modal = False
+        self.quit_modal_options = ["YES", "NO"]
+        self.quit_modal_selected = 1  # Sélectionner "NO" par défaut pour éviter les sorties accidentelles
+
         # Charger le fond personnalisé
         try:
             self.background = pg.image.load("assets/ui/main_menu_bg.png").convert()
@@ -43,7 +48,7 @@ class MainMenu:
             # Redimensionner le logo pour qu'il soit plus grand
             logo_width = min(600, SCREEN_WIDTH - 50)
             logo_height = int(self.logo.get_height() * (logo_width / self.logo.get_width()))
-            self.logo = pg.transform.scale(self.logo, (logo_width/1.25, logo_height/1.25))
+            self.logo = pg.transform.scale(self.logo, (logo_width / 1.25, logo_height / 1.25))
             print("[MAIN_MENU] Logo loaded successfully")
         except FileNotFoundError:
             # Si le logo n'existe pas, créer un texte de remplacement
@@ -52,7 +57,7 @@ class MainMenu:
 
         # Positionnement à droite de l'écran
         self.menu_start_x = SCREEN_WIDTH - 450  # Position X des options (côté droit)
-        self.menu_start_y = SCREEN_HEIGHT // 2 - 40 # Position Y de départ des options
+        self.menu_start_y = SCREEN_HEIGHT // 2 - 40  # Position Y de départ des options
         self.option_spacing = 65  # Espacement entre les options
 
         # Position du logo (côté droit aussi, au-dessus des options)
@@ -64,6 +69,7 @@ class MainMenu:
         """Affiche le menu principal"""
         self.is_active = True
         self.selected_index = 0
+        self.show_quit_modal = False
 
     def hide(self):
         """Cache le menu principal"""
@@ -75,16 +81,38 @@ class MainMenu:
             return None
 
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_UP or event.key == pg.K_w:
-                self.selected_index = (self.selected_index - 1) % len(self.menu_options)
-                return "navigate"
-            elif event.key == pg.K_DOWN or event.key == pg.K_s:
-                self.selected_index = (self.selected_index + 1) % len(self.menu_options)
-                return "navigate"
-            elif event.key == pg.K_RETURN or event.key == pg.K_SPACE:
-                return self.get_selected_action()
-            elif event.key == pg.K_ESCAPE:
-                return "quit"
+            # Si le modal de quit est affiché
+            if self.show_quit_modal:
+                if event.key == pg.K_LEFT or event.key == pg.K_a:
+                    self.quit_modal_selected = (self.quit_modal_selected - 1) % len(self.quit_modal_options)
+                    return "navigate_modal"
+                elif event.key == pg.K_RIGHT or event.key == pg.K_d:
+                    self.quit_modal_selected = (self.quit_modal_selected + 1) % len(self.quit_modal_options)
+                    return "navigate_modal"
+                elif event.key == pg.K_RETURN or event.key == pg.K_SPACE:
+                    if self.quit_modal_selected == 0:  # YES
+                        return "confirm_quit"
+                    else:  # NO
+                        self.show_quit_modal = False
+                        return "cancel_quit"
+                elif event.key == pg.K_ESCAPE:
+                    self.show_quit_modal = False
+                    return "cancel_quit"
+            else:
+                # Navigation normale du menu
+                if event.key == pg.K_UP or event.key == pg.K_w:
+                    self.selected_index = (self.selected_index - 1) % len(self.menu_options)
+                    return "navigate"
+                elif event.key == pg.K_DOWN or event.key == pg.K_s:
+                    self.selected_index = (self.selected_index + 1) % len(self.menu_options)
+                    return "navigate"
+                elif event.key == pg.K_RETURN or event.key == pg.K_SPACE:
+                    return self.get_selected_action()
+                elif event.key == pg.K_ESCAPE:
+                    # Afficher le modal de quit au lieu de quitter directement
+                    self.show_quit_modal = True
+                    self.quit_modal_selected = 1  # Sélectionner "NO" par défaut
+                    return "show_quit_modal"
 
         return None
 
@@ -97,7 +125,10 @@ class MainMenu:
         elif self.selected_index == 2:
             return "how_to_play"
         elif self.selected_index == 3:
-            return "quit"
+            # Afficher le modal de confirmation au lieu de quitter directement
+            self.show_quit_modal = True
+            self.quit_modal_selected = 1  # Sélectionner "NO" par défaut
+            return "show_quit_modal"
         return None
 
     @staticmethod
@@ -109,6 +140,63 @@ class MainMenu:
             intensity = int(32 * (y / SCREEN_HEIGHT))  # De 0 à 32
             color = (intensity, intensity, intensity)
             pg.draw.line(screen, color, (0, y), (SCREEN_WIDTH, y))
+
+    def render_quit_modal(self, screen):
+        """Affiche le modal de confirmation de sortie"""
+        # Créer une surface semi-transparente pour assombrir l'arrière-plan
+        overlay = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.set_alpha(180)  # Transparence
+        overlay.fill((0, 0, 0))
+        screen.blit(overlay, (0, 0))
+
+        # Dimensions et position du modal (plus large)
+        modal_width = 600
+        modal_height = 250
+        modal_x = (SCREEN_WIDTH - modal_width) // 2
+        modal_y = (SCREEN_HEIGHT - modal_height) // 2
+
+        # Dessiner le fond du modal avec bordure style Doom (inspiré du pause menu)
+        # Bordure extérieure (relief)
+        outer_rect = pg.Rect(modal_x - 10, modal_y - 10, modal_width + 20, modal_height + 20)
+        pg.draw.rect(screen, (96, 96, 96), outer_rect)
+        pg.draw.rect(screen, (160, 160, 160), outer_rect, 4)
+
+        # Fond intérieur
+        modal_rect = pg.Rect(modal_x, modal_y, modal_width, modal_height)
+        pg.draw.rect(screen, (32, 32, 32), modal_rect)  # Même gris foncé que le pause menu
+
+        # Titre du modal
+        title_text = self.font_medium.render("QUIT GAME?", True, (255, 0, 0))
+        title_x = modal_x + (modal_width - title_text.get_width()) // 2
+        title_y = modal_y + 40
+        screen.blit(title_text, (title_x, title_y))
+
+        # Options YES/NO avec plus d'espacement
+        option_y = modal_y + 120
+        option_spacing = 180  # Plus d'espace entre les options
+        start_x = modal_x + (modal_width - (len(self.quit_modal_options) * option_spacing)) // 2
+
+        for i, option in enumerate(self.quit_modal_options):
+            color = self.selected_color if i == self.quit_modal_selected else self.text_color
+
+            # Rendu du texte
+            option_text = self.font_medium.render(option, True, color)
+            option_x = start_x + i * option_spacing
+            option_text_x = option_x + (option_spacing - option_text.get_width()) // 2
+
+            screen.blit(option_text, (option_text_x, option_y))
+
+            # Indicateur de sélection
+            if i == self.quit_modal_selected:
+                arrow = self.arrow_font_medium.render("►", True, self.selected_color)
+                screen.blit(arrow, (option_text_x - 40, option_y))
+
+        # Instructions du modal
+        instruction_text = self.font_small.render("[←][→] Navigate • [ENTER] Confirm • [ESC] Cancel",
+                                                  True, (255, 255, 255))
+        instruction_x = modal_x + (modal_width - instruction_text.get_width()) // 2
+        instruction_y = modal_y + modal_height - 50
+        screen.blit(instruction_text, (instruction_x, instruction_y))
 
     def render(self, screen):
         """Affiche le menu principal"""
@@ -154,17 +242,22 @@ class MainMenu:
             screen.blit(main_text, (text_x, text_y))
 
             # Indicateur de sélection (flèche à gauche de l'option sélectionnée)
-            if i == self.selected_index:
+            if i == self.selected_index and not self.show_quit_modal:
                 arrow = self.arrow_font_medium.render("►", True, self.selected_color)
                 screen.blit(arrow, (text_x - 50, text_y))
 
         # Instructions en bas à droite
-        instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [ESC] Quit",
-                                                  True, (255, 255, 255))
-        instruction_x = SCREEN_WIDTH - instruction_text.get_width() - 20
-        instruction_y = SCREEN_HEIGHT - 40
-        screen.blit(instruction_text, (instruction_x, instruction_y))
+        if not self.show_quit_modal:
+            instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [ESC] Quit",
+                                                      True, (255, 255, 255))
+            instruction_x = SCREEN_WIDTH - instruction_text.get_width() - 20
+            instruction_y = SCREEN_HEIGHT - 40
+            screen.blit(instruction_text, (instruction_x, instruction_y))
 
         # Version du jeu en bas à gauche (optionnel)
         version_text = self.font_small.render("by Mohamed Laraki - v 1.0", True, (255, 255, 255))
         screen.blit(version_text, (20, SCREEN_HEIGHT - 40))
+
+        # Afficher le modal de quit si nécessaire
+        if self.show_quit_modal:
+            self.render_quit_modal(screen)

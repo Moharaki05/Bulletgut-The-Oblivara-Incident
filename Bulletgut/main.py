@@ -92,8 +92,13 @@ class GameManager:
                     self.show_credits()
                 elif action == "how_to_play":
                     self.show_how_to_play()
-                elif action == "quit":
+                elif action == "confirm_quit":
+                    # L'utilisateur a confirmé qu'il veut quitter
                     self.running = False
+                elif action in ["show_quit_modal", "cancel_quit", "navigate_modal"]:
+                    # Actions liées au modal - pas besoin d'action spécifique
+                    # Le modal est géré dans MainMenu
+                    pass
 
             elif self.state == "credits":
                 action = self.credits_screen.handle_input(event)
