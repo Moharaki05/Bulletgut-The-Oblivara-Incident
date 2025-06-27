@@ -274,10 +274,6 @@ class Game:
         """Méthode pour gérer un seul événement (appelée par GameManager)"""
         # Traitement spécial pour ESC - retour au menu principal
         if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-            # Si on est déjà en pause, ESC ferme le jeu
-            if self.game_paused:
-                self.should_return_to_menu = True
-                return
             # Sinon, on ouvre le menu pause normalement
             self.toggle_pause()
             return

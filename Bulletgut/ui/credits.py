@@ -19,7 +19,7 @@ class CreditsScreen:
 
         # Animation de défilement
         self.scroll_y = SCREEN_HEIGHT
-        self.scroll_speed = 30  # pixels par seconde
+        self.scroll_speed = 45  # pixels par seconde
         self.content_height = 0  # Calculé dynamiquement
 
         # Contenu des crédits
@@ -56,15 +56,10 @@ class CreditsScreen:
             ("", "space_small"),
             ("Python 3.x", "name"),
             ("Pygame", "name"),
+            ("PyTMX", "name"),
             ("Tiled Map Editor", "name"),
+            ("Adobe Photoshop", "name"),
             ("", "space"),
-            # ("ASSETS", "section"),
-            # ("", "space_small"),
-            # ("Font: DooM.ttf", "name"),
-            # ("Font: Born2bSportyFS.otf", "name"),
-            # ("Various texture sources", "name"),
-            # ("", "space"),
-            # ("", "space"),
             ("Thank you for playing!", "thank_you"),
             ("", "space"),
             ("Visit us at: https://github.com/Moharaki05/Bulletgut-The-Oblivara-Incident", "website"),

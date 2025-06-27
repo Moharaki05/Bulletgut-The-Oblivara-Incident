@@ -8,10 +8,10 @@ class LoadingScreen:
     def __init__(self):
         self.font_large = pg.font.Font("assets/fonts/DooM.ttf", 36)
         self.font_medium = pg.font.Font("assets/fonts/DooM.ttf", 24)
-        self.font_small = pg.font.Font("assets/fonts/Born2bSportyFS.otf", 18)
+        self.font_small = pg.font.Font("assets/fonts/Born2bSportyFS.otf", 24)
 
         # Couleurs
-        self.bg_color = (16, 16, 24)  # Bleu très foncé
+        self.bg_color = (0, 0, 0)  # Bleu très foncé
         self.text_color = (255, 255, 255)
         self.accent_color = (255, 64, 64)  # Rouge
         self.bar_bg_color = (64, 64, 80)
