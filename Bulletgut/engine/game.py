@@ -134,14 +134,30 @@ class Game:
     def start_restart_transition(self):
         """Démarre la transition de redémarrage (méthode centralisée)"""
         if self.restart_anim_in_progress:
+            print("[DEBUG] Restart already in progress, ignoring...")
             return  # Éviter les redémarrages multiples
 
         print("[DEBUG] STARTING RESTART TRANSITION")
+
+        # 1. Capturer l'écran actuel AVANT de recharger
         self.hud.render(self.player, self)
         self.restart_anim_surface = self.screen.copy()
+
+        # 2. Recharger le niveau IMMÉDIATEMENT (en arrière-plan)
+        self.reset_player_state()
+        self.stop_all_sounds()
+        self.load_level(self.level_manager.get_current())
+        self.update_statistics()
+
+        # 3. Configurer l'animation de transition
         self.restart_anim_in_progress = True
         self.restart_anim_done = False
-        self.has_restarted = False
+        self.restart_anim_col_width = 4
+        num_cols = SCREEN_WIDTH // self.restart_anim_col_width
+        self.restart_anim_columns = [0] * num_cols
+        self.restart_anim_speeds = [random.randint(8, 16) for _ in range(num_cols)]
+
+        print("[DEBUG] Level reloaded behind transition")
 
     def load_level(self, path):
         # Sauvegarder l'état du joueur avant de charger le nouveau niveau (sauf si c'est le premier niveau)
@@ -274,7 +290,6 @@ class Game:
         """Méthode pour gérer un seul événement (appelée par GameManager)"""
         # Traitement spécial pour ESC - retour au menu principal
         if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-            # Sinon, on ouvre le menu pause normalement
             self.toggle_pause()
             return
 
@@ -284,6 +299,7 @@ class Game:
             if action == "resume":
                 self.resume_game()
             elif action == "restart":
+                print("[DEBUG] Restart requested from pause menu")
                 self.resume_game()
                 if not self.restart_anim_in_progress:
                     self.start_restart_transition()
@@ -310,6 +326,7 @@ class Game:
                     if self.player.weapon:
                         self.player.weapon.fire()
                 elif not self.restart_anim_in_progress:
+                    print("[DEBUG] Restart requested from death click")
                     self.start_restart_transition()
             elif event.button == 4:
                 self.player.switch_weapon(-1)
@@ -381,16 +398,26 @@ class Game:
         if self.game_paused:
             return
 
-        if self.has_restarted:
-            self.reload_level()
-            self.pending_restart = False
-            self.restart_anim_in_progress = False
-            return
-
+        # Pendant la transition de redémarrage
         if self.restart_anim_in_progress:
             self.update_restart_transition()
+            # IMPORTANT : Continuer à mettre à jour le jeu en arrière-plan
+            # pour qu'il soit visible quand le rideau se lève
+            if not self.restart_anim_done:
+                # Mettre à jour la logique de jeu normalement
+                self.update_game_logic(dt)
+            else:
+                # Transition terminée, retour au jeu normal
+                self.restart_anim_in_progress = False
+                self.restart_anim_surface = None
+                print("[DEBUG] Restart transition completed")
             return
 
+        # Logique de jeu normale
+        self.update_game_logic(dt)
+
+    def update_game_logic(self, dt):
+        """Logique de jeu séparée pour pouvoir l'appeler pendant les transitions"""
         # Gérer le début de l'intermission
         if self.level_complete and not self.intermission_entry_started:
             self.render_game_without_intermission()
@@ -400,7 +427,6 @@ class Game:
 
         # Gérer la fin de l'intermission
         if self.show_intermission and self.intermission_screen.is_exit_transition_complete():
-            # Transition terminée, retourner au jeu normal
             self.show_intermission = False
             self.intermission_entry_started = False
             self.level_complete = False
@@ -409,26 +435,20 @@ class Game:
 
         if self.show_intermission:
             self.intermission_screen.update(dt)
-            # ⭐ NOUVEAU : Pendant l'intermission, ne pas mettre à jour la logique de jeu
             return
 
-        # ⭐ NOUVEAU : Logique de jeu normale seulement si pas en intermission
+        # Logique de jeu normale
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level, self)
-
-        # ⭐ CORRECTION SUPPLÉMENTAIRE : Remettre à zéro mouse_dx après usage
         self.mouse_dx = 0
 
-        # Le reste de la logique de jeu continue normalement...
         if self.player.damage_flash_timer > 0:
             self.player.damage_flash_timer = max(0.0, self.player.damage_flash_timer - dt)
 
-        # Mettre à jour les pickups et compter les items SEULEMENT quand ils sont ramassés
+        # Mettre à jour les pickups
         for pickup in self.level.pickups:
             was_picked_up = pickup.picked_up
             pickup.update(self.player, self)
-            # Compter l'item seulement au moment où il vient d'être ramassé
-            # ET seulement si ce n'est pas une munition, arme ou clé
             if not was_picked_up and pickup.picked_up:
                 if getattr(pickup, 'dropped_by_enemy', False):
                     continue
@@ -436,7 +456,6 @@ class Game:
                     if pickup.pickup_type not in ['weapon', 'key']:
                         self.items_collected += 1
                         print(f"[DEBUG] Item collected! Total: {self.items_collected}/{self.initial_item_count}")
-                # Pour les pickups sans pickup_type, vérifier le type de classe
                 elif not isinstance(pickup, (WeaponPickup, KeyPickup)):
                     self.items_collected += 1
                     print(f"[DEBUG] Item collected! Total: {self.items_collected}/{self.initial_item_count}")
@@ -444,14 +463,12 @@ class Game:
         for door in self.level.doors:
             door.update(dt)
 
-        # Mettre à jour les ennemis et compter les morts SEULEMENT quand ils meurent
+        # Mettre à jour les ennemis
         for enemy in self.level.enemies:
             enemy.update(self.player, dt)
-
-            # ⭐ NOUVEAU : Vérifier si cet ennemi vient de mourir
             if hasattr(enemy, 'just_died') and enemy.just_died:
                 self.enemies_killed += 1
-                enemy.just_died = False  # Marquer comme traité pour éviter de compter plusieurs fois
+                enemy.just_died = False
                 print(f"[DEBUG] Enemy killed! Total: {self.enemies_killed}/{self.initial_enemy_count}")
 
         if not self.player.alive and not self.hud.messages.has_death_message:
@@ -471,6 +488,7 @@ class Game:
             self.intermission_screen.render(self.screen, self.enemies_killed, self.initial_enemy_count,
                                             self.items_collected, self.initial_item_count, self.level_name)
         else:
+            # Toujours rendre le jeu (même pendant la transition)
             self.render_game_without_intermission()
 
         # Afficher le menu pause par-dessus tout
@@ -478,6 +496,7 @@ class Game:
             self.pause_menu.render(self.screen)
             self.stop_all_sounds()
 
+        # La transition se dessine PAR-DESSUS le jeu
         self.draw_restart_transition()
         pg.display.flip()
 
@@ -528,11 +547,13 @@ class Game:
             projectile.render(self.render_surface, self.raycaster)
 
     def draw_restart_transition(self):
+        """Dessine la transition de redémarrage PAR-DESSUS le nouveau jeu"""
         if not self.restart_anim_surface:
             return
 
         all_done = True
         col_width = self.restart_anim_col_width
+
         for x in range(0, SCREEN_WIDTH, col_width):
             col_index = x // col_width
             if self.restart_anim_columns[col_index] < SCREEN_HEIGHT:
@@ -550,9 +571,7 @@ class Game:
             self.restart_anim_done = True
 
     def update_restart_transition(self):
-        self.draw_restart_transition()
-        if self.restart_anim_done and not self.has_restarted:
-            self.has_restarted = True
+        pass
 
     def trigger_level_complete(self):
         if not self.level_complete:
@@ -563,16 +582,16 @@ class Game:
             print(
                 f"[LEVEL] Level completed! Stats - Enemies: {self.enemies_killed}/{self.initial_enemy_count}, Items: {self.items_collected}/{self.initial_item_count}")
 
-    def reload_level(self):
-        self.reset_player_state()  # Remise à zéro pour éviter de restaurer un ancien état
-        self.stop_all_sounds()
-        self.load_level(self.level_manager.get_current())
-        self.update_statistics()
+    # def reload_level(self):
+    #     self.reset_player_state()  # Remise à zéro pour éviter de restaurer un ancien état
+    #     self.stop_all_sounds()
+    #     self.load_level(self.level_manager.get_current())
+    #     self.update_statistics()
 
-        self.restart_anim_col_width = 4
-        num_cols = SCREEN_WIDTH // self.restart_anim_col_width
-        self.restart_anim_columns = [0] * num_cols
-        self.restart_anim_speeds = [random.randint(8, 20) for _ in range(num_cols)]
-        self.restart_anim_done = False
-        self.has_restarted = False
-        self.restart_anim_in_progress = False
+        # self.restart_anim_col_width = 4
+        # num_cols = SCREEN_WIDTH // self.restart_anim_col_width
+        # self.restart_anim_columns = [0] * num_cols
+        # self.restart_anim_speeds = [random.randint(8, 20) for _ in range(num_cols)]
+        # self.restart_anim_done = False
+        # self.has_restarted = False
+        # self.restart_anim_in_progress = False

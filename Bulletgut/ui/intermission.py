@@ -30,7 +30,7 @@ class IntermissionScreen:
         self.entry_curtain_col_width = 4
         num_cols = SCREEN_WIDTH // self.entry_curtain_col_width
         self.entry_curtain_columns = [0] * num_cols
-        self.entry_curtain_speeds = [random.randint(16, 32) for _ in range(num_cols)]
+        self.entry_curtain_speeds = [random.randint(8, 16) for _ in range(num_cols)]
         self.entry_curtain_surface = None
         self.show_stats = False  # Ne montre les stats qu'après la transition d'entrée
 
@@ -40,7 +40,7 @@ class IntermissionScreen:
         self.exit_transition_done = False
         self.exit_curtain_col_width = 4
         self.exit_curtain_columns = [0] * num_cols  # Commence à 0 (rideau ouvert)
-        self.exit_curtain_speeds = [random.randint(16, 32) for _ in range(num_cols)]
+        self.exit_curtain_speeds = [random.randint(8, 16) for _ in range(num_cols)]
         self.exit_curtain_surface = None  # Surface du prochain niveau
 
         self._intermission_surface = None
@@ -63,7 +63,7 @@ class IntermissionScreen:
             # Réinitialiser les colonnes d'entrée
             num_cols = SCREEN_WIDTH // self.entry_curtain_col_width
             self.entry_curtain_columns = [0] * num_cols
-            self.entry_curtain_speeds = [random.randint(16, 32) for _ in range(num_cols)]
+            self.entry_curtain_speeds = [random.randint(8, 16) for _ in range(num_cols)]
 
     def start_exit_transition(self, next_level_screen):
         """Démarre la transition rideau vers le prochain niveau (descendante)"""
@@ -79,7 +79,7 @@ class IntermissionScreen:
             # Réinitialiser les colonnes de sortie (commencent ouvertes, vont descendre)
             num_cols = SCREEN_WIDTH // self.exit_curtain_col_width
             self.exit_curtain_columns = [0] * num_cols
-            self.exit_curtain_speeds = [random.randint(16, 32) for _ in range(num_cols)]
+            self.exit_curtain_speeds = [random.randint(8, 16) for _ in range(num_cols)]
 
     def update(self, dt):
         """Met à jour l'animation du texte et les transitions"""
