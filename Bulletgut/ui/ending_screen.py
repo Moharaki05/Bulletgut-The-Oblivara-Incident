@@ -1,5 +1,6 @@
 import pygame as pg
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT
+from engine.audio_manager import AudioManager
 
 
 class EndingScreen:
@@ -41,7 +42,10 @@ class EndingScreen:
         self.line_spacing = 35
         self.text_margin_left = 100  # Marge gauche pour l'alignement
 
-    def load_ending_text(self):
+        self.audio_manager = AudioManager()
+
+    @staticmethod
+    def load_ending_text():
         """Charge le texte de fin depuis un fichier"""
         try:
             with open("data/ending_text.txt", "r", encoding="utf-8") as file:
@@ -61,6 +65,7 @@ class EndingScreen:
         self.typewriter_timer = 0.0
         self.blink_timer = 0.0
         self.show_enter_text = True
+        self.audio_manager.stop_music()
         print("[ENDING] Ending screen started")
 
     def update(self, dt):

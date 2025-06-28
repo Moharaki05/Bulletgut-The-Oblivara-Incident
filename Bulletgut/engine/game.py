@@ -39,8 +39,9 @@ class Game:
         pg.mouse.set_visible(False)
 
         self.level_manager = LevelManager([
-            "assets/maps/test_level.tmx",
+            "assets/maps/map03.tmx",
             "assets/maps/test_level2.tmx"
+
         ])
 
         self.is_first_level = True

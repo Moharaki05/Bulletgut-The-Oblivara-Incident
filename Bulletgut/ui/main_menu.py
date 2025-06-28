@@ -17,7 +17,6 @@ class MainMenu:
         self.text_color = (255, 255, 255) # Blanc
         self.shadow_color = (64, 64, 64)  # Gris pour l'ombre
         self.audio_manager = AudioManager()
-        self.audio_manager.stop_music()
 
         # Options du menu
         self.menu_options = [
@@ -74,6 +73,8 @@ class MainMenu:
         self.is_active = True
         self.selected_index = 0
         self.show_quit_modal = False
+
+        self.audio_manager.stop_music()
 
     def hide(self):
         """Cache le menu principal"""
