@@ -10,8 +10,8 @@ from engine.level import Level
 from ui.hud import HUD
 from engine.level_manager import LevelManager
 from ui.intermission import IntermissionScreen
-from ui.pause_menu import PauseMenu  # Nouveau import
-
+from ui.pause_menu import PauseMenu
+from ui.ending_screen import EndingScreen
 
 class Game:
     def __init__(self, screen=None):
@@ -86,6 +86,8 @@ class Game:
         self.level_complete = False
         self.show_intermission = False
         self.intermission_entry_started = False
+        self.ending_screen = EndingScreen()
+        self.show_ending = False
 
         # Nouveau : Menu pause
         self.pause_menu = PauseMenu()
@@ -317,6 +319,12 @@ class Game:
                     self.should_return_to_menu = True
             return
 
+        if self.show_ending:
+            action = self.ending_screen.handle_input(event)
+            if action == "return_to_menu":
+                self.should_return_to_menu = True
+            return
+
         # Événements normaux du jeu
         if event.type == pg.MOUSEMOTION:
             self.mouse_dx = event.rel[0]
@@ -368,9 +376,22 @@ class Game:
             self.handle_single_event(event)
 
     def start_level_transition(self):
-        """Démarre la transition vers le niveau suivant"""
+        """Démarre la transition vers le niveau suivant ou l'écran de fin"""
         # S'assurer que les sons sont toujours arrêtés
         self.stop_all_sounds()
+
+        # Vérifier si c'est le dernier niveau
+        if self.level_manager.is_last_level():
+            print("[GAME] Last level completed, showing ending screen")
+            self.show_intermission = False
+            self.intermission_entry_started = False
+            self.level_complete = False
+            self.intermission_screen.reset()
+
+            # Démarrer l'écran de fin
+            self.show_ending = True
+            self.ending_screen.start()
+            return
 
         # Charger le niveau suivant en arrière-plan
         self.level_manager.advance()
@@ -437,6 +458,11 @@ class Game:
             self.intermission_screen.update(dt)
             return
 
+        # Gérer l'écran de fin
+        if self.show_ending:
+            self.ending_screen.update(dt)
+            return
+
         # Logique de jeu normale
         keys = pg.key.get_pressed()
         self.player.handle_inputs(keys, dt, self.mouse_dx, self.level, self)
@@ -487,6 +513,9 @@ class Game:
         if self.show_intermission:
             self.intermission_screen.render(self.screen, self.enemies_killed, self.initial_enemy_count,
                                             self.items_collected, self.initial_item_count, self.level_name)
+        elif self.show_ending:
+            self.ending_screen.render(self.screen)
+
         else:
             # Toujours rendre le jeu (même pendant la transition)
             self.render_game_without_intermission()

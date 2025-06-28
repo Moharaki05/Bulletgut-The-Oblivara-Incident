@@ -20,7 +20,7 @@ class LevelManager:
                 self.max_reached_level = self.index
             print(f"[DEBUG] Advanced to level {self.index + 1}/{len(self.level_paths)}")
             return self.level_paths[self.index]
-        print("[DEBUG] No more levels available")
+        print("[DEBUG] No more levels available - game should end")
         return None
 
     def restart(self):
@@ -49,3 +49,7 @@ class LevelManager:
     def get_progress_percentage(self):
         """Retourne le pourcentage de progression"""
         return (self.index / len(self.level_paths)) * 100 if self.level_paths else 0
+
+    def has_next_level(self):
+        """Vérifie s'il y a un niveau suivant"""
+        return self.index + 1 < len(self.level_paths)
