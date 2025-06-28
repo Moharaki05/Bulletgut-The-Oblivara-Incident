@@ -101,8 +101,10 @@ class Game:
         """Active/désactive le menu pause"""
         if self.game_paused:
             self.resume_game()
+            self.level_manager.resume_music()
         else:
             self.pause_game()
+            self.level_manager.pause_music()
 
     def pause_game(self):
         """Met le jeu en pause"""
@@ -178,6 +180,8 @@ class Game:
             self.restore_player_state()
         else:
             self.is_first_level = False
+
+        self.level_manager.load_level_music(self.level)
 
         self.raycaster = Raycaster(self.level, self.player)
         self.enemies = self.level.enemies

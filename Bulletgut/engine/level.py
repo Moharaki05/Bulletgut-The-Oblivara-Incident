@@ -38,7 +38,7 @@ class Level:
         self.pickups = self.load_pickups()
 
         self.level_exits = self.load_level_exits()
-
+        self.music_file = self.load_level_music()
 
         # Store closed door GIDs for rendering
         self.closed_door_gids = self.find_closed_door_gids()
@@ -381,5 +381,16 @@ class Level:
     def get_map_name_from_tmx(path):
         tmx_data = load_pygame(path)
         return tmx_data.properties.get("map_name", "UNKNOWN MAP")
+
+    def load_level_music(self):
+        """Charge la musique du niveau depuis les propriétés Tiled"""
+        music_path = self.tmx_data.properties.get("music_file", None)
+
+        if music_path:
+            print(f"[DEBUG] Music file found for level: {music_path}")
+            return music_path
+        else:
+            print("[DEBUG] No music file specified for this level")
+            return None
 
 

@@ -1,5 +1,6 @@
 import pygame as pg
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT
+from engine.audio_manager import AudioManager
 
 
 class MainMenu:
@@ -15,6 +16,8 @@ class MainMenu:
         self.selected_color = (255, 255, 0)  # Jaune pour la sélection
         self.text_color = (255, 255, 255) # Blanc
         self.shadow_color = (64, 64, 64)  # Gris pour l'ombre
+        self.audio_manager = AudioManager()
+        self.audio_manager.stop_music()
 
         # Options du menu
         self.menu_options = [
