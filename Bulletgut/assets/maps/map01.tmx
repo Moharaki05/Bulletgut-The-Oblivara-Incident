@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="60" height="34" tilewidth="64" tileheight="64" infinite="0" nextlayerid="11" nextobjectid="125">
+ <properties>
+  <property name="floor_color" value="#1e1e1e"/>
+  <property name="map_name" value="Oblivara Outpost"/>
+  <property name="music_file" value="assets/music/m1.wav"/>
+ </properties>
+ <tileset firstgid="1" name="RetroFPSTileset" tilewidth="64" tileheight="64" tilecount="64" columns="8">
+  <image source="textures/RetroFPSTileset.png" width="512" height="512"/>
+ </tileset>
+ <layer id="4" name="Floor" width="60" height="34">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="2" name="Walls" width="60" height="34">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,42,43,42,45,46,9,46,42,42,42,42,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,10,11,0,0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,11,0,12,0,0,10,12,11,0,42,0,0,0,0,0,0,0,0,42,42,9,42,44,42,0,42,45,42,0,42,43,42,9,42,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,10,10,12,0,0,12,10,10,0,42,0,0,0,0,0,0,0,0,42,12,12,0,0,42,0,42,0,42,0,42,0,0,12,0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,42,42,42,42,42,0,0,10,10,12,0,0,0,0,0,0,42,42,0,0,0,0,0,0,0,42,0,0,0,12,42,42,42,0,42,46,42,0,0,0,0,9,42,42,42,42,42,42,42,42,0,0,0,0,0,0,0,
+0,0,42,42,0,0,0,43,0,0,0,0,0,0,0,0,0,0,0,0,0,42,42,45,42,42,0,0,42,0,0,0,0,0,0,0,0,10,0,10,0,0,0,0,42,0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,
+0,0,45,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,46,0,0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,
+0,0,42,42,0,0,0,43,0,0,0,0,0,0,0,0,0,0,0,0,0,42,42,42,0,42,42,46,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,42,42,42,42,42,0,0,10,12,11,0,0,11,11,11,0,42,42,42,0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,44,42,42,42,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,12,10,0,0,0,11,10,12,0,42,0,0,0,42,0,42,45,42,42,11,0,0,12,11,0,0,0,0,0,0,12,0,0,0,9,0,0,0,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,11,12,11,0,0,11,0,10,0,42,0,0,0,44,0,43,0,0,42,11,0,0,11,42,43,42,0,42,46,42,12,12,0,11,42,0,0,0,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,42,0,42,0,0,42,42,9,42,42,42,0,42,0,42,0,42,45,42,9,42,42,0,0,0,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,45,0,42,0,0,0,0,0,0,0,0,0,42,44,42,0,0,0,0,0,0,0,0,0,0,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,42,42,42,42,42,46,45,46,42,42,42,42,42,0,0,0,42,0,46,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,44,0,42,0,0,0,0,0,0,0,27,27,27,27,27,27,27,27,27,27,27,27,27,27,0,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,42,0,0,0,0,0,0,0,27,0,0,0,0,0,0,0,0,0,12,12,0,27,0,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,41,41,41,42,0,42,0,0,0,0,0,0,0,27,0,12,12,0,0,0,0,0,0,12,12,0,27,0,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,52,0,0,0,0,43,0,0,0,0,0,0,0,27,0,12,12,0,0,0,0,0,0,0,0,0,27,42,42,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,41,41,41,42,42,42,0,0,0,0,0,27,27,27,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,27,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,27,27,27,0,0,0,0,0,12,12,0,0,0,0,0,42,0,0,0,0,0,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,27,0,0,0,0,0,12,12,0,0,0,0,0,27,42,42,42,42,42,42,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,27,0,0,0,0,0,0,0,0,0,0,0,0,27,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,27,27,27,0,27,27,27,27,27,27,0,27,27,27,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,27,0,27,0,0,0,0,27,0,27,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,27,27,27,0,0,0,0,27,27,27,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="5" name="Doors" width="60" height="34">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="3" name="PlayerSpawn">
+  <object id="3" name="playerStart" x="350.454" y="678.666">
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="6" name="DoorsObj">
+  <object id="12" type="door" x="1344" y="640.25" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="y"/>
+    <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="95" type="door" x="1472" y="1344" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="y"/>
+    <property name="required_key" value="red"/>
+    <property name="thickness" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="82" type="door" x="1792" y="768.25" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="y"/>
+    <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="13" type="door" x="448" y="640.25" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="y"/>
+    <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="0.2"/>
+   </properties>
+  </object>
+  <object id="107" type="door" x="2112" y="1472" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="y"/>
+    <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="108" type="door" x="2944" y="1472" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="y"/>
+    <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="109" type="door" x="2752" y="1728" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="x"/>
+    <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="110" type="door" x="2304" y="1728" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="x"/>
+    <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="111" type="door" x="2816" y="640" width="64" height="64">
+   <properties>
+    <property name="auto_close_time" type="float" value="3"/>
+    <property name="axis" value="y"/>
+    <property name="required_key" value="None"/>
+    <property name="thickness" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="113" name="key_red" type="Item" x="2066.5" y="1508.17">
+   <properties>
+    <property name="amount" type="int" value="0"/>
+    <property name="item_type" value="item"/>
+    <property name="sprite" value="assets/pickups/keys/key_red.png"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="7" name="EnemySpawns">
+  <object id="64" type="enemy" x="1264" y="656">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="73" type="enemy" x="593.083" y="310.546">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="74" type="enemy" x="600.003" y="1017.33">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="79" type="enemy" x="901.333" y="672">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="83" type="enemy" x="2334" y="534.424">
+   <properties>
+    <property name="enemy_type" value="shotgunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="84" type="enemy" x="2335.33" y="945.091">
+   <properties>
+    <property name="enemy_type" value="shotgunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="86" name="bullets" type="Ammo" x="799.333" y="868">
+   <properties>
+    <property name="ammo_type" value="bullets"/>
+    <property name="amount" type="int" value="50"/>
+    <property name="sprite" value="assets/pickups/ammo/ammo_bullets.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="87" type="enemy" x="1106.67" y="1057.33">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="88" type="enemy" x="1165.33" y="329.333">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="89" type="enemy" x="2009.09" y="618.909">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="90" type="enemy" x="2012.12" y="809.818">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="91" type="enemy" x="2330.3" y="688.606">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="92" type="enemy" x="2666.67" y="573.455">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="93" type="enemy" x="2663.64" y="812.848">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="94" type="enemy" x="1568" y="1266.67">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="96" name="fourshells" type="Ammo" x="2780" y="484">
+   <properties>
+    <property name="ammo_type" value="shells"/>
+    <property name="amount" type="int" value="4"/>
+    <property name="sprite" value="assets/pickups/ammo/ammo_fourshells.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="101" name="fourshells" type="Ammo" x="2085.33" y="485.333">
+   <properties>
+    <property name="ammo_type" value="shells"/>
+    <property name="amount" type="int" value="4"/>
+    <property name="sprite" value="assets/pickups/ammo/ammo_fourshells.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="102" type="enemy" x="3198" y="752">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="103" type="enemy" x="3266" y="1012">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="104" type="enemy" x="3172" y="1174">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="105" type="enemy" x="3284" y="1460">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="106" type="enemy" x="3064" y="1504">
+   <properties>
+    <property name="enemy_type" value="shotgunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="114" type="enemy" x="2092.67" y="1495.33">
+   <properties>
+    <property name="enemy_type" value="shotgunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="123" type="enemy" x="2092" y="1519.33">
+   <properties>
+    <property name="enemy_type" value="shotgunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="115" type="enemy" x="2296.97" y="1624.97">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="116" type="enemy" x="2466.67" y="1397.7">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="117" type="enemy" x="2763.64" y="1606.79">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="118" type="enemy" x="2681.82" y="1318.91">
+   <properties>
+    <property name="enemy_type" value="gunner"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="119" name="shotgun" type="Weapon" x="2337.33" y="1834">
+   <properties>
+    <property name="ammo_type" value="shells"/>
+    <property name="amount" type="int" value="8"/>
+    <property name="sprite" value="assets/pickups/weapons/shotgun.png"/>
+    <property name="weapon_name" value="shotgun"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="121" name="clip" type="Ammo" x="2906.67" y="1256">
+   <properties>
+    <property name="ammo_type" value="bullets"/>
+    <property name="amount" type="int" value="10"/>
+    <property name="sprite" value="assets/pickups/ammo/ammo_clip.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="122" type="enemy" x="1442" y="1382">
+   <properties>
+    <property name="enemy_type" value="serpentipede"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="9" name="Pickups">
+  <object id="36" name="chainsaw" type="Weapon" x="224.333" y="671.417">
+   <properties>
+    <property name="ammo_type" value=""/>
+    <property name="amount" type="int" value="10"/>
+    <property name="sprite" value="assets/pickups/weapons/chainsaw.png"/>
+    <property name="weapon_name" value="chainsaw"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="41" name="medikit" type="Item" x="1051.33" y="941.333">
+   <properties>
+    <property name="amount" type="int" value="25"/>
+    <property name="item_type" value="item_medikit"/>
+    <property name="sprite" value="assets/pickups/items/item_medikit.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="42" name="armor" type="Item" x="717.667" y="423">
+   <properties>
+    <property name="amount" type="int" value="100"/>
+    <property name="item_type" value="item_armor"/>
+    <property name="sprite" value="assets/pickups/items/item_armor.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="75" name="medikit" type="Item" x="745.667" y="423.333">
+   <properties>
+    <property name="amount" type="int" value="25"/>
+    <property name="item_type" value="item_medikit"/>
+    <property name="sprite" value="assets/pickups/items/item_medikit.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="81" name="armor" type="Item" x="1114.67" y="368">
+   <properties>
+    <property name="amount" type="int" value="100"/>
+    <property name="item_type" value="item_armor"/>
+    <property name="sprite" value="assets/pickups/items/item_armor.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="98" name="medikit" type="Item" x="2334.67" y="482.667">
+   <properties>
+    <property name="amount" type="int" value="25"/>
+    <property name="item_type" value="item_medikit"/>
+    <property name="sprite" value="assets/pickups/items/item_medikit.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="100" name="armor" type="Item" x="2332" y="1008">
+   <properties>
+    <property name="amount" type="int" value="100"/>
+    <property name="item_type" value="item_armor"/>
+    <property name="sprite" value="assets/pickups/items/item_armor.png"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="120" name="medikit" type="Item" x="2784" y="1827.33">
+   <properties>
+    <property name="amount" type="int" value="25"/>
+    <property name="item_type" value="item_medikit"/>
+    <property name="sprite" value="assets/pickups/items/item_medikit.png"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="10" name="LevelExit">
+  <object id="71" name="level_exit" type="level_exit" x="1280" y="1344" width="80.7197" height="64"/>
+ </objectgroup>
+</map>

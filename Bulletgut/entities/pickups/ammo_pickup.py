@@ -3,7 +3,7 @@ import pygame as pg
 
 pickup_messages = {
     "bullets": "A BOX OF BULLETS",
-    "shells": "A BOX OF SHELLS",
+    "shells": "SOME SHELLS",
     "rockets": "A BOX OF ROCKETS",
     "cells": "A CELL CHARGE PACK"
 }
