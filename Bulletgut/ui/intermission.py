@@ -85,9 +85,6 @@ class IntermissionScreen:
             self.exit_transition_done = False
             self.state = "exiting"
 
-            # Arrêter la musique d'intermission
-            # self.stop_music()
-
             # Capturer l'écran du prochain niveau
             self.exit_curtain_surface = next_level_screen.copy()
 
@@ -96,7 +93,7 @@ class IntermissionScreen:
             self.exit_curtain_columns = [0] * num_cols
             self.exit_curtain_speeds = [random.randint(8, 16) for _ in range(num_cols)]
 
-            print("[INTERMISSION] Starting exit transition and stopping music")
+            print("[INTERMISSION] Starting exit transition")
 
     def start_music(self):
         """Démarre la musique d'intermission"""
@@ -107,13 +104,6 @@ class IntermissionScreen:
                 print("[INTERMISSION] Music started successfully")
             else:
                 print("[INTERMISSION] Failed to start music")
-
-    def stop_music(self):
-        """Arrête la musique d'intermission"""
-        if self.music_started:
-            self.audio_manager.stop_music()
-            self.music_started = False
-            print("[INTERMISSION] Music stopped")
 
     def update(self, dt):
         """Met à jour l'animation du texte et les transitions"""
@@ -319,10 +309,6 @@ class IntermissionScreen:
                 not self.exit_transition_in_progress)
 
     def reset(self):
-        """Remet l'intermission à zéro pour la prochaine utilisation"""
-        # Arrêter la musique si elle joue encore
-        # self.stop_music()
-
         self.entry_transition_active = False
         self.entry_transition_in_progress = False
         self.entry_transition_done = False
@@ -341,7 +327,6 @@ class IntermissionScreen:
 
         print("[INTERMISSION] Reset completed")
 
-    # Méthodes de compatibilité avec l'ancien code
     def start_transition(self, game_screen):
         """Alias pour start_entry_transition (compatibilité)"""
         self.start_entry_transition(game_screen)

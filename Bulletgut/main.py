@@ -240,8 +240,6 @@ def main():
     try:
         game_manager = GameManager()
         game_manager.run()
-    except KeyboardInterrupt:
-        print("Game closed by user.")
     except Exception as e:
         print(f"Unexpected error: {e}")
         import traceback

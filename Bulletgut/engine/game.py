@@ -40,7 +40,8 @@ class Game:
 
         self.level_manager = LevelManager([
             "assets/maps/map01.tmx",
-            "assets/maps/map03.tmx"
+            "assets/maps/map02.tmx"
+            # "assets/maps/map03.tmx"
         ])
 
         self.is_first_level = True
@@ -78,7 +79,7 @@ class Game:
         self.pending_level_change = False
         self.ready_to_load_level = False
 
-        # ⭐ NOUVEAU : Flag pour éviter les redémarrages multiples
+        # Flag pour éviter les redémarrages multiples
         self.restart_from_menu = False
 
         self.hud = HUD(self.screen)
