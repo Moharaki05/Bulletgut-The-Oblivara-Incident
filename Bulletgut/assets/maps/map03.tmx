@@ -171,7 +171,7 @@
 </data>
  </layer>
  <objectgroup id="3" name="PlayerSpawn">
-  <object id="3" name="playerStart" x="381.939" y="2801.3">
+  <object id="3" name="playerStart" x="1057.94" y="1169.3">
    <point/>
   </object>
  </objectgroup>
@@ -404,13 +404,13 @@
    </properties>
    <point/>
   </object>
-  <object id="154" type="enemy" x="986.667" y="1129.33">
+  <object id="154" type="enemy" x="732" y="931.997">
    <properties>
     <property name="enemy_type" value="serpentipede"/>
    </properties>
    <point/>
   </object>
-  <object id="155" type="enemy" x="1121.33" y="1126.67">
+  <object id="155" type="enemy" x="831.997" y="932.003">
    <properties>
     <property name="enemy_type" value="serpentipede"/>
    </properties>

@@ -42,7 +42,22 @@ class EndingScreen:
         self.line_spacing = 35
         self.text_margin_left = 100  # Marge gauche pour l'alignement
 
+        # ⭐ NOUVEAU : Gestionnaire audio pour la musique de fin
         self.audio_manager = AudioManager()
+        self.music_started = False
+
+        # ⭐ NOUVEAU : Chemins des musiques possibles (par ordre de priorité)
+        self.ending_music_paths = [
+            "assets/music/ending.ogg",
+            "assets/music/ending.mp3",
+            "assets/music/ending.wav",
+            "assets/music/credits.ogg",
+            "assets/music/credits.mp3",
+            "assets/music/credits.wav",
+            "assets/music/finale.ogg",
+            "assets/music/finale.mp3",
+            "assets/music/finale.wav"
+        ]
 
     @staticmethod
     def load_ending_text():
@@ -55,6 +70,40 @@ class EndingScreen:
             # Texte par défaut (Lorem Ipsum thématique)
             return """ending_text.txt is missing. Please provide the file in the data folder"""
 
+    def find_ending_music(self):
+        """Trouve le premier fichier de musique de fin disponible"""
+        import os
+
+        for music_path in self.ending_music_paths:
+            if os.path.exists(music_path):
+                print(f"[ENDING] Found ending music: {music_path}")
+                return music_path
+
+        print("[ENDING] No ending music file found. Tried:")
+        for path in self.ending_music_paths:
+            print(f"  - {path}")
+        return None
+
+    def start_ending_music(self):
+        """Démarre la musique de fin"""
+        if self.music_started:
+            return
+
+        music_path = self.find_ending_music()
+        if music_path:
+            # Arrêter toute musique précédente
+            self.audio_manager.stop_music()
+
+            # Charger et jouer la musique de fin (boucle infinie)
+            if self.audio_manager.load_and_play_music(music_path, loop=-1):
+                self.music_started = True
+                print(f"[ENDING] Started ending music: {music_path}")
+            else:
+                print(f"[ENDING] Failed to start ending music: {music_path}")
+        else:
+            print("[ENDING] No ending music available, continuing without music")
+            self.music_started = True  # Éviter de réessayer
+
     def start(self):
         """Démarre l'écran de fin"""
         self.active = True
@@ -65,13 +114,21 @@ class EndingScreen:
         self.typewriter_timer = 0.0
         self.blink_timer = 0.0
         self.show_enter_text = True
-        self.audio_manager.stop_music()
+        self.music_started = False
+
+        # ⭐ NOUVEAU : Démarrer la musique de fin
+        self.start_ending_music()
+
         print("[ENDING] Ending screen started")
 
     def update(self, dt):
         """Met à jour l'effet machine à écrire et les animations"""
         if not self.active:
             return
+
+        # ⭐ NOUVEAU : S'assurer que la musique joue si elle n'a pas démarré
+        if not self.music_started:
+            self.start_ending_music()
 
         # Effet machine à écrire
         if not self.text_complete:
@@ -151,6 +208,8 @@ class EndingScreen:
 
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_RETURN and self.can_exit:
+                # ⭐ NOUVEAU : Arrêter la musique avant de retourner au menu
+                self.stop_music()
                 return "return_to_menu"
             elif event.key == pg.K_SPACE and not self.text_complete:
                 # Permettre de skip l'animation avec Espace
@@ -166,7 +225,37 @@ class EndingScreen:
         """Retourne True si l'écran de fin est actif"""
         return self.active
 
+    def stop_music(self):
+        """Arrête la musique de fin"""
+        if self.music_started:
+            self.audio_manager.stop_music()
+            self.music_started = False
+            print("[ENDING] Ending music stopped")
+
     def stop(self):
         """Arrête l'écran de fin"""
         self.active = False
+        self.stop_music()
         print("[ENDING] Ending screen stopped")
+
+    # ⭐ NOUVEAU : Méthodes pour contrôler la musique
+    def pause_music(self):
+        """Met en pause la musique de fin"""
+        if self.music_started:
+            self.audio_manager.pause_music()
+            print("[ENDING] Ending music paused")
+
+    def resume_music(self):
+        """Reprend la musique de fin"""
+        if self.music_started:
+            self.audio_manager.resume_music()
+            print("[ENDING] Ending music resumed")
+
+    def set_music_volume(self, volume):
+        """Définit le volume de la musique de fin (0.0 à 1.0)"""
+        self.audio_manager.set_music_volume(volume)
+        print(f"[ENDING] Ending music volume set to {volume}")
+
+    def is_music_playing(self):
+        """Vérifie si la musique de fin joue actuellement"""
+        return self.music_started and self.audio_manager.is_playing()
