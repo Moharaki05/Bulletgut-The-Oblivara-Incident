@@ -43,6 +43,10 @@ class GameManager:
         pg.event.set_grab(False)
         pg.mouse.set_visible(True)
 
+        # ⭐ NOUVEAU : Initialiser le menu principal avec la musique
+        print("[GAME_MANAGER] Initializing main menu with music")
+        self.main_menu.show()
+
     def start_loading(self):
         """Démarre l'écran de chargement avant de lancer le jeu"""
         try:
@@ -69,7 +73,7 @@ class GameManager:
         self.game_surface = None
 
         self.state = "main_menu"
-        self.main_menu.show()
+        self.main_menu.show()  # ⭐ Appel explicite pour relancer la musique du menu
         print("[GAME_MANAGER] Returned to main menu")
 
     def show_credits(self):

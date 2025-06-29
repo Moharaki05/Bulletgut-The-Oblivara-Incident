@@ -41,7 +41,6 @@ class Game:
         self.level_manager = LevelManager([
             "assets/maps/map01.tmx",
             "assets/maps/map03.tmx"
-
         ])
 
         self.is_first_level = True

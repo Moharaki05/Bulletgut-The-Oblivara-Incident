@@ -34,6 +34,10 @@ class MainMenu:
         self.quit_modal_options = ["YES", "NO"]
         self.quit_modal_selected = 1  # Sélectionner "NO" par défaut pour éviter les sorties accidentelles
 
+        # Configuration de la musique du menu
+        self.menu_music_path = "assets/music/title.mp3"  # Ou .mp3/.wav selon votre fichier
+        self.music_loaded = False
+
         # Charger le fond personnalisé
         try:
             self.background = pg.image.load("assets/ui/main_menu_bg.png").convert()
@@ -68,17 +72,32 @@ class MainMenu:
             self.logo_x = SCREEN_WIDTH - self.logo.get_width() - 50
             self.logo_y = self.menu_start_y - self.logo.get_height() + 50
 
+    def load_menu_music(self):
+        """Charge la musique du menu si elle n'est pas déjà chargée"""
+        if not self.music_loaded:
+            success = self.audio_manager.load_and_play_music(self.menu_music_path, loop=0)
+            if success:
+                self.music_loaded = True
+                print("[MAIN_MENU] Menu music loaded and playing")
+            else:
+                print("[MAIN_MENU] Failed to load menu music - continuing without music")
+
     def show(self):
         """Affiche le menu principal"""
         self.is_active = True
         self.selected_index = 0
         self.show_quit_modal = False
 
+        # Arrêter toute musique en cours et charger la musique du menu
         self.audio_manager.stop_music()
+        self.music_loaded = False  # Reset pour recharger la musique
+        self.load_menu_music()
 
     def hide(self):
         """Cache le menu principal"""
         self.is_active = False
+        # Optionnel : arrêter la musique quand on quitte le menu
+        # self.audio_manager.stop_music()
 
     def handle_input(self, event):
         """Gère les entrées clavier pour naviguer dans le menu"""
@@ -96,6 +115,8 @@ class MainMenu:
                     return "navigate_modal"
                 elif event.key == pg.K_RETURN or event.key == pg.K_SPACE:
                     if self.quit_modal_selected == 0:  # YES
+                        # Arrêter la musique avant de quitter
+                        self.audio_manager.stop_music()
                         return "confirm_quit"
                     else:  # NO
                         self.show_quit_modal = False
@@ -118,7 +139,6 @@ class MainMenu:
                     self.show_quit_modal = True
                     self.quit_modal_selected = 1  # Sélectionner "NO" par défaut
                     return "show_quit_modal"
-
         return None
 
     def get_selected_action(self):
@@ -253,7 +273,7 @@ class MainMenu:
 
         # Instructions en bas à droite
         if not self.show_quit_modal:
-            instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [ESC] Quit",
+            instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [ESC] Quit • [M] Music • [+/-] Volume",
                                                       True, (255, 255, 255))
             instruction_x = SCREEN_WIDTH - instruction_text.get_width() - 20
             instruction_y = SCREEN_HEIGHT - 40
