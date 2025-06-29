@@ -42,22 +42,12 @@ class EndingScreen:
         self.line_spacing = 35
         self.text_margin_left = 100  # Marge gauche pour l'alignement
 
-        # ⭐ NOUVEAU : Gestionnaire audio pour la musique de fin
+        # Gestionnaire audio pour la musique de fin
         self.audio_manager = AudioManager()
         self.music_started = False
 
-        # ⭐ NOUVEAU : Chemins des musiques possibles (par ordre de priorité)
-        self.ending_music_paths = [
-            "assets/music/ending.ogg",
-            "assets/music/ending.mp3",
-            "assets/music/ending.wav",
-            "assets/music/credits.ogg",
-            "assets/music/credits.mp3",
-            "assets/music/credits.wav",
-            "assets/music/finale.ogg",
-            "assets/music/finale.mp3",
-            "assets/music/finale.wav"
-        ]
+        # Chemins des musiques possibles (par ordre de priorité)
+        self.ending_music_path = "assets/music/ending.mp3"
 
     @staticmethod
     def load_ending_text():
@@ -67,29 +57,15 @@ class EndingScreen:
                 return file.read().strip()
         except FileNotFoundError:
             print("[WARNING] data/ending_text.txt not found, using default text")
-            # Texte par défaut (Lorem Ipsum thématique)
+            # Message d'erreur - fichier texten non trouvé
             return """ending_text.txt is missing. Please provide the file in the data folder"""
-
-    def find_ending_music(self):
-        """Trouve le premier fichier de musique de fin disponible"""
-        import os
-
-        for music_path in self.ending_music_paths:
-            if os.path.exists(music_path):
-                print(f"[ENDING] Found ending music: {music_path}")
-                return music_path
-
-        print("[ENDING] No ending music file found. Tried:")
-        for path in self.ending_music_paths:
-            print(f"  - {path}")
-        return None
 
     def start_ending_music(self):
         """Démarre la musique de fin"""
         if self.music_started:
             return
 
-        music_path = self.find_ending_music()
+        music_path = self.ending_music_path
         if music_path:
             # Arrêter toute musique précédente
             self.audio_manager.stop_music()
@@ -116,7 +92,7 @@ class EndingScreen:
         self.show_enter_text = True
         self.music_started = False
 
-        # ⭐ NOUVEAU : Démarrer la musique de fin
+        # Démarrer la musique de fin
         self.start_ending_music()
 
         print("[ENDING] Ending screen started")
@@ -126,7 +102,7 @@ class EndingScreen:
         if not self.active:
             return
 
-        # ⭐ NOUVEAU : S'assurer que la musique joue si elle n'a pas démarré
+        # S'assurer que la musique joue si elle n'a pas démarré
         if not self.music_started:
             self.start_ending_music()
 

@@ -39,7 +39,7 @@ class Game:
         pg.mouse.set_visible(False)
 
         self.level_manager = LevelManager([
-            # "assets/maps/map01.tmx",
+            "assets/maps/map01.tmx",
             "assets/maps/map03.tmx"
         ])
 
