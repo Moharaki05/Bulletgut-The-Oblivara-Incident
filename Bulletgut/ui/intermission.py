@@ -1,6 +1,8 @@
 import pygame as pg
 import random
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT
+from engine.audio_manager import AudioManager
+
 
 class IntermissionScreen:
     def __init__(self):
@@ -8,6 +10,10 @@ class IntermissionScreen:
         self.font_large = pg.font.Font("assets/fonts/DooM.ttf", 45)
         self.font_medium = pg.font.Font("assets/fonts/DooM.ttf", 30)
         self.font_small = pg.font.Font("assets/fonts/DooM.ttf", 20)
+
+        # Gestionnaire audio pour l'intermission
+        self.audio_manager = AudioManager()
+        self.intermission_music_path = "assets/music/intermission.mp3"  # Chemin vers la musique d'intermission
 
         # Charger l'image de fond d'intermission
         try:
@@ -48,6 +54,9 @@ class IntermissionScreen:
         # États de l'intermission
         self.state = "entering"  # "entering", "showing", "exiting", "done"
 
+        # Flag pour s'assurer que la musique ne se lance qu'une fois
+        self.music_started = False
+
     def start_entry_transition(self, game_screen):
         """Démarre la transition rideau vers l'intermission"""
         if not self.entry_transition_active:
@@ -56,6 +65,7 @@ class IntermissionScreen:
             self.entry_transition_done = False
             self.show_stats = False
             self.state = "entering"
+            self.music_started = False
 
             # Capturer l'écran actuel pour l'effet rideau
             self.entry_curtain_surface = game_screen.copy()
@@ -65,6 +75,8 @@ class IntermissionScreen:
             self.entry_curtain_columns = [0] * num_cols
             self.entry_curtain_speeds = [random.randint(8, 16) for _ in range(num_cols)]
 
+            print("[INTERMISSION] Starting entry transition")
+
     def start_exit_transition(self, next_level_screen):
         """Démarre la transition rideau vers le prochain niveau (descendante)"""
         if not self.exit_transition_active and self.state == "showing":
@@ -73,6 +85,9 @@ class IntermissionScreen:
             self.exit_transition_done = False
             self.state = "exiting"
 
+            # Arrêter la musique d'intermission
+            # self.stop_music()
+
             # Capturer l'écran du prochain niveau
             self.exit_curtain_surface = next_level_screen.copy()
 
@@ -80,6 +95,25 @@ class IntermissionScreen:
             num_cols = SCREEN_WIDTH // self.exit_curtain_col_width
             self.exit_curtain_columns = [0] * num_cols
             self.exit_curtain_speeds = [random.randint(8, 16) for _ in range(num_cols)]
+
+            print("[INTERMISSION] Starting exit transition and stopping music")
+
+    def start_music(self):
+        """Démarre la musique d'intermission"""
+        if not self.music_started:
+            success = self.audio_manager.load_and_play_music(self.intermission_music_path, loop=-1)
+            if success:
+                self.music_started = True
+                print("[INTERMISSION] Music started successfully")
+            else:
+                print("[INTERMISSION] Failed to start music")
+
+    def stop_music(self):
+        """Arrête la musique d'intermission"""
+        if self.music_started:
+            self.audio_manager.stop_music()
+            self.music_started = False
+            print("[INTERMISSION] Music stopped")
 
     def update(self, dt):
         """Met à jour l'animation du texte et les transitions"""
@@ -112,6 +146,9 @@ class IntermissionScreen:
             self.show_stats = True
             self.entry_transition_in_progress = False
             self.state = "showing"
+
+            # Démarrer la musique d'intermission maintenant que la transition est finie
+            self.start_music()
 
     def update_exit_curtain_transition(self):
         """Met à jour l'animation du rideau de sortie (descendante)"""
@@ -256,9 +293,9 @@ class IntermissionScreen:
 
                 # Vérifier que le rectangle source est valide
                 if (source_rect.x >= 0 and source_rect.y >= 0 and
-                    source_rect.x + source_rect.width <= SCREEN_WIDTH and
-                    source_rect.y + source_rect.height <= SCREEN_HEIGHT and
-                    source_rect.width > 0 and source_rect.height > 0):
+                        source_rect.x + source_rect.width <= SCREEN_WIDTH and
+                        source_rect.y + source_rect.height <= SCREEN_HEIGHT and
+                        source_rect.width > 0 and source_rect.height > 0):
                     try:
                         intermission_column = self._intermission_surface.subsurface(source_rect)
                         screen.blit(intermission_column, dest_pos)
@@ -283,6 +320,9 @@ class IntermissionScreen:
 
     def reset(self):
         """Remet l'intermission à zéro pour la prochaine utilisation"""
+        # Arrêter la musique si elle joue encore
+        # self.stop_music()
+
         self.entry_transition_active = False
         self.entry_transition_in_progress = False
         self.entry_transition_done = False
@@ -293,9 +333,13 @@ class IntermissionScreen:
         self.state = "entering"
         self.entry_curtain_surface = None
         self.exit_curtain_surface = None
+        self.music_started = False
+
         # Nettoyer la surface temporaire
         if hasattr(self, '_intermission_surface'):
             del self._intermission_surface
+
+        print("[INTERMISSION] Reset completed")
 
     # Méthodes de compatibilité avec l'ancien code
     def start_transition(self, game_screen):

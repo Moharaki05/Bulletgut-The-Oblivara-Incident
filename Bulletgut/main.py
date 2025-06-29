@@ -43,7 +43,7 @@ class GameManager:
         pg.event.set_grab(False)
         pg.mouse.set_visible(True)
 
-        # ⭐ NOUVEAU : Initialiser le menu principal avec la musique
+        # Initialiser le menu principal avec la musique
         print("[GAME_MANAGER] Initializing main menu with music")
         self.main_menu.show()
 
@@ -146,7 +146,7 @@ class GameManager:
                     self.game_ready = True
                     print("[GAME_MANAGER] Game created and ready")
 
-                    # ⭐ NOUVEAU : Rendre le jeu immédiatement pour préparer la transition
+                    # Rendre le jeu immédiatement pour préparer la transition
                     self.prepare_game_surface()
 
                 except Exception as e:
