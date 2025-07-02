@@ -273,7 +273,7 @@ class MainMenu:
 
         # Instructions en bas à droite
         if not self.show_quit_modal:
-            instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [ESC] Quit • [M] Music • [+/-] Volume",
+            instruction_text = self.font_small.render("[↑][↓] Navigate • [ENTER] Select • [ESC] Quit",
                                                       True, (255, 255, 255))
             instruction_x = SCREEN_WIDTH - instruction_text.get_width() - 20
             instruction_y = SCREEN_HEIGHT - 40
